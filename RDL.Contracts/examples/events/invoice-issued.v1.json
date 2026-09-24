@@ -1,5 +1,5 @@
 {
-  "description": "InvoiceIssued v1. Los códigos fiscales (tipos y tarifas de impuesto, unidades, condiciones de venta, medios de pago, tipos de identificación y de exoneración) son ILUSTRATIVOS: TODO(fiscal). Los montos cuadran con las fórmulas de docs/eventos/invoice-issued.md con aritmética exacta. valid[0]: una línea (el ejemplo de la arquitectura 6.3). valid[1]: dos líneas, descuento y dos tarifas. valid[2]: dólares, crédito a 30 días, exoneración y emisión cerca de medianoche (issueDate en hora de Costa Rica).",
+  "description": "InvoiceIssued v1. Los códigos fiscales (tipos y tarifas de impuesto, unidades, condiciones de venta, medios de pago, tipos de identificación y de exoneración) son ILUSTRATIVOS: TODO(fiscal). Los montos cuadran con las fórmulas de docs/eventos/invoice-issued.md con aritmética exacta. valid[0]: una línea (el ejemplo de la arquitectura 6.3). valid[1]: dos líneas, descuento y dos tarifas. valid[2]: dólares, crédito a 30 días, exoneración de 6.5 puntos de los 13 del IVA y emisión cerca de medianoche (issueDate en hora de Costa Rica).",
   "schema": "schemas/events/invoice-issued.v1.json",
   "valid": [
     {
@@ -37,6 +37,7 @@
           "isService": true,
           "quantity": "1",
           "unitPrice": "10000",
+          "grossAmount": "10000",
           "discount": "0",
           "subtotal": "10000",
           "tax": "1300",
@@ -88,6 +89,7 @@
           "isService": false,
           "quantity": "2.5",
           "unitPrice": "1000.00",
+          "grossAmount": "2500",
           "discount": "250",
           "discountReason": "Promoción de temporada",
           "subtotal": "2250",
@@ -105,6 +107,7 @@
           "isService": true,
           "quantity": "3",
           "unitPrice": "333.33",
+          "grossAmount": "999.99",
           "discount": "0",
           "subtotal": "999.99",
           "tax": "39.9996",
@@ -157,6 +160,7 @@
           "isService": true,
           "quantity": "1",
           "unitPrice": "1000",
+          "grossAmount": "1000",
           "discount": "0",
           "subtotal": "1000",
           "tax": "65",
@@ -173,7 +177,7 @@
                 "documentNumber": "AL-12345-2026",
                 "institution": "Ministerio de Hacienda",
                 "issuedAt": "2026-01-15T00:00:00Z",
-                "percentage": "50",
+                "exoneratedRate": "6.5",
                 "amount": "65"
               }
             }
@@ -207,6 +211,9 @@
     { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/discount", "value": "100" }], "why": "descuento sin motivo" },
     { "base": 2, "patch": [{ "op": "remove", "path": "/lines/0/taxes/0/exoneration/institution" }], "why": "exoneración incompleta (todos los campos o ninguno)" },
     { "base": 0, "patch": [{ "op": "replace", "path": "/exchangeRate", "value": "0" }], "why": "tipo de cambio cero" },
-    { "base": 0, "patch": [{ "op": "replace", "path": "/invoiceId", "value": "7C1E9A2B-3D4F-4A5B-8C6D-7E8F9A0B1C2D" }], "why": "UUID en mayúsculas" }
+    { "base": 0, "patch": [{ "op": "replace", "path": "/invoiceId", "value": "7C1E9A2B-3D4F-4A5B-8C6D-7E8F9A0B1C2D" }], "why": "UUID en mayúsculas" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/lines/0/grossAmount" }], "why": "falta grossAmount (MontoTotal del Anexo 1)" },
+    { "base": 2, "patch": [{ "op": "replace", "path": "/lines/0/taxes/0/exoneration/exoneratedRate", "value": "6.555" }], "why": "tarifa exonerada con más de 2 decimales (formato 4,2)" },
+    { "base": 2, "patch": [{ "op": "add", "path": "/lines/0/taxes/0/exoneration/percentage", "value": "50" }], "why": "campo percentage de v0.1.0: la exoneración se expresa en puntos de tarifa (exoneratedRate)" }
   ]
 }

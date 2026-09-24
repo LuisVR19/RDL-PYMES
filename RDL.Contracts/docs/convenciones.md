@@ -39,14 +39,20 @@ igual que en la base (`shared.*`).
 | `Quantity` | `numeric(16,3)`, `> 0` | `^(0\|[1-9][0-9]{0,12})(\.[0-9]{1,3})?$`, distinto de cero | `"1"`, `"2.5"`, `"0.125"` |
 | `Percentage` | `numeric(7,4)`, `0..100` | `^(100(\.0{1,4})?\|[1-9]?[0-9](\.[0-9]{1,4})?)$` | `"13"`, `"0.5"`, `"100"` |
 | `CurrencyCode` | `char(3)` | `^[A-Z]{3}$` (ISO 4217) | `"CRC"`, `"USD"` |
+| `TaxRate` | Decimal 4,2 del Anexo 1 | `^(0\|[1-9][0-9]?)(\.[0-9]{1,2})?$` | `"13"`, `"6.5"`, `"0.5"` |
 
 - Sin signo: los montos **nunca son negativos** (`money_amount >= 0`). Un descuento, una nota de crédito o un ajuste
   se expresan con su tipo, no con el signo.
 - Sin separador de miles, sin exponente y con `.` como separador decimal. Se aceptan ceros a la derecha
   (`"1300.50"`), no a la izquierda (`"01300"`).
 - La moneda va siempre en un campo aparte, junto al monto o en el encabezado del documento.
-- **Redondeo: pendiente (decisión D2).** Billing calcula y fiscal valida. La escala máxima es 5 decimales, como la
-  base, pero el modo y el paso de redondeo dependen de la especificación de Hacienda. `TODO(fiscal)`.
+- **Redondeo (D2, resuelta):** cada campo monetario se redondea a **5 decimales, mitad hacia arriba**: se mira el
+  sexto decimal; si es menor que 5 no cambia, si es 5 o más sube una unidad (`20.203512 → 20.20351`,
+  `20.203518 → 20.20352`). Es el método del Anexo 1 v4.4 de Hacienda. **Billing calcula y fiscal valida.** Los totales
+  del documento son la suma de los campos de línea ya redondeados. `money.RoundHalfUp` / `money.Round5` implementan la
+  regla con sus casos de prueba. FUENTE: borrador sept-2024 de los Anexos y Estructuras v4.4 (ADR 0007).
+- **Tarifas en puntos:** las tarifas de exoneración usan `TaxRate` (puntos porcentuales, formato 4,2): `"13"` es 13 %,
+  `"6.5"` es 6,5 %. No confundir con `Percentage` (0–100 con 4 decimales).
 
 ## 4. Nombres
 
@@ -149,6 +155,6 @@ revalidada, no del claim `org_roles` (que puede estar desactualizado).
 
 ## TODOs y preguntas abiertas
 
-- `TODO(fiscal)` D2: modo y paso de redondeo, según la especificación de Hacienda.
+- D2 resuelta con el borrador de los Anexos v4.4; revalidar con la versión oficial.
 - `TODO(fiscal)` D9: catálogo de tipos de identificación y formato del número por tipo.
 - ¿Enums extensibles en respuestas HTTP? Se propone documentarlo por campo en cada OpenAPI.

@@ -1,0 +1,12 @@
+{
+  "description": "Puntos de tarifa (4,2): 13% se escribe \"13\", no \"0.13\". El formato no puede distinguir \"0.13\" (0,13 puntos) de un error de escala; esa verificación (tarifa exonerada <= tarifa del impuesto) es del productor y de fiscal.",
+  "schema": "schemas/common/tax-rate.json",
+  "valid": ["0", "13", "6.5", "0.5", "99.99"],
+  "invalid": [
+    { "value": "100", "why": "más de 2 enteros (formato 4,2)" },
+    { "value": "6.555", "why": "más de 2 decimales" },
+    { "value": "013", "why": "cero a la izquierda" },
+    { "value": 13, "why": "number" },
+    { "value": "-1", "why": "negativo" }
+  ]
+}

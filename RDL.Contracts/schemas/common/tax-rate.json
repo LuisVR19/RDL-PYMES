@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/tax-rate.json",
+  "title": "TaxRate",
+  "description": "Tarifa en puntos porcentuales, formato Decimal 4,2 del Anexo 1 v4.4 (campo \"Tarifa exonerada\"): la tarifa del 13% se escribe \"13\", la del 1% \"1\" y la del 0.5% \"0.5\". Hasta 2 enteros y 2 decimales. FUENTE: borrador sept-2024 de los Anexos y Estructuras v4.4.",
+  "type": "string",
+  "pattern": "^(0|[1-9][0-9]?)(\\.[0-9]{1,2})?$",
+  "examples": ["13", "6.5", "0.5"]
+}

@@ -3,7 +3,7 @@
 - **Schema:** [`schemas/events/invoice-issued.v1.json`](../../schemas/events/invoice-issued.v1.json)
 - **Go:** `events.InvoiceIssuedV1` (`pkg/events`)
 - **Ejemplos:** [`examples/events/invoice-issued.v1.json`](../../examples/events/invoice-issued.v1.json)
-  (3 válidos y 20 inválidos)
+  (3 válidos y 23 inválidos)
 - **Productor:** Billing, al emitir una factura (`draft` → `issued`), en la misma transacción que la emisión.
 - **Consumidores:** fiscal (crea el documento electrónico en `processing`) y Receivables (crea la cuenta por cobrar).
   Ninguno vuelve a consultar a Billing: el evento trae todo lo necesario. Ambos deduplican por `eventId`.
@@ -33,30 +33,35 @@ Además del [sobre común](../convenciones.md#10-eventos), con `eventType = "Inv
 | `notes` | string ≤ 2000 | | `invoices.notes` | |
 
 **Línea** (`schemas/events/parts/document-line.v1.json`): `lineNumber`, `productId?`, `productCode?`, `cabysCode`,
-`description`, `unitOfMeasureCode`, `isService`, `quantity`, `unitPrice`, `discount`, `discountReason` (obligatorio
+`description`, `unitOfMeasureCode`, `isService`, `quantity`, `unitPrice`, `grossAmount`, `discount`, `discountReason` (obligatorio
 si `discount` ≠ 0), `subtotal`, `tax`, `total` y `taxes[]` (vacío si no lleva impuestos).
 
 **Impuesto** (`parts/line-tax.v1.json`): `taxTypeCode`, `taxRateCode?`, `rate`, `taxableBase`, `amount` y
 `exoneration?`. Un tipo de impuesto por línea como máximo (unicidad de la base).
 
 **Exoneración** (`parts/exoneration.v1.json`): `documentTypeCode`, `documentNumber`, `institution`, `issuedAt`,
-`percentage` y `amount`. Todos los campos o ninguno, igual que el `CHECK` de la base.
+`exoneratedRate` (puntos de tarifa) y `amount`. Todos los campos o ninguno, igual que el `CHECK` de la base.
 
 ## Fórmulas
 
-Todas las cifras son `Money` (string decimal, ≥ 0). Las igualdades valen **después del redondeo**, cuya regla está
-pendiente (D2, `TODO(fiscal)`). Los ejemplos del repo están elegidos para no necesitar redondeo, y un test las
-verifica con aritmética racional exacta.
+Todas las cifras son `Money` (string decimal, ≥ 0). Siguen el **Anexo 1 v4.4** de Hacienda (entre paréntesis, el
+campo del XML). Cada campo se **redondea a 5 decimales, mitad hacia arriba** (`money.Round5`, convenciones §3) y los
+totales suman los campos de línea ya redondeados. Los ejemplos del repo están elegidos para no necesitar redondeo, y
+un test verifica las fórmulas con aritmética racional exacta. FUENTE: borrador sept-2024 (ADR 0007).
 
 Por línea:
 
 ```
-subtotal          = quantity × unitPrice − discount
-taxes[i].amount   = taxes[i].taxableBase × taxes[i].rate / 100
-exoneration.amount = taxes[i].amount × exoneration.percentage / 100      (propuesta; TODO(fiscal))
-tax               = Σ taxes[i].amount − Σ taxes[i].exoneration.amount   (impuesto neto)
-total             = subtotal + tax
+grossAmount        = quantity × unitPrice                                  (MontoTotal)
+subtotal           = grossAmount − discount                                (SubTotal)
+taxes[i].amount    = taxes[i].taxableBase × taxes[i].rate / 100            (Monto del impuesto)
+exoneration.amount = exoneration.exoneratedRate / 100 × subtotal           (Monto del Impuesto Exonerado)
+tax                = Σ taxes[i].amount − Σ taxes[i].exoneration.amount     (ImpuestoNeto)
+total              = subtotal + tax                                        (MontoTotalLinea)
 ```
+
+`exoneratedRate` son **puntos de tarifa** (Tarifa exonerada, 4,2), no un porcentaje del impuesto: exonerar la mitad
+del IVA del 13 % es `6.5`, y nunca supera `rate`.
 
 Por factura:
 
@@ -65,7 +70,7 @@ subtotal    = Σ lines.subtotal            (después de descuentos)
 discount    = Σ lines.discount            (informativo)
 tax         = Σ lines.taxes[].amount      (antes de exoneraciones)
 exoneration = Σ lines.taxes[].exoneration.amount
-total       = subtotal + tax − exoneration = Σ lines.total
+total       = subtotal + tax − exoneration = Σ lines.total   (el total debe coincidir con la suma de las líneas)
 ```
 
 Estas definiciones siguen las columnas de `billing.invoices` e `invoice_lines`. Si la especificación de Hacienda
@@ -88,6 +93,6 @@ define los totales de otra forma (por ejemplo, un subtotal antes de descuentos),
 
 ## TODOs
 
-- `TODO(fiscal)`: catálogos de todos los `*Code`, fórmula de la exoneración, regla de redondeo (D2) y si el
-  comprobante necesita provincia, cantón y distrito del cliente.
+- `TODO(fiscal)`: catálogos de todos los `*Code` según la versión oficial y si el comprobante necesita provincia,
+  cantón y distrito del cliente. Revalidar redondeo y exoneración con la versión oficial (hoy: borrador).
 - ¿`branchId` debería ser obligatorio? La base lo admite `null`; fiscal lo necesitará para el establecimiento (D11).

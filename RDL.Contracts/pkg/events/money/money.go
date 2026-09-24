@@ -18,6 +18,7 @@ const (
 	QuantityPattern   = `^(0|[1-9][0-9]{0,12})(\.[0-9]{1,3})?$`
 	PercentagePattern = `^(100(\.0{1,4})?|[1-9]?[0-9](\.[0-9]{1,4})?)$`
 	CurrencyPattern   = `^[A-Z]{3}$`
+	TaxRatePattern    = `^(0|[1-9][0-9]?)(\.[0-9]{1,2})?$`
 )
 
 var (
@@ -25,6 +26,7 @@ var (
 	quantityRe   = regexp.MustCompile(QuantityPattern)
 	percentageRe = regexp.MustCompile(PercentagePattern)
 	currencyRe   = regexp.MustCompile(CurrencyPattern)
+	taxRateRe    = regexp.MustCompile(TaxRatePattern)
 	zeroRe       = regexp.MustCompile(`^0(\.0+)?$`)
 )
 
@@ -45,6 +47,10 @@ type Percentage struct{ v string }
 
 // Currency es un código ISO 4217 (shared.currency_code).
 type Currency struct{ v string }
+
+// TaxRate es una tarifa en puntos porcentuales con formato 4,2 del Anexo 1 v4.4 ("13" es 13%, "0.5" es 0,5%).
+// Se usa en la tarifa exonerada. El valor cero es "0".
+type TaxRate struct{ v string }
 
 func ParseAmount(s string) (Amount, error) {
 	if err := check("monto", amountRe, s, false); err != nil {
@@ -74,6 +80,13 @@ func ParsePercentage(s string) (Percentage, error) {
 	return Percentage{v: s}, nil
 }
 
+func ParseTaxRate(s string) (TaxRate, error) {
+	if err := check("tarifa", taxRateRe, s, false); err != nil {
+		return TaxRate{}, err
+	}
+	return TaxRate{v: s}, nil
+}
+
 func ParseCurrency(s string) (Currency, error) {
 	if !currencyRe.MatchString(s) {
 		return Currency{}, fmt.Errorf("%w: moneda %q (ISO 4217 en mayúsculas)", ErrInvalid, s)
@@ -87,6 +100,7 @@ func MustExchangeRate(s string) ExchangeRate { return must(ParseExchangeRate(s))
 func MustQuantity(s string) Quantity         { return must(ParseQuantity(s)) }
 func MustPercentage(s string) Percentage     { return must(ParsePercentage(s)) }
 func MustCurrency(s string) Currency         { return must(ParseCurrency(s)) }
+func MustTaxRate(s string) TaxRate           { return must(ParseTaxRate(s)) }
 
 func (a Amount) String() string       { return orZero(a.v) }
 func (a Amount) IsZero() bool         { return zeroRe.MatchString(a.String()) }
@@ -94,6 +108,7 @@ func (r ExchangeRate) String() string { return r.v }
 func (q Quantity) String() string     { return q.v }
 func (p Percentage) String() string   { return orZero(p.v) }
 func (c Currency) String() string     { return c.v }
+func (t TaxRate) String() string      { return orZero(t.v) }
 
 func (a Amount) MarshalJSON() ([]byte, error) { return json.Marshal(a.String()) }
 func (r ExchangeRate) MarshalJSON() ([]byte, error) {
@@ -102,12 +117,14 @@ func (r ExchangeRate) MarshalJSON() ([]byte, error) {
 func (q Quantity) MarshalJSON() ([]byte, error)   { return marshalRequired("cantidad", q.v) }
 func (p Percentage) MarshalJSON() ([]byte, error) { return json.Marshal(p.String()) }
 func (c Currency) MarshalJSON() ([]byte, error)   { return marshalRequired("moneda", c.v) }
+func (t TaxRate) MarshalJSON() ([]byte, error)    { return json.Marshal(t.String()) }
 
 func (a *Amount) UnmarshalJSON(b []byte) error       { return unmarshal(b, ParseAmount, a) }
 func (r *ExchangeRate) UnmarshalJSON(b []byte) error { return unmarshal(b, ParseExchangeRate, r) }
 func (q *Quantity) UnmarshalJSON(b []byte) error     { return unmarshal(b, ParseQuantity, q) }
 func (p *Percentage) UnmarshalJSON(b []byte) error   { return unmarshal(b, ParsePercentage, p) }
 func (c *Currency) UnmarshalJSON(b []byte) error     { return unmarshal(b, ParseCurrency, c) }
+func (t *TaxRate) UnmarshalJSON(b []byte) error      { return unmarshal(b, ParseTaxRate, t) }
 
 func check(kind string, re *regexp.Regexp, s string, nonZero bool) error {
 	if !re.MatchString(s) {

@@ -11,7 +11,7 @@ Contiene dos cosas:
    - `contractsctl`, un CLI que valida todo, aplica las convenciones y detecta cambios incompatibles;
    - `pkg/events`, los DTOs de los eventos y su validador, que las APIs importan.
 
-Versión: **v0.1.0** (hito H1 · Contratos v1). Estado y pendientes: [`docs/ESTADO.md`](docs/ESTADO.md).
+Versión: **v0.2.0** (hito H1 · Contratos v1, con las reglas del borrador de los Anexos v4.4 de Hacienda). Estado y pendientes: [`docs/ESTADO.md`](docs/ESTADO.md).
 
 ---
 

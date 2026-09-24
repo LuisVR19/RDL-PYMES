@@ -150,8 +150,9 @@ type document interface {
 	DocumentTotals() Totals
 }
 
-// checkArithmetic aplica las fórmulas de docs/eventos/invoice-issued.md con aritmética racional exacta.
-// Los ejemplos están elegidos para no requerir redondeo (la regla es D2, pendiente).
+// checkArithmetic aplica las fórmulas de docs/eventos/invoice-issued.md (Anexo 1 v4.4) con aritmética racional
+// exacta. Los ejemplos están elegidos para no requerir redondeo; la regla (5 decimales, mitad hacia arriba) está en
+// money.Round5 y tiene sus propios tests.
 func checkArithmetic(t *testing.T, name string, e Event) {
 	t.Helper()
 	r := func(s fmt.Stringer) *big.Rat {
@@ -171,14 +172,18 @@ func checkArithmetic(t *testing.T, name string, e Event) {
 		hundred := big.NewRat(100, 1)
 		sumSubtotal, sumDiscount, sumTax, sumExo, sumTotal := new(big.Rat), new(big.Rat), new(big.Rat), new(big.Rat), new(big.Rat)
 		for _, l := range d.DocumentLines() {
-			gross := new(big.Rat).Mul(r(l.Quantity), r(l.UnitPrice))
-			eq("línea subtotal", r(l.Subtotal), new(big.Rat).Sub(gross, r(l.Discount)))
+			eq("línea grossAmount (MontoTotal)", r(l.GrossAmount), new(big.Rat).Mul(r(l.Quantity), r(l.UnitPrice)))
+			eq("línea subtotal", r(l.Subtotal), new(big.Rat).Sub(r(l.GrossAmount), r(l.Discount)))
 			lineTax, lineExo := new(big.Rat), new(big.Rat)
 			for _, tx := range l.Taxes {
 				eq("impuesto", r(tx.Amount), new(big.Rat).Quo(new(big.Rat).Mul(r(tx.TaxableBase), r(tx.Rate)), hundred))
 				lineTax.Add(lineTax, r(tx.Amount))
 				if x := tx.Exoneration; x != nil {
-					eq("exoneración", r(x.Amount), new(big.Rat).Quo(new(big.Rat).Mul(r(tx.Amount), r(x.Percentage)), hundred))
+					// Anexo 1 v4.4: Monto del Impuesto Exonerado = Tarifa exonerada × Subtotal.
+					eq("exoneración", r(x.Amount), new(big.Rat).Quo(new(big.Rat).Mul(r(l.Subtotal), r(x.ExoneratedRate)), hundred))
+					if r(x.ExoneratedRate).Cmp(r(tx.Rate)) > 0 {
+						t.Errorf("%s: la tarifa exonerada %s supera la tarifa del impuesto %s", name, x.ExoneratedRate, tx.Rate)
+					}
 					lineExo.Add(lineExo, r(x.Amount))
 				}
 			}

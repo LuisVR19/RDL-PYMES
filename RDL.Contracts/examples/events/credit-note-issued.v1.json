@@ -39,6 +39,7 @@
           "isService": true,
           "quantity": "0.5",
           "unitPrice": "10000",
+          "grossAmount": "5000",
           "discount": "0",
           "subtotal": "5000",
           "tax": "650",

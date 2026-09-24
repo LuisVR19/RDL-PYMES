@@ -34,6 +34,7 @@ var leafByRef = map[string]reflect.Type{
 	"exchange-rate.json": reflect.TypeFor[money.ExchangeRate](),
 	"quantity.json":      reflect.TypeFor[money.Quantity](),
 	"percentage.json":    reflect.TypeFor[money.Percentage](),
+	"tax-rate.json":      reflect.TypeFor[money.TaxRate](),
 	"currency-code.json": reflect.TypeFor[money.Currency](),
 	"uuid.json":          reflect.TypeFor[uuid.UUID](),
 	"utc-datetime.json":  reflect.TypeFor[Instant](),

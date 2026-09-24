@@ -25,13 +25,14 @@ type CustomerSnapshot struct {
 }
 
 // Exoneration: schemas/events/parts/exoneration.v1.json. Todos los campos o ninguno (por eso es un puntero en LineTax).
+// ExoneratedRate son puntos de tarifa (Anexo 1 v4.4): Amount = ExoneratedRate / 100 × subtotal de la línea.
 type Exoneration struct {
-	DocumentTypeCode string           `json:"documentTypeCode"`
-	DocumentNumber   string           `json:"documentNumber"`
-	Institution      string           `json:"institution"`
-	IssuedAt         Instant          `json:"issuedAt"`
-	Percentage       money.Percentage `json:"percentage"`
-	Amount           money.Amount     `json:"amount"`
+	DocumentTypeCode string        `json:"documentTypeCode"`
+	DocumentNumber   string        `json:"documentNumber"`
+	Institution      string        `json:"institution"`
+	IssuedAt         Instant       `json:"issuedAt"`
+	ExoneratedRate   money.TaxRate `json:"exoneratedRate"`
+	Amount           money.Amount  `json:"amount"`
 }
 
 // LineTax: schemas/events/parts/line-tax.v1.json.
@@ -44,7 +45,8 @@ type LineTax struct {
 	Exoneration *Exoneration     `json:"exoneration,omitempty"`
 }
 
-// DocumentLine: schemas/events/parts/document-line.v1.json. Snapshot del producto al emitir.
+// DocumentLine: schemas/events/parts/document-line.v1.json. Snapshot del producto al emitir. GrossAmount es el
+// MontoTotal del Anexo 1 (cantidad × precio, antes de descuentos).
 type DocumentLine struct {
 	LineNumber        int            `json:"lineNumber"`
 	ProductID         *uuid.UUID     `json:"productId,omitempty"`
@@ -55,6 +57,7 @@ type DocumentLine struct {
 	IsService         bool           `json:"isService"`
 	Quantity          money.Quantity `json:"quantity"`
 	UnitPrice         money.Amount   `json:"unitPrice"`
+	GrossAmount       money.Amount   `json:"grossAmount"`
 	Discount          money.Amount   `json:"discount"`
 	DiscountReason    string         `json:"discountReason,omitempty"`
 	Subtotal          money.Amount   `json:"subtotal"`

@@ -8,7 +8,7 @@
    que los dominios de `shared` (ver `docs/convenciones.md` §3). Nunca `number`.
 2. En Go, `pkg/events/money` tiene un tipo por concepto (`Amount`, `ExchangeRate`, `Quantity`, `Percentage`,
    `Currency`) que **guarda el string validado**, no un número. `UnmarshalJSON` rechaza un JSON number.
-3. El paquete **no hace aritmética**. Cada API calcula con la librería decimal que elija (Billing propone
+3. El paquete **no hace aritmética**, salvo el redondeo oficial (`RoundHalfUp` / `Round5`, ADR 0007), que existe para que todas las APIs redondeen igual. Cada API calcula con la librería decimal que elija (Billing propone
    `shopspring/decimal` o `cockroachdb/apd` en su propio ADR) y convierte con `Parse*` / `String()`.
 4. Los patrones de Go y de JSON Schema son el mismo texto. Un test compara las constantes con `schemas/common/*.json`
    y otro aplica a los tipos Go los mismos ejemplos válidos e inválidos que al schema.

@@ -96,7 +96,7 @@ Los `CHECK` de `audit`, `integration.*` e `idempotency_keys` fijan cuatro servic
 | # | Decisión | Propuesta | Aprueba |
 |---|---|---|---|
 | D1 | Ruta del módulo Go y hosting del CI | `<<bitbucket.org/rdl/contracts>>` con Bitbucket Pipelines (hay MCP de Bitbucket configurado) | Equipo |
-| D2 | **Regla de redondeo** y dónde vive el cálculo de impuestos | Billing calcula y fiscal valida (defecto del planning). Escala 5 como la base. Modo y paso de redondeo: **pendiente** (depende de la especificación de Hacienda) | Billing + fiscal |
+| D2 | **Regla de redondeo** y dónde vive el cálculo de impuestos (**resuelta en ADR 0007**: 5 decimales, mitad hacia arriba, según el borrador de los Anexos v4.4) | Billing calcula y fiscal valida (defecto del planning). Escala 5 como la base. Modo y paso de redondeo: **pendiente** (depende de la especificación de Hacienda) | Billing + fiscal |
 | D3 | ¿El sobre lleva el servicio productor? | Agregar `sourceService` obligatorio (mapea a `outbox.source_service`) para que el consumidor valide el origen. Es un séptimo campo sobre los 6 del planning | Equipo |
 | D4 | Nombre del servicio E-Invoice en contratos | `fiscal` en campos máquina (`sourceService`, URN de errores); "E-Invoice API" solo en la documentación | Equipo |
 | D5 | Convención del `type` de Problem Details | `urn:rdl:<servicio>:problem:<código-kebab>`, como Platform, más un registro por servicio en `problems/<servicio>.yaml` | Equipo |

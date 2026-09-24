@@ -2,16 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contracts.rdl.invalid/schemas/events/parts/exoneration.v1.json",
   "title": "Exoneration v1",
-  "description": "Exoneración aplicada a un impuesto de una línea. Todos los campos o ninguno, igual que el CHECK invoice_line_taxes_exoneration_ck. amount es la parte del impuesto que no se cobra. TODO(fiscal): catálogo de tipos de documento de exoneración y fórmula exacta según la especificación de Hacienda.",
+  "description": "Exoneración aplicada a un impuesto de una línea. Todos los campos o ninguno, igual que el CHECK invoice_line_taxes_exoneration_ck. Según el Anexo 1 v4.4 (campos \"Tarifa exonerada\" y \"Monto del Impuesto Exonerado\"): exoneratedRate son los PUNTOS de tarifa exonerados (no un porcentaje del impuesto) y amount = exoneratedRate / 100 × subtotal de la línea, redondeado a 5 decimales. exoneratedRate nunca supera la tarifa del impuesto (rate). FUENTE: borrador sept-2024. TODO(fiscal): catálogo de tipos de documento de exoneración (Nota 10.1) e instituciones codificadas (Nota 22) de la versión oficial.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["documentTypeCode", "documentNumber", "institution", "issuedAt", "percentage", "amount"],
+  "required": ["documentTypeCode", "documentNumber", "institution", "issuedAt", "exoneratedRate", "amount"],
   "properties": {
     "documentTypeCode": { "$ref": "../../common/fiscal-code.json" },
     "documentNumber": { "type": "string", "minLength": 1, "maxLength": 40 },
     "institution": { "type": "string", "minLength": 1, "maxLength": 160 },
     "issuedAt": { "$ref": "../../common/utc-datetime.json" },
-    "percentage": { "$ref": "../../common/percentage.json" },
-    "amount": { "$ref": "../../common/money.json" }
+    "exoneratedRate": { "$ref": "../../common/tax-rate.json", "description": "Puntos de tarifa exonerados (Tarifa exonerada, 4,2). Ejemplo: exonerar la mitad del IVA del 13% es 6.5." },
+    "amount": { "$ref": "../../common/money.json", "description": "Monto del Impuesto Exonerado = exoneratedRate / 100 × subtotal de la línea." }
   }
 }

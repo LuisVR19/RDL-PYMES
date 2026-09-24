@@ -6,6 +6,25 @@ Todo cambio de contrato se registra aquí. Formato: [Keep a Changelog](https://k
 
 (nada todavía)
 
+## [0.2.0] - 2026-09-24
+
+Reglas fiscales del borrador de los Anexos y Estructuras v4.4 de Hacienda (ADR 0007). Provisionales hasta revalidar
+con la versión oficial.
+
+### Cambiado (incompatible; permitido en `v0` porque v0.1.0 no se publicó)
+- `exoneration.v1`: `percentage` (porcentaje del impuesto) se reemplaza por **`exoneratedRate`** (puntos de tarifa,
+  formato 4,2) y el monto pasa a ser `exoneratedRate / 100 × subtotal` de la línea.
+- `document-line.v1`: nuevo campo obligatorio **`grossAmount`** (MontoTotal = cantidad × precio) y
+  `subtotal = grossAmount − discount`.
+- `pkg/events`: `Exoneration.ExoneratedRate` (`money.TaxRate`) y `DocumentLine.GrossAmount`.
+
+### Agregado
+- Tipo común `TaxRate` (`schemas/common/tax-rate.json`) y `money.TaxRate`.
+- Redondeo oficial: 5 decimales, mitad hacia arriba (resuelve D2). `money.RoundHalfUp` y `money.Round5` con los
+  ejemplos del anexo.
+- Glosario: composición del consecutivo (20 dígitos) y de la clave numérica (50 dígitos).
+- ADR 0007 con las reglas aplicadas y los hallazgos pendientes (anulación por nota de crédito, rechazados, D11).
+
 ## [0.1.0] - 2026-09-24
 
 Primera versión: hito H1 · Contratos v1. El tag lo crea quien publique el repo.

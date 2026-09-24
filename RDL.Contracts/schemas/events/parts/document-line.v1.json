@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contracts.rdl.invalid/schemas/events/parts/document-line.v1.json",
   "title": "DocumentLine v1",
-  "description": "Línea de una factura o nota con el snapshot del producto al emitir (billing.invoice_lines, arquitectura 4.4). Fórmulas en docs/eventos/invoice-issued.md: subtotal = quantity × unitPrice − discount; tax = Σ taxes.amount − Σ taxes.exoneration.amount; total = subtotal + tax.",
+  "description": "Línea de una factura o nota con el snapshot del producto al emitir (billing.invoice_lines, arquitectura 4.4). Fórmulas del Anexo 1 v4.4 (docs/eventos/invoice-issued.md): grossAmount (MontoTotal) = quantity × unitPrice; subtotal (SubTotal) = grossAmount − discount; tax (ImpuestoNeto) = Σ taxes.amount − Σ taxes.exoneration.amount; total (MontoTotalLinea) = subtotal + tax. Cada campo se redondea a 5 decimales, mitad hacia arriba. FUENTE: borrador sept-2024.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "lineNumber", "cabysCode", "description", "unitOfMeasureCode", "isService",
-    "quantity", "unitPrice", "discount", "subtotal", "tax", "total", "taxes"
+    "quantity", "unitPrice", "grossAmount", "discount", "subtotal", "tax", "total", "taxes"
   ],
   "properties": {
     "lineNumber": { "type": "integer", "minimum": 1 },
@@ -19,6 +19,7 @@
     "isService": { "type": "boolean" },
     "quantity": { "$ref": "../../common/quantity.json" },
     "unitPrice": { "$ref": "../../common/money.json" },
+    "grossAmount": { "$ref": "../../common/money.json", "description": "MontoTotal del Anexo 1: quantity × unitPrice, antes de descuentos." },
     "discount": { "$ref": "../../common/money.json" },
     "discountReason": { "type": "string", "minLength": 1, "maxLength": 80, "description": "Obligatorio si discount no es cero (CHECK invoice_lines_discount_ck)." },
     "subtotal": { "$ref": "../../common/money.json" },

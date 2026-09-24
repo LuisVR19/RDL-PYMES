@@ -18,6 +18,7 @@ func TestPatternsMatchSchemas(t *testing.T) {
 		"quantity.json":      QuantityPattern,
 		"percentage.json":    PercentagePattern,
 		"currency-code.json": CurrencyPattern,
+		"tax-rate.json":      TaxRatePattern,
 	} {
 		raw, err := fs.ReadFile(repo, "schemas/common/"+file)
 		if err != nil {
@@ -49,6 +50,7 @@ func TestParseAgreesWithSchemaExamples(t *testing.T) {
 		"quantity.json":      func(b []byte) error { var v Quantity; return json.Unmarshal(b, &v) },
 		"percentage.json":    func(b []byte) error { var v Percentage; return json.Unmarshal(b, &v) },
 		"currency-code.json": func(b []byte) error { var v Currency; return json.Unmarshal(b, &v) },
+		"tax-rate.json":      func(b []byte) error { var v TaxRate; return json.Unmarshal(b, &v) },
 	}
 	for file, parse := range parsers {
 		raw, err := fs.ReadFile(repo, "examples/common/"+file)

@@ -1,8 +1,9 @@
 # Estado del proyecto · Contracts
 
-**Última actualización:** 2026-09-24
-**Punto de corte:** terminados los 9 incrementos del prompt P0. Versión **v0.1.0** lista en el `CHANGELOG`; **el tag
-lo crea quien publique el repo** (en esta máquina no se usa git).
+**Última actualización:** 2026-09-24 (v0.2.0)
+**Punto de corte:** terminados los 9 incrementos del prompt P0. Versiones **v0.1.0** y **v0.2.0** en el `CHANGELOG`; **los tags
+los crea quien publique el repo** (en esta máquina no se usa git). v0.2.0 incorpora las reglas del borrador de los
+Anexos v4.4 de Hacienda (ADR 0007).
 
 ## Verificación al cierre
 
@@ -42,12 +43,15 @@ lo crea quien publique el repo** (en esta máquina no se usa git).
 1. **Catálogos:** tipos de identificación (y formato del número por tipo), tipos y tarifas de impuesto, unidades de
    medida, condiciones de venta, medios de pago, tipos de documento de exoneración y tipos de comprobante. Las tablas
    `fiscal.*` existen pero están vacías. Hoy los códigos solo se validan por formato (`FiscalCode`).
-2. **Redondeo (D2):** modo y paso de redondeo. Afecta las fórmulas de `docs/eventos/invoice-issued.md`.
-3. **Fórmulas de totales:** subtotal después de descuentos, impuesto antes de exoneración y exoneración como porcentaje
-   del impuesto. Es una propuesta que sigue las columnas de la base; si Hacienda define otra cosa, se cambia en `v2`.
+2. **Redondeo (D2) y fórmulas:** resueltos con el **borrador** de los Anexos v4.4 (5 decimales mitad hacia arriba;
+   fórmulas de MontoTotal, SubTotal, exoneración en puntos de tarifa, ImpuestoNeto y MontoTotalLinea). **Revalidar con la
+   versión oficial** (MH-DGT-RES-0027-2024) cuando esté en `docs/Hacienda`.
+3. **Anulación ante Hacienda (art. 9):** un comprobante válido se corrige con nota de crédito código 01; un rechazado no
+   lleva nota. Decidir si Billing emite la nota al anular o fiscal la genera desde `InvoiceCancelled` (ADR 0007).
 4. **Transiciones del documento electrónico (C3):** son una propuesta; los 7 estados sí salen de la base.
-5. Código de referencia de las notas, código de motivo de anulación, códigos de rechazo de Hacienda y composición de
-   la clave numérica y el consecutivo.
+5. Catálogos oficiales (el borrador ya trae los códigos de referencia, tipos de documento, condiciones de venta,
+   medios de pago, impuestos y tarifas) y códigos de rechazo de Hacienda. La composición de clave y consecutivo ya está
+   en el glosario.
 6. ¿El comprobante exige provincia, cantón y distrito del cliente? Hoy el snapshot tiene la dirección en texto.
 7. **D11:** relación sucursal ↔ establecimiento/terminal y alcance de los consecutivos. Sin valor por defecto
    (fiscal + contabilidad). Relacionado: ¿`branchId` debe ser obligatorio en los eventos?
@@ -68,21 +72,23 @@ lo crea quien publique el repo** (en esta máquina no se usa git).
 
 ### Para otros repos
 
-17. **database-platform:** `receivables_app` no tiene `USAGE` en `core`, pero necesita revalidar la membresía.
+17. **Billing y fiscal:** la columna `exoneration_percentage numeric(7,4)` debe guardar **puntos de tarifa** (4,2) desde
+    v0.2.0: renombrarla o documentarla con expand → contract.
+18. **database-platform:** `receivables_app` no tiene `USAGE` en `core`, pero necesita revalidar la membresía.
     `billing.invoices.branch_id` y `billing.document_sequences.branch_id` no tienen FK hacia `core.branches`.
-18. **Platform:** agregar `operationId` a `/healthz` y `/readyz`; cuando importe este módulo, referenciar
+19. **Platform:** agregar `operationId` a `/healthz` y `/readyz`; cuando importe este módulo, referenciar
     `components/common.yaml` y `problems/platform.yaml`; su TODO de `identificationTypeCode` se resuelve con el
     punto 1. Ver `docs/openapi.md`.
-19. **Billing / fiscal / Receivables:** confirmar los problem types propuestos en `problems/*.yaml` y completar los
+20. **Billing / fiscal / Receivables:** confirmar los problem types propuestos en `problems/*.yaml` y completar los
     esqueletos OpenAPI al implementar.
-20. **BFF:** la vista transversal y su read model se documentan en su repo (P7).
+21. **BFF:** la vista transversal y su read model se documentan en su repo (P7).
 
 ### Del propio repo
 
-21. **D1:** la ruta del módulo `bitbucket.org/rdl/contracts` es provisional.
-22. Verificación opcional de los grants reales de la base contra `ownership.yaml`, para el CI de cada API.
-23. Diff de OpenAPI más fino (cuerpos y respuestas) cuando dejen de ser esqueletos.
-24. Comprobar que los diagramas Mermaid se ven bien en Bitbucket (usan `{id}` y `⇒` en las etiquetas).
+22. **D1:** la ruta del módulo `bitbucket.org/rdl/contracts` es provisional.
+23. Verificación opcional de los grants reales de la base contra `ownership.yaml`, para el CI de cada API.
+24. Diff de OpenAPI más fino (cuerpos y respuestas) cuando dejen de ser esqueletos.
+25. Comprobar que los diagramas Mermaid se ven bien en Bitbucket (usan `{id}` y `⇒` en las etiquetas).
 
 ## Cómo retomar
 
