@@ -1,0 +1,22 @@
+# 2026/09/24 16:04:57.231034 [TestPropertyCalculation] [rapid] draw lines: []invoice.LineInput{invoice.LineInput{Quantity:money.Quantity{v:"0.005"}, UnitPrice:money.Amount{v:"0.052"}, Discount:money.Amount{v:"0"}, Taxes:[]invoice.TaxInput{invoice.TaxInput{TypeCode:"01", Rate:money.Percentage{v:"2"}, ExoneratedRate:(*money.Percentage)(nil)}}}}
+# 2026/09/24 16:04:57.231060 [TestPropertyCalculation] línea 0 impuesto 0: 0.00000 se aleja 0.00000520 del valor exacto 0.00000520 (máximo 1 × 0.000005)
+# 
+v0.4.8#11110708839876532941
+0x0
+0x0
+0x53aefb476c954
+0x5
+0x0
+0x133a5e7500160d
+0x1450
+0x0
+0xccccccccccccd
+0x0
+0x0
+0x0
+0x0
+0x0
+0x38e38e38e38e4
+0x2
+0x0
+0x0

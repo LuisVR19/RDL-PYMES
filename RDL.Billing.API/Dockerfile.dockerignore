@@ -1,0 +1,11 @@
+# El contexto de `make docker` es la carpeta padre: solo entran Billing y los contratos, nunca secretos.
+*
+!RDL.Contracts/
+!RDL.Billing.API/
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/bin/
+**/.git
