@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/service-name.json",
+  "title": "ServiceName",
+  "description": "Servicio en campos de máquina, igual que los CHECK de integration y audit (E-Invoice se llama fiscal).",
+  "type": "string",
+  "enum": ["platform", "billing", "fiscal", "receivables"]
+}

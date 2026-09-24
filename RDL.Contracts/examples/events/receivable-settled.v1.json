@@ -1,0 +1,28 @@
+{
+  "description": "ReceivableSettled v1: la cuenta por cobrar de FAC-0000001 quedó en cero con el pago de valid[0] de payment-received.",
+  "schema": "schemas/events/receivable-settled.v1.json",
+  "valid": [
+    {
+      "eventId": "0f8c7b6a-5e4d-4c3b-9a2f-1e0d9c8b7a6f",
+      "eventType": "ReceivableSettled",
+      "version": 1,
+      "occurredAt": "2026-10-01T18:00:00Z",
+      "correlationId": "1d0c9b8a-7f6e-4d5c-8b4a-3f2e1d0c9b8a",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "receivables",
+      "receivableId": "a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0d",
+      "sourceInvoiceId": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d",
+      "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+      "documentNumber": "FAC-0000001",
+      "currency": "CRC",
+      "originalAmount": "11300",
+      "settledAt": "2026-10-01T18:00:00Z"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "remove", "path": "/settledAt" }], "why": "sin fecha de cancelación" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/balanceAmount", "value": "0" }], "why": "el saldo es cero por definición: no es parte del contrato" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/originalAmount", "value": 11300 }], "why": "monto como number" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/eventType", "value": "ReceivablePaid" }], "why": "evento fuera del catálogo" }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/parts/issued-note.v1.json",
+  "x-rdl-base": true,
+  "title": "IssuedNote v1",
+  "description": "Cuerpo común de CreditNoteIssued y DebitNoteIssued (D13): la misma estructura de líneas y totales que InvoiceIssued, más la factura referenciada y el motivo (CHECK invoices_reference_ck). Es un schema base, abierto: cada evento lo compone con allOf y cierra con unevaluatedProperties: false. Fórmulas iguales a las de InvoiceIssued.",
+  "type": "object",
+  "required": [
+    "documentId", "documentNumber", "referencedInvoiceId", "referencedInvoiceNumber", "referenceReason",
+    "issuedAt", "issueDate", "issuedByUserId", "saleConditionCode", "currency", "exchangeRate",
+    "customerSnapshot", "lines", "subtotal", "discount", "tax", "exoneration", "total"
+  ],
+  "properties": {
+    "documentId": { "$ref": "../../common/uuid.json", "description": "billing.invoices.id de la nota." },
+    "branchId": { "$ref": "../../common/uuid.json" },
+    "documentNumber": { "type": "string", "minLength": 1, "maxLength": 50, "description": "Número visible de la nota." },
+    "referencedInvoiceId": { "$ref": "../../common/uuid.json", "description": "Factura que corrige (billing.invoices.referenced_invoice_id)." },
+    "referencedInvoiceNumber": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "referenceReason": { "type": "string", "minLength": 1, "maxLength": 500, "description": "Motivo obligatorio. TODO(fiscal): código de referencia del comprobante según la especificación de Hacienda." },
+    "issuedAt": { "$ref": "../../common/utc-datetime.json" },
+    "issueDate": { "$ref": "../../common/business-date.json" },
+    "issuedByUserId": { "$ref": "../../common/uuid.json" },
+    "saleConditionCode": { "$ref": "../../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.sale_conditions." },
+    "currency": { "$ref": "../../common/currency-code.json" },
+    "exchangeRate": { "$ref": "../../common/exchange-rate.json" },
+    "customerSnapshot": { "$ref": "../../common/customer-snapshot.json" },
+    "lines": { "type": "array", "minItems": 1, "items": { "$ref": "document-line.v1.json" } },
+    "subtotal": { "$ref": "../../common/money.json" },
+    "discount": { "$ref": "../../common/money.json" },
+    "tax": { "$ref": "../../common/money.json" },
+    "exoneration": { "$ref": "../../common/money.json" },
+    "total": { "$ref": "../../common/money.json", "description": "Monto de la nota (siempre >= 0): la nota de crédito lo resta del saldo y la de débito lo suma." },
+    "notes": { "type": "string", "maxLength": 2000 }
+  }
+}

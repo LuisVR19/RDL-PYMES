@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/credit-note-issued.v1.json",
+  "title": "CreditNoteIssued v1",
+  "description": "Billing emitió una nota de crédito sobre una factura emitida. fiscal crea su documento electrónico; Receivables registra un ajuste credit_note que disminuye el saldo de la cuenta por cobrar de la factura referenciada.",
+  "allOf": [{ "$ref": "envelope.v1.json" }, { "$ref": "parts/issued-note.v1.json" }],
+  "properties": {
+    "eventType": { "const": "CreditNoteIssued" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "billing" }
+  },
+  "unevaluatedProperties": false
+}

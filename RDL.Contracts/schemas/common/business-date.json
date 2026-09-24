@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/business-date.json",
+  "title": "BusinessDate",
+  "description": "Fecha de negocio sin hora (YYYY-MM-DD), interpretada en la zona horaria de la organización (convenciones §2).",
+  "type": "string",
+  "format": "date",
+  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+  "examples": ["2026-10-24"]
+}

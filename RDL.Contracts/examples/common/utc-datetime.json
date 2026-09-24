@@ -1,0 +1,11 @@
+{
+  "schema": "schemas/common/utc-datetime.json",
+  "valid": ["2026-09-24T15:04:05Z", "2026-09-24T15:04:05.123456Z"],
+  "invalid": [
+    { "value": "2026-09-24T09:04:05-06:00", "why": "desfase distinto de Z" },
+    { "value": "2026-09-24T15:04:05", "why": "sin zona" },
+    { "value": "2026-09-24 15:04:05Z", "why": "espacio en lugar de T" },
+    { "value": "2026-09-24", "why": "fecha sin hora" },
+    { "value": "2026-13-24T15:04:05Z", "why": "mes inválido (format date-time)" }
+  ]
+}

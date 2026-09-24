@@ -1,0 +1,61 @@
+{
+  "description": "DebitNoteIssued v1: cargo por transporte no facturado sobre FAC-0000002. Códigos fiscales ILUSTRATIVOS (TODO(fiscal)). Los montos cuadran con las fórmulas de InvoiceIssued.",
+  "schema": "schemas/events/debit-note-issued.v1.json",
+  "valid": [
+    {
+      "eventId": "5a3d2c1b-0f9e-4d8c-8b7a-6f5e4d3c2b1a",
+      "eventType": "DebitNoteIssued",
+      "version": 1,
+      "occurredAt": "2026-09-27T16:30:00Z",
+      "correlationId": "0c9b8a7f-6e5d-4c4b-9a3f-2e1d0c9b8a7f",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing",
+      "documentId": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "documentNumber": "ND-0000001",
+      "referencedInvoiceId": "8d2f0b3c-4e5a-4b6c-9d7e-8f9a0b1c2d3e",
+      "referencedInvoiceNumber": "FAC-0000002",
+      "referenceReason": "Transporte no incluido en la factura",
+      "issuedAt": "2026-09-27T16:30:00Z",
+      "issueDate": "2026-09-27",
+      "dueDate": "2026-10-27",
+      "issuedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "saleConditionCode": "02",
+      "currency": "CRC",
+      "exchangeRate": "1",
+      "customerSnapshot": {
+        "customerId": "3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f",
+        "identification": { "typeCode": "01", "number": "112345678" },
+        "legalName": "Persona Física Ejemplo"
+      },
+      "lines": [
+        {
+          "lineNumber": 1,
+          "cabysCode": "6511000000000",
+          "description": "Transporte",
+          "unitOfMeasureCode": "Sp",
+          "isService": true,
+          "quantity": "1",
+          "unitPrice": "2000",
+          "discount": "0",
+          "subtotal": "2000",
+          "tax": "260",
+          "total": "2260",
+          "taxes": [
+            { "taxTypeCode": "01", "taxRateCode": "08", "rate": "13", "taxableBase": "2000", "amount": "260" }
+          ]
+        }
+      ],
+      "subtotal": "2000",
+      "discount": "0",
+      "tax": "260",
+      "exoneration": "0",
+      "total": "2260"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "remove", "path": "/dueDate" }], "why": "la nota de débito genera un monto a cobrar: necesita vencimiento" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/dueDate", "value": "27/10/2026" }], "why": "vencimiento con formato local" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines", "value": [] }], "why": "nota sin líneas" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/subtotal", "value": 2000 }], "why": "monto como number" }
+  ]
+}

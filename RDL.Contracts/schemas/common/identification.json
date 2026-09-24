@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/identification.json",
+  "title": "Identification",
+  "description": "Identificación de una persona o empresa (tipo + número). TODO(fiscal): catálogo de tipos (fiscal.identification_types, hoy vacío) y formato del número por tipo según la especificación de Hacienda. Por ahora solo se valida longitud, como Platform.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["typeCode", "number"],
+  "properties": {
+    "typeCode": { "type": "string", "minLength": 1, "maxLength": 10, "description": "TODO(fiscal): código del catálogo de tipos de identificación." },
+    "number": { "type": "string", "minLength": 1, "maxLength": 30 }
+  }
+}

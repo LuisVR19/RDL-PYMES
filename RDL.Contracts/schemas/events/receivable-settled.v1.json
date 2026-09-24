@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/receivable-settled.v1.json",
+  "title": "ReceivableSettled v1",
+  "description": "El saldo de una cuenta por cobrar llegó a cero (open|partially_paid → paid). Lo consumen el BFF y reportes para marcar el saldo cancelado en sus read models.",
+  "allOf": [{ "$ref": "envelope.v1.json" }],
+  "type": "object",
+  "required": ["receivableId", "sourceInvoiceId", "customerId", "documentNumber", "currency", "originalAmount", "settledAt"],
+  "properties": {
+    "eventType": { "const": "ReceivableSettled" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "receivables" },
+    "receivableId": { "$ref": "../common/uuid.json" },
+    "sourceInvoiceId": { "$ref": "../common/uuid.json" },
+    "customerId": { "$ref": "../common/uuid.json" },
+    "documentNumber": { "type": "string", "minLength": 1, "maxLength": 50, "description": "Número visible de la factura (receivables.receivables.document_number)." },
+    "currency": { "$ref": "../common/currency-code.json" },
+    "originalAmount": { "$ref": "../common/money.json" },
+    "settledAt": { "$ref": "../common/utc-datetime.json", "description": "receivables.receivables.settled_at." }
+  },
+  "unevaluatedProperties": false
+}

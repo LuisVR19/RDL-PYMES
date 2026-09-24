@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/parts/line-tax.v1.json",
+  "title": "LineTax v1",
+  "description": "Un impuesto de una línea (billing.invoice_line_taxes). Un tipo de impuesto por línea como máximo. amount = taxableBase × rate / 100 (redondeo: D2, pendiente).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taxTypeCode", "rate", "taxableBase", "amount"],
+  "properties": {
+    "taxTypeCode": { "$ref": "../../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.tax_types." },
+    "taxRateCode": { "$ref": "../../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.tax_rates. Opcional, como en la base." },
+    "rate": { "$ref": "../../common/percentage.json" },
+    "taxableBase": { "$ref": "../../common/money.json" },
+    "amount": { "$ref": "../../common/money.json", "description": "Impuesto antes de la exoneración." },
+    "exoneration": { "$ref": "exoneration.v1.json" }
+  }
+}

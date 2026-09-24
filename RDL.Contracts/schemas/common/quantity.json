@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/quantity.json",
+  "title": "Quantity",
+  "description": "Cantidad como string decimal, igual que shared.quantity (numeric(16,3), > 0). Distinta de cero.",
+  "type": "string",
+  "pattern": "^(0|[1-9][0-9]{0,12})(\\.[0-9]{1,3})?$",
+  "not": { "pattern": "^0(\\.0+)?$" },
+  "examples": ["1", "2.5", "0.125"]
+}

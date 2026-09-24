@@ -1,0 +1,10 @@
+{
+  "schema": "schemas/common/cabys-code.json",
+  "valid": ["8399000000000", "0000000000001"],
+  "invalid": [
+    { "value": "839900000000", "why": "12 dígitos" },
+    { "value": "83990000000001", "why": "14 dígitos" },
+    { "value": "8399-00000000", "why": "con separador" },
+    { "value": 8399000000000, "why": "number" }
+  ]
+}

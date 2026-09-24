@@ -1,0 +1,9 @@
+{
+  "schema": "schemas/common/business-date.json",
+  "valid": ["2026-10-24", "2028-02-29"],
+  "invalid": [
+    { "value": "2026-10-24T00:00:00Z", "why": "con hora" },
+    { "value": "24/10/2026", "why": "formato local" },
+    { "value": "2026-02-30", "why": "día inexistente (format date)" }
+  ]
+}

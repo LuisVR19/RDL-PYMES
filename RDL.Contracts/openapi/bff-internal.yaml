@@ -1,0 +1,92 @@
+# Rutas INTERNAS que el BFF compone (arquitectura 2.2, planning P7): cada API expone un resumen de lo suyo y el BFF
+# arma la vista transversal (total de Billing + estado de Hacienda + saldo de Receivables) sin dependencias entre
+# dominios. El BFF reenvía el JWT del usuario (la organización sale del token) y el X-Correlation-Id.
+# Cada ruta vive en la API indicada en `servers` de la operación. ESQUELETO: los campos se completan con P7.
+openapi: 3.1.0
+info:
+  title: Rutas internas para el BFF
+  version: 0.1.0
+  description: |
+    Solo las consume el BFF, por la red interna. Mismas reglas de tenancy y errores que las rutas públicas.
+    TODO: la vista transversal del BFF y su read model (P7, sem 7–20) se documentan en el repo del BFF.
+security:
+  - bearerAuth: []
+tags:
+  - { name: billing, description: Servido por Billing API }
+  - { name: fiscal, description: Servido por E-Invoice API }
+  - { name: receivables, description: Servido por Receivables API }
+
+paths:
+  /internal/v1/invoices/{id}/summary:
+    servers: [{ url: http://billing-api:8081 }]
+    parameters: [{ $ref: 'components/common.yaml#/components/parameters/Id' }]
+    get:
+      tags: [billing]
+      operationId: getInvoiceSummary
+      summary: Número, estado comercial, cliente y total de una factura o nota.
+      responses:
+        '200':
+          description: Resumen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, documentType, status, currency, total]
+                properties:
+                  id: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+                  documentType: { $ref: 'components/common.yaml#/components/schemas/DocumentType' }
+                  number: { type: [string, 'null'] }
+                  status: { type: string, enum: [draft, issued, cancelled] }
+                  requiresCorrection: { type: boolean }
+                  customerLegalName: { type: string }
+                  currency: { $ref: 'components/common.yaml#/components/schemas/CurrencyCode' }
+                  total: { $ref: 'components/common.yaml#/components/schemas/Money' }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+  /internal/v1/electronic-documents/by-source/{sourceDocumentId}:
+    servers: [{ url: http://fiscal-api:8082 }]
+    parameters:
+      - { name: sourceDocumentId, in: path, required: true, schema: { $ref: 'components/common.yaml#/components/schemas/Uuid' } }
+    get:
+      tags: [fiscal]
+      operationId: getFiscalStatusBySource
+      summary: Estado fiscal del documento electrónico de una factura o nota.
+      responses:
+        '200':
+          description: Estado fiscal
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [electronicDocumentId, status]
+                properties:
+                  electronicDocumentId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+                  status: { type: string, enum: [processing, signed, sent, accepted, rejected, contingency, error] }
+                  haciendaStatusMessage: { type: string }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+  /internal/v1/receivables/by-invoice/{invoiceId}:
+    servers: [{ url: http://receivables-api:8083 }]
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { $ref: 'components/common.yaml#/components/schemas/Uuid' } }
+    get:
+      tags: [receivables]
+      operationId: getBalanceByInvoice
+      summary: Saldo de la cuenta por cobrar de una factura (planning P6, F3).
+      responses:
+        '200':
+          description: Saldo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [receivableId, status, currency, balanceAmount, dueOn]
+                properties:
+                  receivableId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+                  status: { type: string, enum: [open, partially_paid, paid, cancelled] }
+                  currency: { $ref: 'components/common.yaml#/components/schemas/CurrencyCode' }
+                  balanceAmount: { $ref: 'components/common.yaml#/components/schemas/Money' }
+                  dueOn: { $ref: 'components/common.yaml#/components/schemas/BusinessDate' }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth: { $ref: 'components/common.yaml#/components/securitySchemes/bearerAuth' }

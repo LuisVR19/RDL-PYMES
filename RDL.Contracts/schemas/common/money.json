@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/money.json",
+  "title": "Money",
+  "description": "Monto como string decimal, igual que shared.money_amount (numeric(18,5), >= 0): hasta 13 enteros y 5 decimales, sin signo, sin exponente, sin separador de miles. Nunca number. La moneda va en otro campo.",
+  "type": "string",
+  "pattern": "^(0|[1-9][0-9]{0,12})(\\.[0-9]{1,5})?$",
+  "examples": ["0", "11300", "1300.50"]
+}

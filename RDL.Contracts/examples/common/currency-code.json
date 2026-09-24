@@ -1,0 +1,9 @@
+{
+  "schema": "schemas/common/currency-code.json",
+  "valid": ["CRC", "USD"],
+  "invalid": [
+    { "value": "crc", "why": "minúsculas" },
+    { "value": "COLON", "why": "no es ISO 4217 de 3 letras" },
+    { "value": "₡", "why": "símbolo en lugar de código" }
+  ]
+}

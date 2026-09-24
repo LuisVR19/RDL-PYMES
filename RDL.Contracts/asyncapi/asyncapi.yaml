@@ -1,0 +1,357 @@
+# Catálogo de eventos v1 (arquitectura 6.2) en AsyncAPI 3.0.
+# Cada mensaje apunta a su JSON Schema 2020-12 en schemas/events/. `contractsctl validate` verifica este archivo
+# contra el meta-schema oficial de AsyncAPI 3.0.0 y contra el catálogo de la arquitectura: no se agregan eventos
+# que no estén ahí (D8), y productor, consumidores, schema y canal tienen que coincidir.
+#
+# Los canales son nombres lógicos (<productor>.<evento>.v<N>). El broker y el mapeo a colas o tópicos se deciden en
+# infraestructura (P2, decisión de mensajería pendiente); por eso no hay `servers`.
+asyncapi: 3.0.0
+info:
+  title: RDL · eventos de integración
+  version: 0.1.0
+  description: |
+    Eventos que se publican vía transactional outbox (integration.outbox_messages) y se consumen con inbox
+    idempotente (integration.inbox_messages). Entrega al menos una vez: el consumidor deduplica por eventId.
+    Convenciones: docs/convenciones.md §10. Sobre común: schemas/events/envelope.v1.json.
+defaultContentType: application/json
+
+channels:
+  invoiceIssued:
+    address: billing.invoice-issued.v1
+    title: InvoiceIssued v1
+    messages:
+      invoiceIssued:
+        $ref: '#/components/messages/InvoiceIssued'
+  invoiceCancelled:
+    address: billing.invoice-cancelled.v1
+    title: InvoiceCancelled v1
+    messages:
+      invoiceCancelled:
+        $ref: '#/components/messages/InvoiceCancelled'
+  creditNoteIssued:
+    address: billing.credit-note-issued.v1
+    title: CreditNoteIssued v1
+    messages:
+      creditNoteIssued:
+        $ref: '#/components/messages/CreditNoteIssued'
+  debitNoteIssued:
+    address: billing.debit-note-issued.v1
+    title: DebitNoteIssued v1
+    messages:
+      debitNoteIssued:
+        $ref: '#/components/messages/DebitNoteIssued'
+  electronicDocumentAccepted:
+    address: fiscal.electronic-document-accepted.v1
+    title: ElectronicDocumentAccepted v1
+    messages:
+      electronicDocumentAccepted:
+        $ref: '#/components/messages/ElectronicDocumentAccepted'
+  electronicDocumentRejected:
+    address: fiscal.electronic-document-rejected.v1
+    title: ElectronicDocumentRejected v1
+    messages:
+      electronicDocumentRejected:
+        $ref: '#/components/messages/ElectronicDocumentRejected'
+  paymentReceived:
+    address: receivables.payment-received.v1
+    title: PaymentReceived v1
+    messages:
+      paymentReceived:
+        $ref: '#/components/messages/PaymentReceived'
+  receivableSettled:
+    address: receivables.receivable-settled.v1
+    title: ReceivableSettled v1
+    messages:
+      receivableSettled:
+        $ref: '#/components/messages/ReceivableSettled'
+
+operations:
+  billing.sendInvoiceIssued:
+    action: send
+    summary: billing publica InvoiceIssued desde su outbox.
+    channel:
+      $ref: '#/channels/invoiceIssued'
+    messages:
+      - $ref: '#/channels/invoiceIssued/messages/invoiceIssued'
+  fiscal.receiveInvoiceIssued:
+    action: receive
+    summary: fiscal consume InvoiceIssued.
+    channel:
+      $ref: '#/channels/invoiceIssued'
+    messages:
+      - $ref: '#/channels/invoiceIssued/messages/invoiceIssued'
+  receivables.receiveInvoiceIssued:
+    action: receive
+    summary: receivables consume InvoiceIssued.
+    channel:
+      $ref: '#/channels/invoiceIssued'
+    messages:
+      - $ref: '#/channels/invoiceIssued/messages/invoiceIssued'
+  billing.sendInvoiceCancelled:
+    action: send
+    summary: billing publica InvoiceCancelled desde su outbox.
+    channel:
+      $ref: '#/channels/invoiceCancelled'
+    messages:
+      - $ref: '#/channels/invoiceCancelled/messages/invoiceCancelled'
+  fiscal.receiveInvoiceCancelled:
+    action: receive
+    summary: fiscal consume InvoiceCancelled.
+    channel:
+      $ref: '#/channels/invoiceCancelled'
+    messages:
+      - $ref: '#/channels/invoiceCancelled/messages/invoiceCancelled'
+  receivables.receiveInvoiceCancelled:
+    action: receive
+    summary: receivables consume InvoiceCancelled.
+    channel:
+      $ref: '#/channels/invoiceCancelled'
+    messages:
+      - $ref: '#/channels/invoiceCancelled/messages/invoiceCancelled'
+  billing.sendCreditNoteIssued:
+    action: send
+    summary: billing publica CreditNoteIssued desde su outbox.
+    channel:
+      $ref: '#/channels/creditNoteIssued'
+    messages:
+      - $ref: '#/channels/creditNoteIssued/messages/creditNoteIssued'
+  fiscal.receiveCreditNoteIssued:
+    action: receive
+    summary: fiscal consume CreditNoteIssued.
+    channel:
+      $ref: '#/channels/creditNoteIssued'
+    messages:
+      - $ref: '#/channels/creditNoteIssued/messages/creditNoteIssued'
+  receivables.receiveCreditNoteIssued:
+    action: receive
+    summary: receivables consume CreditNoteIssued.
+    channel:
+      $ref: '#/channels/creditNoteIssued'
+    messages:
+      - $ref: '#/channels/creditNoteIssued/messages/creditNoteIssued'
+  billing.sendDebitNoteIssued:
+    action: send
+    summary: billing publica DebitNoteIssued desde su outbox.
+    channel:
+      $ref: '#/channels/debitNoteIssued'
+    messages:
+      - $ref: '#/channels/debitNoteIssued/messages/debitNoteIssued'
+  fiscal.receiveDebitNoteIssued:
+    action: receive
+    summary: fiscal consume DebitNoteIssued.
+    channel:
+      $ref: '#/channels/debitNoteIssued'
+    messages:
+      - $ref: '#/channels/debitNoteIssued/messages/debitNoteIssued'
+  receivables.receiveDebitNoteIssued:
+    action: receive
+    summary: receivables consume DebitNoteIssued.
+    channel:
+      $ref: '#/channels/debitNoteIssued'
+    messages:
+      - $ref: '#/channels/debitNoteIssued/messages/debitNoteIssued'
+  fiscal.sendElectronicDocumentAccepted:
+    action: send
+    summary: fiscal publica ElectronicDocumentAccepted desde su outbox.
+    channel:
+      $ref: '#/channels/electronicDocumentAccepted'
+    messages:
+      - $ref: '#/channels/electronicDocumentAccepted/messages/electronicDocumentAccepted'
+  bff.receiveElectronicDocumentAccepted:
+    action: receive
+    summary: bff consume ElectronicDocumentAccepted.
+    channel:
+      $ref: '#/channels/electronicDocumentAccepted'
+    messages:
+      - $ref: '#/channels/electronicDocumentAccepted/messages/electronicDocumentAccepted'
+  billing.receiveElectronicDocumentAccepted:
+    action: receive
+    summary: billing consume ElectronicDocumentAccepted.
+    channel:
+      $ref: '#/channels/electronicDocumentAccepted'
+    messages:
+      - $ref: '#/channels/electronicDocumentAccepted/messages/electronicDocumentAccepted'
+  notifications.receiveElectronicDocumentAccepted:
+    action: receive
+    summary: notifications consume ElectronicDocumentAccepted.
+    channel:
+      $ref: '#/channels/electronicDocumentAccepted'
+    messages:
+      - $ref: '#/channels/electronicDocumentAccepted/messages/electronicDocumentAccepted'
+  fiscal.sendElectronicDocumentRejected:
+    action: send
+    summary: fiscal publica ElectronicDocumentRejected desde su outbox.
+    channel:
+      $ref: '#/channels/electronicDocumentRejected'
+    messages:
+      - $ref: '#/channels/electronicDocumentRejected/messages/electronicDocumentRejected'
+  bff.receiveElectronicDocumentRejected:
+    action: receive
+    summary: bff consume ElectronicDocumentRejected.
+    channel:
+      $ref: '#/channels/electronicDocumentRejected'
+    messages:
+      - $ref: '#/channels/electronicDocumentRejected/messages/electronicDocumentRejected'
+  billing.receiveElectronicDocumentRejected:
+    action: receive
+    summary: billing consume ElectronicDocumentRejected.
+    channel:
+      $ref: '#/channels/electronicDocumentRejected'
+    messages:
+      - $ref: '#/channels/electronicDocumentRejected/messages/electronicDocumentRejected'
+  notifications.receiveElectronicDocumentRejected:
+    action: receive
+    summary: notifications consume ElectronicDocumentRejected.
+    channel:
+      $ref: '#/channels/electronicDocumentRejected'
+    messages:
+      - $ref: '#/channels/electronicDocumentRejected/messages/electronicDocumentRejected'
+  receivables.sendPaymentReceived:
+    action: send
+    summary: receivables publica PaymentReceived desde su outbox.
+    channel:
+      $ref: '#/channels/paymentReceived'
+    messages:
+      - $ref: '#/channels/paymentReceived/messages/paymentReceived'
+  bff.receivePaymentReceived:
+    action: receive
+    summary: bff consume PaymentReceived.
+    channel:
+      $ref: '#/channels/paymentReceived'
+    messages:
+      - $ref: '#/channels/paymentReceived/messages/paymentReceived'
+  reports.receivePaymentReceived:
+    action: receive
+    summary: reports consume PaymentReceived.
+    channel:
+      $ref: '#/channels/paymentReceived'
+    messages:
+      - $ref: '#/channels/paymentReceived/messages/paymentReceived'
+  receivables.sendReceivableSettled:
+    action: send
+    summary: receivables publica ReceivableSettled desde su outbox.
+    channel:
+      $ref: '#/channels/receivableSettled'
+    messages:
+      - $ref: '#/channels/receivableSettled/messages/receivableSettled'
+  bff.receiveReceivableSettled:
+    action: receive
+    summary: bff consume ReceivableSettled.
+    channel:
+      $ref: '#/channels/receivableSettled'
+    messages:
+      - $ref: '#/channels/receivableSettled/messages/receivableSettled'
+  reports.receiveReceivableSettled:
+    action: receive
+    summary: reports consume ReceivableSettled.
+    channel:
+      $ref: '#/channels/receivableSettled'
+    messages:
+      - $ref: '#/channels/receivableSettled/messages/receivableSettled'
+
+components:
+  messages:
+    InvoiceIssued:
+      name: InvoiceIssued
+      title: InvoiceIssued v1
+      summary: Billing emitió una factura (draft → issued).
+      description: "Uso: Crear el documento fiscal (fiscal) y la cuenta por cobrar (receivables)."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/invoice-issued.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: billing
+      x-rdl-consumers: [fiscal, receivables]
+    InvoiceCancelled:
+      name: InvoiceCancelled
+      title: InvoiceCancelled v1
+      summary: Billing anuló una factura emitida, con motivo.
+      description: "Uso: Iniciar la corrección o el reverso permitido."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/invoice-cancelled.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: billing
+      x-rdl-consumers: [fiscal, receivables]
+    CreditNoteIssued:
+      name: CreditNoteIssued
+      title: CreditNoteIssued v1
+      summary: Billing emitió una nota de crédito sobre una factura.
+      description: "Uso: Documento fiscal y ajuste que disminuye el saldo."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/credit-note-issued.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: billing
+      x-rdl-consumers: [fiscal, receivables]
+    DebitNoteIssued:
+      name: DebitNoteIssued
+      title: DebitNoteIssued v1
+      summary: Billing emitió una nota de débito sobre una factura.
+      description: "Uso: Documento fiscal y ajuste que aumenta el saldo."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/debit-note-issued.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: billing
+      x-rdl-consumers: [fiscal, receivables]
+    ElectronicDocumentAccepted:
+      name: ElectronicDocumentAccepted
+      title: ElectronicDocumentAccepted v1
+      summary: Hacienda aceptó un documento electrónico.
+      description: "Uso: Mostrar la aceptación y habilitar acciones."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/electronic-document-accepted.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: fiscal
+      x-rdl-consumers: [bff, billing, notifications]
+    ElectronicDocumentRejected:
+      name: ElectronicDocumentRejected
+      title: ElectronicDocumentRejected v1
+      summary: Hacienda rechazó un documento electrónico.
+      description: "Uso: Alertar y gestionar la corrección (Billing marca requires_correction)."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/electronic-document-rejected.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: fiscal
+      x-rdl-consumers: [bff, billing, notifications]
+    PaymentReceived:
+      name: PaymentReceived
+      title: PaymentReceived v1
+      summary: Receivables registró un pago.
+      description: "Uso: Actualizar vistas y notificaciones."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/payment-received.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: receivables
+      x-rdl-consumers: [bff, reports]
+    ReceivableSettled:
+      name: ReceivableSettled
+      title: ReceivableSettled v1
+      summary: El saldo de una cuenta por cobrar llegó a cero.
+      description: "Uso: Marcar el saldo cancelado en los read models."
+      contentType: application/json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: '../schemas/events/receivable-settled.v1.json'
+      x-rdl-version: 1
+      x-rdl-producer: receivables
+      x-rdl-consumers: [bff, reports]

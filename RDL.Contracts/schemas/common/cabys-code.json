@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/cabys-code.json",
+  "title": "CabysCode",
+  "description": "Código CABYS de 13 dígitos, igual que shared.cabys_code. Solo se valida el formato: el catálogo (fiscal.cabys_items) lo mantiene fiscal.",
+  "type": "string",
+  "pattern": "^[0-9]{13}$"
+}

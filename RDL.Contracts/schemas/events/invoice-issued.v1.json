@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/invoice-issued.v1.json",
+  "title": "InvoiceIssued v1",
+  "description": "Billing emitió una factura (draft → issued). Lo consumen fiscal (crea el documento electrónico) y Receivables (crea la cuenta por cobrar). Lleva todo lo que ambos necesitan: ninguno vuelve a consultar a Billing. Detalle y fórmulas en docs/eventos/invoice-issued.md.",
+  "allOf": [{ "$ref": "envelope.v1.json" }],
+  "type": "object",
+  "required": [
+    "invoiceId", "invoiceNumber", "issuedAt", "issueDate", "dueDate", "issuedByUserId",
+    "saleConditionCode", "currency", "exchangeRate", "customerSnapshot", "lines",
+    "subtotal", "discount", "tax", "exoneration", "total"
+  ],
+  "properties": {
+    "eventType": { "const": "InvoiceIssued" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "billing" },
+
+    "invoiceId": { "$ref": "../common/uuid.json" },
+    "branchId": { "$ref": "../common/uuid.json", "description": "Sucursal de core.branches. Falta si la factura no tiene sucursal (billing.invoices.branch_id admite null)." },
+    "invoiceNumber": { "type": "string", "minLength": 1, "maxLength": 50, "description": "Número visible (billing.document_sequences). No es el consecutivo fiscal." },
+    "issuedAt": { "$ref": "../common/utc-datetime.json", "description": "Instante de la emisión." },
+    "issueDate": { "$ref": "../common/business-date.json", "description": "Fecha de emisión en la zona horaria de la organización (la de issuedAt convertida). Receivables la usa como issued_on." },
+    "dueDate": { "$ref": "../common/business-date.json", "description": "Vencimiento. En una venta de contado es igual a issueDate. Nunca anterior a issueDate." },
+    "creditTermDays": { "type": "integer", "minimum": 0, "description": "Plazo de crédito en días, si la condición de venta es a crédito." },
+    "issuedByUserId": { "$ref": "../common/uuid.json" },
+    "saleConditionCode": { "$ref": "../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.sale_conditions." },
+    "currency": { "$ref": "../common/currency-code.json" },
+    "exchangeRate": { "$ref": "../common/exchange-rate.json", "description": "Hacia la moneda local. 1 si currency es la moneda local." },
+    "customerSnapshot": { "$ref": "../common/customer-snapshot.json" },
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "parts/document-line.v1.json" }
+    },
+    "paymentMethods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paymentMethodCode"],
+        "properties": {
+          "paymentMethodCode": { "$ref": "../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.payment_methods." },
+          "amount": { "$ref": "../common/money.json" }
+        }
+      },
+      "description": "Medios de pago declarados al emitir (billing.invoice_payment_methods). No son pagos: los pagos los registra Receivables."
+    },
+    "subtotal": { "$ref": "../common/money.json", "description": "Σ lines.subtotal (después de descuentos)." },
+    "discount": { "$ref": "../common/money.json", "description": "Σ lines.discount (informativo: ya está restado en subtotal)." },
+    "tax": { "$ref": "../common/money.json", "description": "Σ de todos los impuestos antes de exoneraciones." },
+    "exoneration": { "$ref": "../common/money.json", "description": "Σ de todas las exoneraciones." },
+    "total": { "$ref": "../common/money.json", "description": "subtotal + tax − exoneration = Σ lines.total." },
+    "notes": { "type": "string", "maxLength": 2000 }
+  },
+  "unevaluatedProperties": false
+}

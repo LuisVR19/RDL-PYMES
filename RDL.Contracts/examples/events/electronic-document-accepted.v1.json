@@ -1,0 +1,31 @@
+{
+  "description": "ElectronicDocumentAccepted v1: Hacienda aceptó el documento de FAC-0000001. La clave y el consecutivo tienen el largo que exige la base; su composición es ILUSTRATIVA (TODO(fiscal)).",
+  "schema": "schemas/events/electronic-document-accepted.v1.json",
+  "valid": [
+    {
+      "eventId": "6b4e3d2c-1a0f-4e9d-9c8b-7a6f5e4d3c2b",
+      "eventType": "ElectronicDocumentAccepted",
+      "version": 1,
+      "occurredAt": "2026-09-24T21:16:40Z",
+      "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "fiscal",
+      "electronicDocumentId": "c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+      "sourceType": "invoice",
+      "sourceDocumentId": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d",
+      "sourceDocumentNumber": "FAC-0000001",
+      "numericKey": "50624092600310112345600100001010000000001100000001",
+      "consecutiveNumber": "00100001010000000001",
+      "acceptedAt": "2026-09-24T21:16:40Z",
+      "haciendaStatusMessage": "Aceptado"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "replace", "path": "/numericKey", "value": "5062409260031011234560010000101" }], "why": "clave numérica de menos de 50 dígitos" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/consecutiveNumber", "value": "001-00001-01-0000000001" }], "why": "consecutivo con separadores" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/sourceType", "value": "receipt" }], "why": "tipo de documento desconocido" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/acceptedAt" }], "why": "aceptación sin fecha" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/sourceService", "value": "billing" }], "why": "solo fiscal publica el estado fiscal" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/rejectionReason", "value": "x" }], "why": "campo del evento de rechazo" }
+  ]
+}

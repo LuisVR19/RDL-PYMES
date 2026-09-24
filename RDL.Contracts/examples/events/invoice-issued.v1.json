@@ -1,0 +1,212 @@
+{
+  "description": "InvoiceIssued v1. Los códigos fiscales (tipos y tarifas de impuesto, unidades, condiciones de venta, medios de pago, tipos de identificación y de exoneración) son ILUSTRATIVOS: TODO(fiscal). Los montos cuadran con las fórmulas de docs/eventos/invoice-issued.md con aritmética exacta. valid[0]: una línea (el ejemplo de la arquitectura 6.3). valid[1]: dos líneas, descuento y dos tarifas. valid[2]: dólares, crédito a 30 días, exoneración y emisión cerca de medianoche (issueDate en hora de Costa Rica).",
+  "schema": "schemas/events/invoice-issued.v1.json",
+  "valid": [
+    {
+      "eventId": "0b8e7c6d-5a4f-4e3d-9c2b-1a0f9e8d7c6b",
+      "eventType": "InvoiceIssued",
+      "version": 1,
+      "occurredAt": "2026-09-24T21:15:00Z",
+      "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing",
+      "invoiceId": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d",
+      "branchId": "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "invoiceNumber": "FAC-0000001",
+      "issuedAt": "2026-09-24T21:15:00Z",
+      "issueDate": "2026-09-24",
+      "dueDate": "2026-09-24",
+      "issuedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "saleConditionCode": "01",
+      "currency": "CRC",
+      "exchangeRate": "1",
+      "customerSnapshot": {
+        "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+        "identification": { "typeCode": "02", "number": "3101123456" },
+        "legalName": "Cliente Ejemplo S.A.",
+        "email": "facturas@cliente.example"
+      },
+      "lines": [
+        {
+          "lineNumber": 1,
+          "productId": "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
+          "productCode": "SRV-001",
+          "cabysCode": "8399000000000",
+          "description": "Servicio de consultoría",
+          "unitOfMeasureCode": "Sp",
+          "isService": true,
+          "quantity": "1",
+          "unitPrice": "10000",
+          "discount": "0",
+          "subtotal": "10000",
+          "tax": "1300",
+          "total": "11300",
+          "taxes": [
+            { "taxTypeCode": "01", "taxRateCode": "08", "rate": "13", "taxableBase": "10000", "amount": "1300" }
+          ]
+        }
+      ],
+      "paymentMethods": [{ "paymentMethodCode": "01", "amount": "11300" }],
+      "subtotal": "10000",
+      "discount": "0",
+      "tax": "1300",
+      "exoneration": "0",
+      "total": "11300"
+    },
+    {
+      "eventId": "1c9f8e7d-6b5a-4f4e-8d3c-2b1a0f9e8d7c",
+      "eventType": "InvoiceIssued",
+      "version": 1,
+      "occurredAt": "2026-09-24T16:00:00.123Z",
+      "correlationId": "6e5d4c3b-2a1f-4e0d-9c8b-7a6f5e4d3c2b",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing",
+      "invoiceId": "8d2f0b3c-4e5a-4b6c-9d7e-8f9a0b1c2d3e",
+      "invoiceNumber": "FAC-0000002",
+      "issuedAt": "2026-09-24T16:00:00.123Z",
+      "issueDate": "2026-09-24",
+      "dueDate": "2026-09-24",
+      "issuedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "saleConditionCode": "01",
+      "currency": "CRC",
+      "exchangeRate": "1",
+      "customerSnapshot": {
+        "customerId": "3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f",
+        "identification": { "typeCode": "01", "number": "112345678" },
+        "legalName": "Persona Física Ejemplo",
+        "phone": "8888-8888",
+        "address": "Heredia, Barva"
+      },
+      "lines": [
+        {
+          "lineNumber": 1,
+          "productId": "4d5e6f7a-8b9c-4d0e-9f1a-2b3c4d5e6f7a",
+          "productCode": "PRD-010",
+          "cabysCode": "2399000000000",
+          "description": "Producto por kilo",
+          "unitOfMeasureCode": "kg",
+          "isService": false,
+          "quantity": "2.5",
+          "unitPrice": "1000.00",
+          "discount": "250",
+          "discountReason": "Promoción de temporada",
+          "subtotal": "2250",
+          "tax": "292.5",
+          "total": "2542.5",
+          "taxes": [
+            { "taxTypeCode": "01", "taxRateCode": "08", "rate": "13", "taxableBase": "2250", "amount": "292.5" }
+          ]
+        },
+        {
+          "lineNumber": 2,
+          "cabysCode": "8399000000000",
+          "description": "Instalación (línea libre, sin producto del catálogo)",
+          "unitOfMeasureCode": "Sp",
+          "isService": true,
+          "quantity": "3",
+          "unitPrice": "333.33",
+          "discount": "0",
+          "subtotal": "999.99",
+          "tax": "39.9996",
+          "total": "1039.9896",
+          "taxes": [
+            { "taxTypeCode": "01", "taxRateCode": "04", "rate": "4", "taxableBase": "999.99", "amount": "39.9996" }
+          ]
+        }
+      ],
+      "subtotal": "3249.99",
+      "discount": "250",
+      "tax": "332.4996",
+      "exoneration": "0",
+      "total": "3582.4896",
+      "notes": "Entrega en bodega principal."
+    },
+    {
+      "eventId": "2d0a9f8e-7c6b-4a5f-9e4d-3c2b1a0f9e8d",
+      "eventType": "InvoiceIssued",
+      "version": 1,
+      "occurredAt": "2026-09-25T05:30:00Z",
+      "correlationId": "7f6e5d4c-3b2a-4f1e-8d9c-8b7a6f5e4d3c",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing",
+      "invoiceId": "9e3a1c4d-5f6b-4c7d-8e8f-9a0b1c2d3e4f",
+      "branchId": "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "invoiceNumber": "FAC-0000003",
+      "issuedAt": "2026-09-25T05:30:00Z",
+      "issueDate": "2026-09-24",
+      "dueDate": "2026-10-24",
+      "creditTermDays": 30,
+      "issuedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "saleConditionCode": "02",
+      "currency": "USD",
+      "exchangeRate": "512.34",
+      "customerSnapshot": {
+        "customerId": "5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b",
+        "identification": { "typeCode": "02", "number": "3002654321" },
+        "legalName": "Asociación Exonerada",
+        "email": "pagos@asociacion.example"
+      },
+      "lines": [
+        {
+          "lineNumber": 1,
+          "productId": "6f7a8b9c-0d1e-4f2a-9b3c-4d5e6f7a8b9c",
+          "productCode": "SRV-100",
+          "cabysCode": "8399000000000",
+          "description": "Licencia anual",
+          "unitOfMeasureCode": "Sp",
+          "isService": true,
+          "quantity": "1",
+          "unitPrice": "1000",
+          "discount": "0",
+          "subtotal": "1000",
+          "tax": "65",
+          "total": "1065",
+          "taxes": [
+            {
+              "taxTypeCode": "01",
+              "taxRateCode": "08",
+              "rate": "13",
+              "taxableBase": "1000",
+              "amount": "130",
+              "exoneration": {
+                "documentTypeCode": "03",
+                "documentNumber": "AL-12345-2026",
+                "institution": "Ministerio de Hacienda",
+                "issuedAt": "2026-01-15T00:00:00Z",
+                "percentage": "50",
+                "amount": "65"
+              }
+            }
+          ]
+        }
+      ],
+      "subtotal": "1000",
+      "discount": "0",
+      "tax": "130",
+      "exoneration": "65",
+      "total": "1065"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "replace", "path": "/total", "value": 11300 }], "why": "total como number" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/taxes/0/amount", "value": 1300 }], "why": "monto de impuesto como number" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/total", "value": "-11300" }], "why": "monto negativo" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/organizationId" }], "why": "falta organizationId (sobre)" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/customerSnapshot" }], "why": "falta el snapshot del cliente" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/occurredAt", "value": "2026-09-24T15:15:00-06:00" }], "why": "occurredAt sin Z" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/issueDate", "value": "2026-09-24T00:00:00Z" }], "why": "issueDate con hora" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/customerId", "value": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b" }], "why": "campo fuera del contrato (unevaluatedProperties)" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/lines/0/cost", "value": "5000" }], "why": "campo extra en la línea" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines", "value": [] }], "why": "factura sin líneas" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/eventType", "value": "InvoiceCreated" }], "why": "eventType distinto" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/version", "value": 2 }], "why": "versión distinta de 1" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/sourceService", "value": "fiscal" }], "why": "InvoiceIssued solo lo produce billing" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/currency", "value": "₡" }], "why": "moneda no ISO 4217" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/cabysCode", "value": "839900" }], "why": "CABYS de menos de 13 dígitos" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/quantity", "value": "0" }], "why": "cantidad cero" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/lines/0/discount", "value": "100" }], "why": "descuento sin motivo" },
+    { "base": 2, "patch": [{ "op": "remove", "path": "/lines/0/taxes/0/exoneration/institution" }], "why": "exoneración incompleta (todos los campos o ninguno)" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/exchangeRate", "value": "0" }], "why": "tipo de cambio cero" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/invoiceId", "value": "7C1E9A2B-3D4F-4A5B-8C6D-7E8F9A0B1C2D" }], "why": "UUID en mayúsculas" }
+  ]
+}

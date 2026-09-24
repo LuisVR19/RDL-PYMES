@@ -1,0 +1,51 @@
+# Máquina de estados de la factura comercial y de las notas (billing.invoices, columna status).
+# Los estados son los del CHECK invoices_status_ck. Explicación y diagrama: docs/maquinas-de-estado/invoice.md.
+version: 1
+entity: invoice
+owner: billing
+table: billing.invoices
+column: status
+documentTypes: [invoice, credit_note, debit_note]
+created:
+  state: draft
+  trigger: {kind: command, name: POST /v1/invoices}
+states:
+  draft:
+    description: Borrador editable. Sin número visible ni snapshots. Se puede descartar (se borra la fila).
+  issued:
+    description: Emitido. Número, snapshots y montos fijos; nunca se edita (arquitectura 7.4). Las correcciones van por notas o anulación.
+  cancelled:
+    description: Anulado con motivo obligatorio (CHECK invoices_cancelled_ck). Estado final.
+    final: true
+transitions:
+  - from: draft
+    to: issued
+    documentTypes: [invoice]
+    trigger: {kind: command, name: "POST /v1/invoices/{id}/issue"}
+    emits: InvoiceIssued
+    requires: [cliente activo, al menos una línea, totales consistentes, número visible asignado]
+  - from: draft
+    to: issued
+    documentTypes: [credit_note]
+    trigger: {kind: command, name: "POST /v1/invoices/{id}/issue"}
+    emits: CreditNoteIssued
+    requires: [factura referenciada emitida, motivo de referencia]
+  - from: draft
+    to: issued
+    documentTypes: [debit_note]
+    trigger: {kind: command, name: "POST /v1/invoices/{id}/issue"}
+    emits: DebitNoteIssued
+    requires: [factura referenciada emitida, motivo de referencia, vencimiento]
+  - from: issued
+    to: cancelled
+    documentTypes: [invoice]
+    trigger: {kind: command, name: "POST /v1/invoices/{id}/cancel"}
+    emits: InvoiceCancelled
+    requires: [motivo]
+flags:
+  requires_correction:
+    description: Marca aparte del estado. La pone ElectronicDocumentRejected (con fiscal_rejection_reason); el documento sigue issued.
+    setBy: {kind: event, name: ElectronicDocumentRejected}
+todo:
+  - "TODO(fiscal): ¿se pueden anular notas de crédito o débito? El catálogo no tiene evento para eso."
+  - "TODO: cuándo se limpia requires_correction (¿al emitir la nota que corrige?)."

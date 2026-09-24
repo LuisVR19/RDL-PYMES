@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/electronic-document-rejected.v1.json",
+  "title": "ElectronicDocumentRejected v1",
+  "description": "Hacienda rechazó un documento electrónico (estado fiscal rejected). Billing marca el documento comercial con requires_correction y guarda el motivo (fiscal_rejection_reason); el BFF y notificaciones alertan (criterio de aceptación 10).",
+  "allOf": [{ "$ref": "envelope.v1.json" }, { "$ref": "parts/electronic-document.v1.json" }],
+  "required": ["rejectedAt", "rejectionReason"],
+  "properties": {
+    "eventType": { "const": "ElectronicDocumentRejected" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "fiscal" },
+    "rejectedAt": { "$ref": "../common/utc-datetime.json", "description": "fiscal.electronic_documents.rejected_at." },
+    "rejectionReason": { "type": "string", "minLength": 1, "maxLength": 4000, "description": "Motivo legible para el usuario. TODO(fiscal): códigos de rechazo de Hacienda, si existen." }
+  },
+  "unevaluatedProperties": false
+}

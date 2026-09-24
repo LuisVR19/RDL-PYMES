@@ -1,0 +1,10 @@
+{
+  "schema": "schemas/common/quantity.json",
+  "valid": ["1", "2.5", "0.125", "1000"],
+  "invalid": [
+    { "value": "0", "why": "cero: shared.quantity > 0" },
+    { "value": "0.000", "why": "cero con decimales" },
+    { "value": "1.2345", "why": "más de 3 decimales" },
+    { "value": 2, "why": "number" }
+  ]
+}

@@ -1,0 +1,219 @@
+# ESQUELETO de la E-Invoice API (servicio `fiscal`, D4; arquitectura 3.2, planning P5). Recursos y rutas principales;
+# los campos se completan en su repo. Todo lo que depende de la especificación de Hacienda es TODO(fiscal).
+# Los comandos de state-machines/electronic-document.yaml tienen que existir aquí (lo verifica validate).
+openapi: 3.1.0
+info:
+  title: E-Invoice API (fiscal)
+  version: 0.1.0
+  description: Cumplimiento fiscal y comunicación con Hacienda. Consume los eventos de Billing; produce ElectronicDocumentAccepted y ElectronicDocumentRejected.
+servers:
+  - url: http://localhost:8082
+security:
+  - bearerAuth: []
+tags:
+  - { name: configuration, description: Configuración fiscal de la organización }
+  - { name: establishments, description: Establecimientos y terminales }
+  - { name: documents, description: Documentos electrónicos }
+  - { name: catalogs, description: Catálogos fiscales (CABYS y otros) }
+
+paths:
+  /v1/fiscal-profile:
+    get:
+      tags: [configuration]
+      operationId: getFiscalProfile
+      summary: Perfil de contribuyente y ambiente (sandbox o producción). owner, admin, accountant.
+      responses:
+        '200': { description: Perfil, content: { application/json: { schema: { $ref: '#/components/schemas/FiscalProfile' } } } }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+    put:
+      tags: [configuration]
+      operationId: putFiscalProfile
+      summary: Configura el perfil. owner, admin.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/FiscalProfile' } } } }
+      responses:
+        '200': { description: Guardado, content: { application/json: { schema: { $ref: '#/components/schemas/FiscalProfile' } } } }
+        '422': { $ref: 'components/common.yaml#/components/responses/UnprocessableEntity' }
+  /v1/fiscal-profile/certificate:
+    put:
+      tags: [configuration]
+      operationId: uploadCertificate
+      summary: Sube el certificado de firma de la organización. Se guarda en el gestor de secretos, nunca en la base ni en logs. owner.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [certificate, pin]
+              properties:
+                certificate: { type: string, contentMediaType: application/x-pkcs12 }
+                pin: { type: string, writeOnly: true }
+      responses:
+        '204': { description: Certificado guardado }
+        '422': { $ref: 'components/common.yaml#/components/responses/UnprocessableEntity' }
+
+  /v1/establishments:
+    get:
+      tags: [establishments]
+      operationId: listEstablishments
+      summary: Establecimientos (código de 3 dígitos) con sus terminales (5 dígitos). owner, admin, accountant.
+      responses:
+        '200': { description: Establecimientos, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Establishment' } } } } }
+    post:
+      tags: [establishments]
+      operationId: createEstablishment
+      summary: 'Crea un establecimiento. TODO(fiscal): relación con core.branches (D11). owner, admin.'
+      parameters: [{ $ref: 'components/common.yaml#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Establishment' } } } }
+      responses:
+        '201': { description: Creado, content: { application/json: { schema: { $ref: '#/components/schemas/Establishment' } } } }
+        '409': { $ref: 'components/common.yaml#/components/responses/Conflict' }
+
+  /v1/electronic-documents:
+    get:
+      tags: [documents]
+      operationId: listElectronicDocuments
+      summary: Documentos electrónicos con su estado fiscal. Todos los roles.
+      parameters:
+        - $ref: 'components/common.yaml#/components/parameters/Limit'
+        - $ref: 'components/common.yaml#/components/parameters/Cursor'
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ElectronicDocumentStatus' } }
+        - { name: sourceDocumentId, in: query, schema: { $ref: 'components/common.yaml#/components/schemas/Uuid' } }
+      responses:
+        '200': { description: Página de documentos, content: { application/json: { schema: { $ref: '#/components/schemas/ElectronicDocumentPage' } } } }
+  /v1/electronic-documents/{id}:
+    parameters: [{ $ref: 'components/common.yaml#/components/parameters/Id' }]
+    get:
+      tags: [documents]
+      operationId: getElectronicDocument
+      summary: Detalle con intentos de envío y respuestas de Hacienda. Todos los roles.
+      responses:
+        '200': { description: Documento, content: { application/json: { schema: { $ref: '#/components/schemas/ElectronicDocument' } } } }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+  /v1/electronic-documents/{id}/files/{kind}:
+    parameters:
+      - $ref: 'components/common.yaml#/components/parameters/Id'
+      - { name: kind, in: path, required: true, schema: { type: string, enum: [unsigned_xml, signed_xml, hacienda_response_xml, pdf] } }
+    get:
+      tags: [documents]
+      operationId: getElectronicDocumentFile
+      summary: Descarga el XML firmado, la respuesta de Hacienda o el PDF (fiscal.document_files). Todos los roles.
+      responses:
+        '200':
+          description: Archivo
+          content:
+            application/xml: { schema: { type: string } }
+            application/pdf: { schema: { type: string, contentMediaType: application/pdf } }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+  /v1/electronic-documents/{id}/retry:
+    parameters: [{ $ref: 'components/common.yaml#/components/parameters/Id' }]
+    post:
+      tags: [documents]
+      operationId: retryElectronicDocument
+      summary: error → processing, después de corregir la causa. owner, admin.
+      parameters: [{ $ref: 'components/common.yaml#/components/parameters/IdempotencyKey' }]
+      responses:
+        '202': { description: Reintento encolado, content: { application/json: { schema: { $ref: '#/components/schemas/ElectronicDocument' } } } }
+        '409': { $ref: 'components/common.yaml#/components/responses/Conflict' }
+
+  /v1/catalogs/cabys:
+    get:
+      tags: [catalogs]
+      operationId: searchCabys
+      summary: Búsqueda en el catálogo CABYS vigente (fiscal.cabys_items). Todos los roles.
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+        - $ref: 'components/common.yaml#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Coincidencias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [code, description]
+                  properties:
+                    code: { $ref: 'components/common.yaml#/components/schemas/CabysCode' }
+                    description: { type: string }
+                    taxRate: { $ref: 'components/common.yaml#/components/schemas/Percentage' }
+  /v1/catalogs/{catalog}:
+    parameters:
+      - name: catalog
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [identification-types, tax-types, tax-rates, units-of-measure, sale-conditions, payment-methods, exoneration-document-types, document-types]
+    get:
+      tags: [catalogs]
+      operationId: getFiscalCatalog
+      summary: 'Catálogo fiscal para formularios. TODO(fiscal): contenido según la especificación de Hacienda (tablas hoy vacías).'
+      responses:
+        '200':
+          description: Códigos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [code, name]
+                  properties:
+                    code: { $ref: 'components/common.yaml#/components/schemas/FiscalCode' }
+                    name: { type: string }
+
+components:
+  securitySchemes:
+    bearerAuth: { $ref: 'components/common.yaml#/components/securitySchemes/bearerAuth' }
+  schemas:
+    ElectronicDocumentStatus:
+      type: string
+      enum: [processing, signed, sent, accepted, rejected, contingency, error]
+      description: state-machines/electronic-document.yaml
+    FiscalProfile:
+      type: object
+      description: 'TODO(fiscal): campos del contribuyente según la especificación.'
+      required: [environment]
+      properties:
+        environment: { type: string, enum: [sandbox, production] }
+        economicActivityCode: { $ref: 'components/common.yaml#/components/schemas/FiscalCode' }
+        certificateValidTo: { $ref: 'components/common.yaml#/components/schemas/UtcDateTime' }
+    Establishment:
+      type: object
+      required: [code, name]
+      properties:
+        id: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        code: { type: string, pattern: '^[0-9]{3}$' }
+        name: { type: string, maxLength: 150 }
+        branchId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        terminals:
+          type: array
+          items:
+            type: object
+            required: [code]
+            properties:
+              id: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+              code: { type: string, pattern: '^[0-9]{5}$' }
+    ElectronicDocument:
+      type: object
+      description: Esqueleto (fiscal.electronic_documents).
+      required: [id, sourceType, sourceDocumentId, status, createdAt]
+      properties:
+        id: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        sourceType: { $ref: 'components/common.yaml#/components/schemas/DocumentType' }
+        sourceDocumentId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        status: { $ref: '#/components/schemas/ElectronicDocumentStatus' }
+        numericKey: { type: string, pattern: '^[0-9]{50}$' }
+        consecutiveNumber: { type: string, pattern: '^[0-9]{20}$' }
+        haciendaStatusMessage: { type: string }
+        acceptedAt: { $ref: 'components/common.yaml#/components/schemas/UtcDateTime' }
+        rejectedAt: { $ref: 'components/common.yaml#/components/schemas/UtcDateTime' }
+        createdAt: { $ref: 'components/common.yaml#/components/schemas/UtcDateTime' }
+    ElectronicDocumentPage:
+      allOf:
+        - $ref: 'components/common.yaml#/components/schemas/PageInfo'
+        - type: object
+          required: [items]
+          properties: { items: { type: array, items: { $ref: '#/components/schemas/ElectronicDocument' } } }

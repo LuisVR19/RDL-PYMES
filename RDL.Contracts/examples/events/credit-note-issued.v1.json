@@ -1,0 +1,66 @@
+{
+  "description": "CreditNoteIssued v1: nota de crédito parcial sobre FAC-0000001 (la mitad del servicio). Códigos fiscales ILUSTRATIVOS (TODO(fiscal)). Los montos cuadran con las fórmulas de InvoiceIssued.",
+  "schema": "schemas/events/credit-note-issued.v1.json",
+  "valid": [
+    {
+      "eventId": "4f2c1b0a-9e8d-4c7b-9a6f-5e4d3c2b1a0f",
+      "eventType": "CreditNoteIssued",
+      "version": 1,
+      "occurredAt": "2026-09-26T15:00:00Z",
+      "correlationId": "9b8a7f6e-5d4c-4b3a-8f2e-1d0c9b8a7f6e",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing",
+      "documentId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "branchId": "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "documentNumber": "NC-0000001",
+      "referencedInvoiceId": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d",
+      "referencedInvoiceNumber": "FAC-0000001",
+      "referenceReason": "Descuento por servicio incompleto",
+      "issuedAt": "2026-09-26T15:00:00Z",
+      "issueDate": "2026-09-26",
+      "issuedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "saleConditionCode": "01",
+      "currency": "CRC",
+      "exchangeRate": "1",
+      "customerSnapshot": {
+        "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+        "identification": { "typeCode": "02", "number": "3101123456" },
+        "legalName": "Cliente Ejemplo S.A.",
+        "email": "facturas@cliente.example"
+      },
+      "lines": [
+        {
+          "lineNumber": 1,
+          "productId": "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
+          "productCode": "SRV-001",
+          "cabysCode": "8399000000000",
+          "description": "Servicio de consultoría",
+          "unitOfMeasureCode": "Sp",
+          "isService": true,
+          "quantity": "0.5",
+          "unitPrice": "10000",
+          "discount": "0",
+          "subtotal": "5000",
+          "tax": "650",
+          "total": "5650",
+          "taxes": [
+            { "taxTypeCode": "01", "taxRateCode": "08", "rate": "13", "taxableBase": "5000", "amount": "650" }
+          ]
+        }
+      ],
+      "subtotal": "5000",
+      "discount": "0",
+      "tax": "650",
+      "exoneration": "0",
+      "total": "5650"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "remove", "path": "/referencedInvoiceId" }], "why": "nota sin factura referenciada" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/referenceReason" }], "why": "nota sin motivo" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/total", "value": "-5650" }], "why": "monto negativo: la nota de crédito se expresa por su tipo, no por el signo" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/dueDate", "value": "2026-10-26" }], "why": "la nota de crédito no lleva vencimiento" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/eventType", "value": "DebitNoteIssued" }], "why": "eventType de otro evento" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/invoiceId", "value": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d" }], "why": "campo de InvoiceIssued: la nota usa documentId" }
+  ]
+}

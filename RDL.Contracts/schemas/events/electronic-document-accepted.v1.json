@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/electronic-document-accepted.v1.json",
+  "title": "ElectronicDocumentAccepted v1",
+  "description": "Hacienda aceptó un documento electrónico (estado fiscal accepted). Lo consumen el BFF, Billing y notificaciones para mostrar la aceptación y habilitar acciones.",
+  "allOf": [{ "$ref": "envelope.v1.json" }, { "$ref": "parts/electronic-document.v1.json" }],
+  "required": ["acceptedAt"],
+  "properties": {
+    "eventType": { "const": "ElectronicDocumentAccepted" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "fiscal" },
+    "acceptedAt": { "$ref": "../common/utc-datetime.json", "description": "fiscal.electronic_documents.accepted_at." }
+  },
+  "unevaluatedProperties": false
+}

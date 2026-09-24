@@ -1,0 +1,26 @@
+version: "2"
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - noctx
+    - revive
+    - unconvert
+  settings:
+    revive:
+      rules:
+        # La regla del repo es comentar el porqué, no el qué: no exigimos doc en cada símbolo exportado.
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [noctx]
+formatters:
+  enable:
+    - gofmt
+    - goimports

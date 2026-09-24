@@ -1,0 +1,15 @@
+{
+  "schema": "schemas/common/money.json",
+  "valid": ["0", "0.5", "11300", "1300.50", "0.00001", "9999999999999.99999"],
+  "invalid": [
+    { "value": 11300, "why": "number: el dinero siempre viaja como string" },
+    { "value": "-1", "why": "negativo: shared.money_amount >= 0" },
+    { "value": "01300", "why": "cero a la izquierda" },
+    { "value": "1,300.50", "why": "separador de miles" },
+    { "value": "1300.123456", "why": "más de 5 decimales" },
+    { "value": "10000000000000", "why": "más de 13 enteros" },
+    { "value": "1e3", "why": "exponente" },
+    { "value": "1300.", "why": "punto sin decimales" },
+    { "value": "", "why": "vacío" }
+  ]
+}

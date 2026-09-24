@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/payment-received.v1.json",
+  "title": "PaymentReceived v1",
+  "description": "Receivables registró un pago (receivables.payments, estado posted). Lo consumen el BFF y reportes para actualizar vistas y notificaciones. applications lista lo aplicado al registrarlo (puede ir vacío: un pago puede quedar sin aplicar).",
+  "allOf": [{ "$ref": "envelope.v1.json" }],
+  "type": "object",
+  "required": ["paymentId", "customerId", "receivedOn", "amount", "currency", "exchangeRate", "paymentMethodCode", "receivedByUserId", "applications"],
+  "properties": {
+    "eventType": { "const": "PaymentReceived" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "receivables" },
+    "paymentId": { "$ref": "../common/uuid.json" },
+    "customerId": { "$ref": "../common/uuid.json", "description": "billing.customers.id del cliente que paga." },
+    "receivedOn": { "$ref": "../common/business-date.json" },
+    "amount": { "$ref": "../common/money.json", "description": "Monto del pago (> 0, CHECK payments_amount_ck)." },
+    "currency": { "$ref": "../common/currency-code.json" },
+    "exchangeRate": { "$ref": "../common/exchange-rate.json" },
+    "paymentMethodCode": { "$ref": "../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.payment_methods." },
+    "reference": { "type": "string", "maxLength": 100, "description": "Referencia bancaria o comprobante." },
+    "receivedByUserId": { "$ref": "../common/uuid.json" },
+    "applications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["applicationId", "receivableId", "sourceInvoiceId", "amount"],
+        "properties": {
+          "applicationId": { "$ref": "../common/uuid.json" },
+          "receivableId": { "$ref": "../common/uuid.json" },
+          "sourceInvoiceId": { "$ref": "../common/uuid.json", "description": "Factura de la cuenta por cobrar." },
+          "amount": { "$ref": "../common/money.json" }
+        }
+      },
+      "description": "Σ applications.amount nunca supera amount."
+    }
+  },
+  "not": { "properties": { "amount": { "pattern": "^0(\\.0+)?$" } } },
+  "unevaluatedProperties": false
+}

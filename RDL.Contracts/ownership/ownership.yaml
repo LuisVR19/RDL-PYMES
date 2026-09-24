@@ -1,0 +1,96 @@
+# Matriz de ownership (arquitectura 2.1), en formato verificable. La explica docs/ownership.md.
+# Reglas (las aplica `contractsctl validate`):
+#   - cada schema tiene un solo dueño: un servicio o database-platform;
+#   - el dueño escribe y migra su schema; en schemas de otra API solo se lee, y la lectura es explícita;
+#   - solo en los transversales (audit, integration) se escribe sin ser dueño; audit es append only.
+# `read: all` = todas las tablas; `read: [t1, t2]` = solo esas.
+version: 1
+
+services:
+  platform:
+    displayName: Platform API
+    appRole: platform_app
+    migratorRole: platform_migrator
+  billing:
+    displayName: Billing API
+    appRole: billing_app
+    migratorRole: billing_migrator
+  fiscal:
+    displayName: E-Invoice API
+    appRole: fiscal_app
+    migratorRole: fiscal_migrator
+  receivables:
+    displayName: Receivables API
+    appRole: receivables_app
+    migratorRole: receivables_migrator
+
+schemas:
+  core:
+    owner: platform
+    purpose: Tenancy, identidad y estructura organizativa (organizaciones, usuarios, membresías, roles, sucursales, invitaciones).
+    access:
+      billing: {read: all, note: Revalida la membresía y valida sucursales.}
+      fiscal: {read: all, note: Revalida la membresía y lee la organización emisora.}
+      receivables:
+        read: all
+        note: "Revalida la membresía. TODO(database-platform): hoy receivables_app no tiene USAGE en core."
+
+  subscriptions:
+    owner: platform
+    purpose: Relación comercial del SaaS con cada organización (planes, suscripción, uso).
+
+  billing:
+    owner: billing
+    purpose: Operación comercial (clientes, productos, facturas, notas, numeración visible).
+    # Fiscal y Receivables no leen billing: reciben los datos por eventos (InvoiceIssued y compañía).
+
+  fiscal:
+    owner: fiscal
+    purpose: Cumplimiento fiscal (configuración, catálogos, documentos electrónicos, envíos a Hacienda).
+    access:
+      billing:
+        read:
+          - cabys_items
+          - cabys_versions
+          - cantons
+          - districts
+          - document_types
+          - exoneration_document_types
+          - identification_types
+          - payment_methods
+          - provinces
+          - sale_conditions
+          - tax_rates
+          - tax_types
+          - units_of_measure
+        note: Catálogos autorizados (arquitectura 2.1). El catálogo lo mantiene fiscal.
+      receivables:
+        read: [payment_methods, sale_conditions]
+        note: Catálogos para registrar pagos y condiciones de venta.
+
+  receivables:
+    owner: receivables
+    purpose: Cuentas por cobrar, pagos, aplicaciones, ajustes, promesas y seguimientos.
+
+  audit:
+    owner: database-platform
+    appendOnly: true
+    purpose: Auditoría de negocio (arquitectura 7.3). Nadie actualiza ni borra.
+    access:
+      platform: {read: all, write: [insert]}
+      billing: {read: all, write: [insert]}
+      fiscal: {read: all, write: [insert]}
+      receivables: {read: all, write: [insert]}
+
+  integration:
+    owner: database-platform
+    purpose: Entrega confiable de eventos (outbox, inbox, dead letters) e idempotencia HTTP.
+    access:
+      platform: {read: all, write: [insert, update, delete], note: Las políticas lo limitan a sus propias filas (source_service / consumer_service / service).}
+      billing: {read: all, write: [insert, update, delete], note: Ídem.}
+      fiscal: {read: all, write: [insert, update, delete], note: Ídem.}
+      receivables: {read: all, write: [insert, update, delete], note: Ídem.}
+
+  shared:
+    owner: database-platform
+    purpose: Dominios de tipos (money_amount, quantity, percentage...) y funciones de sesión RLS. Sin tablas.

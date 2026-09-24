@@ -1,0 +1,78 @@
+# Problem types de receivables: type = urn:rdl:receivables:problem:<code> (docs/convenciones.md §6).
+# Receivables API. Propuesta: se confirma al implementar (P6).
+# Un type que no está aquí no se usa. `contractsctl lint` exige los tipos comunes y valida el formato.
+version: 1
+service: receivables
+problems:
+  - code: unauthenticated
+    status: 401
+    title: Autenticación requerida
+    when: Falta el token o no es válido (firma, exp, aud, iss).
+  - code: no-active-organization
+    status: 403
+    title: Sin organización activa
+    when: El token no trae org_id.
+  - code: membership-inactive
+    status: 403
+    title: Membresía inactiva
+    when: La membresía está suspendida o la organización no está activa.
+  - code: forbidden
+    status: 403
+    title: Permisos insuficientes
+    when: El rol no concede la operación dentro de la organización.
+  - code: not-found
+    status: 404
+    title: Recurso no encontrado
+    when: No existe o pertenece a otra organización (no se distingue).
+  - code: method-not-allowed
+    status: 405
+    title: Método no permitido
+    when: La ruta existe pero no admite el método.
+  - code: malformed-request
+    status: 400
+    title: Petición mal formada
+    when: El cuerpo no es JSON válido o trae campos desconocidos.
+  - code: validation
+    status: 422
+    title: Datos inválidos
+    when: Uno o más campos no cumplen su formato; errors[] lista cada campo.
+  - code: conflict
+    status: 409
+    title: Conflicto con el estado actual
+    when: El estado del recurso no permite la operación o hay un duplicado.
+  - code: idempotency-key-required
+    status: 400
+    title: Idempotency-Key requerida
+    when: Un comando POST llegó sin el header.
+  - code: idempotency-key-reused
+    status: 422
+    title: Idempotency-Key reutilizada
+    when: La misma clave llegó con otro cuerpo dentro de las 24 h.
+  - code: internal
+    status: 500
+    title: Error interno
+    when: Falla no controlada; el detalle queda en el log con el correlationId.
+  - code: unavailable
+    status: 503
+    title: Servicio no disponible
+    when: Una dependencia (base, JWKS) no responde.
+  - code: application-exceeds-payment
+    status: 422
+    title: La aplicación supera el pago
+    when: La suma aplicada superaría el monto del pago.
+  - code: application-exceeds-balance
+    status: 422
+    title: La aplicación supera el saldo
+    when: El monto aplicado es mayor que el saldo de la cuenta.
+  - code: currency-mismatch
+    status: 422
+    title: Moneda distinta
+    when: Aplicar un pago a una cuenta en otra moneda.
+  - code: payment-voided
+    status: 409
+    title: Pago anulado
+    when: Aplicar o anular un pago ya anulado.
+  - code: application-reversed
+    status: 409
+    title: Aplicación revertida
+    when: Revertir una aplicación ya revertida.

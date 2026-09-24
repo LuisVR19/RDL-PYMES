@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/document-type.json",
+  "title": "DocumentType",
+  "description": "Tipo de documento comercial, igual que los CHECK de billing.invoices.document_type y fiscal.electronic_documents.source_type.",
+  "type": "string",
+  "enum": ["invoice", "credit_note", "debit_note"]
+}

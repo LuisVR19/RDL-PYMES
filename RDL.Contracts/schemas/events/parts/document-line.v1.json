@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/parts/document-line.v1.json",
+  "title": "DocumentLine v1",
+  "description": "Línea de una factura o nota con el snapshot del producto al emitir (billing.invoice_lines, arquitectura 4.4). Fórmulas en docs/eventos/invoice-issued.md: subtotal = quantity × unitPrice − discount; tax = Σ taxes.amount − Σ taxes.exoneration.amount; total = subtotal + tax.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lineNumber", "cabysCode", "description", "unitOfMeasureCode", "isService",
+    "quantity", "unitPrice", "discount", "subtotal", "tax", "total", "taxes"
+  ],
+  "properties": {
+    "lineNumber": { "type": "integer", "minimum": 1 },
+    "productId": { "$ref": "../../common/uuid.json", "description": "Referencia al maestro; puede faltar en una línea libre. Los datos válidos son los del snapshot." },
+    "productCode": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "cabysCode": { "$ref": "../../common/cabys-code.json" },
+    "description": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "unitOfMeasureCode": { "$ref": "../../common/fiscal-code.json", "description": "TODO(fiscal): catálogo fiscal.units_of_measure." },
+    "isService": { "type": "boolean" },
+    "quantity": { "$ref": "../../common/quantity.json" },
+    "unitPrice": { "$ref": "../../common/money.json" },
+    "discount": { "$ref": "../../common/money.json" },
+    "discountReason": { "type": "string", "minLength": 1, "maxLength": 80, "description": "Obligatorio si discount no es cero (CHECK invoice_lines_discount_ck)." },
+    "subtotal": { "$ref": "../../common/money.json" },
+    "tax": { "$ref": "../../common/money.json", "description": "Impuesto neto de la línea: impuestos menos exoneraciones." },
+    "total": { "$ref": "../../common/money.json" },
+    "taxes": {
+      "type": "array",
+      "items": { "$ref": "line-tax.v1.json" },
+      "description": "Vacío si la línea no lleva impuestos."
+    }
+  },
+  "if": {
+    "required": ["discount"],
+    "properties": { "discount": { "not": { "pattern": "^0(\\.0+)?$" } } }
+  },
+  "then": { "required": ["discountReason"] }
+}

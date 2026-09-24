@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/uuid.json",
+  "title": "Uuid",
+  "description": "Identificador UUID en minúsculas con guiones (convenciones §1).",
+  "type": "string",
+  "format": "uuid",
+  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+}

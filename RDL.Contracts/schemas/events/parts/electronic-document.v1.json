@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/parts/electronic-document.v1.json",
+  "x-rdl-base": true,
+  "title": "ElectronicDocumentRef v1",
+  "description": "Identificación de un documento electrónico y del documento comercial que lo originó (fiscal.electronic_documents). Schema base, abierto: lo componen ElectronicDocumentAccepted y ElectronicDocumentRejected.",
+  "type": "object",
+  "required": ["electronicDocumentId", "sourceType", "sourceDocumentId", "sourceDocumentNumber", "numericKey", "consecutiveNumber"],
+  "properties": {
+    "electronicDocumentId": { "$ref": "../../common/uuid.json" },
+    "sourceType": { "$ref": "../../common/document-type.json" },
+    "sourceDocumentId": { "$ref": "../../common/uuid.json", "description": "billing.invoices.id de la factura o nota (fiscal.electronic_documents.source_document_id)." },
+    "sourceDocumentNumber": { "type": "string", "minLength": 1, "maxLength": 50, "description": "Número visible del documento comercial." },
+    "numericKey": { "type": "string", "pattern": "^[0-9]{50}$", "description": "Clave numérica de 50 dígitos (CHECK electronic_documents_numeric_key_ck)." },
+    "consecutiveNumber": { "type": "string", "pattern": "^[0-9]{20}$", "description": "Consecutivo fiscal de 20 dígitos (CHECK electronic_documents_consecutive_ck)." },
+    "haciendaStatusMessage": { "type": "string", "maxLength": 4000, "description": "Mensaje de Hacienda, tal como llegó." }
+  }
+}

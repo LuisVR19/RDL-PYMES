@@ -1,0 +1,90 @@
+# Problem types de billing: type = urn:rdl:billing:problem:<code> (docs/convenciones.md §6).
+# Billing API. Propuesta: se confirma al implementar (P4).
+# Un type que no está aquí no se usa. `contractsctl lint` exige los tipos comunes y valida el formato.
+version: 1
+service: billing
+problems:
+  - code: unauthenticated
+    status: 401
+    title: Autenticación requerida
+    when: Falta el token o no es válido (firma, exp, aud, iss).
+  - code: no-active-organization
+    status: 403
+    title: Sin organización activa
+    when: El token no trae org_id.
+  - code: membership-inactive
+    status: 403
+    title: Membresía inactiva
+    when: La membresía está suspendida o la organización no está activa.
+  - code: forbidden
+    status: 403
+    title: Permisos insuficientes
+    when: El rol no concede la operación dentro de la organización.
+  - code: not-found
+    status: 404
+    title: Recurso no encontrado
+    when: No existe o pertenece a otra organización (no se distingue).
+  - code: method-not-allowed
+    status: 405
+    title: Método no permitido
+    when: La ruta existe pero no admite el método.
+  - code: malformed-request
+    status: 400
+    title: Petición mal formada
+    when: El cuerpo no es JSON válido o trae campos desconocidos.
+  - code: validation
+    status: 422
+    title: Datos inválidos
+    when: Uno o más campos no cumplen su formato; errors[] lista cada campo.
+  - code: conflict
+    status: 409
+    title: Conflicto con el estado actual
+    when: El estado del recurso no permite la operación o hay un duplicado.
+  - code: idempotency-key-required
+    status: 400
+    title: Idempotency-Key requerida
+    when: Un comando POST llegó sin el header.
+  - code: idempotency-key-reused
+    status: 422
+    title: Idempotency-Key reutilizada
+    when: La misma clave llegó con otro cuerpo dentro de las 24 h.
+  - code: internal
+    status: 500
+    title: Error interno
+    when: Falla no controlada; el detalle queda en el log con el correlationId.
+  - code: unavailable
+    status: 503
+    title: Servicio no disponible
+    when: Una dependencia (base, JWKS) no responde.
+  - code: invoice-not-draft
+    status: 409
+    title: El documento no es un borrador
+    when: Editar, cambiar líneas, descartar o emitir un documento que no está en draft.
+  - code: invoice-not-issued
+    status: 409
+    title: El documento no está emitido
+    when: Anular o referenciar un documento que no está issued.
+  - code: invoice-without-lines
+    status: 422
+    title: Documento sin líneas
+    when: Emitir un borrador sin líneas.
+  - code: customer-inactive
+    status: 422
+    title: Cliente inactivo
+    when: Crear o emitir un documento para un cliente desactivado.
+  - code: customer-identification-taken
+    status: 409
+    title: Identificación ya registrada
+    when: Otro cliente de la organización tiene el mismo tipo y número.
+  - code: product-code-taken
+    status: 409
+    title: Código de producto ya usado
+    when: Otro producto de la organización tiene el mismo código.
+  - code: invalid-reference
+    status: 422
+    title: Referencia inválida
+    when: La nota referencia una factura inexistente, de otro cliente o no emitida.
+  - code: sequence-in-use
+    status: 409
+    title: Secuencia en uso
+    when: Cambiar prefijo o número inicial de una secuencia ya usada.

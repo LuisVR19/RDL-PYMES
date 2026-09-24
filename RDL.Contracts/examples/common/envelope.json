@@ -1,0 +1,63 @@
+{
+  "schema": "schemas/events/envelope.v1.json",
+  "valid": [
+    {
+      "eventId": "0b8e7c6d-5a4f-4e3d-9c2b-1a0f9e8d7c6b",
+      "eventType": "InvoiceIssued",
+      "version": 1,
+      "occurredAt": "2026-09-24T15:04:05Z",
+      "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing"
+    }
+  ],
+  "invalid": [
+    {
+      "value": {
+        "eventId": "0b8e7c6d-5a4f-4e3d-9c2b-1a0f9e8d7c6b",
+        "eventType": "InvoiceIssued",
+        "version": 1,
+        "occurredAt": "2026-09-24T15:04:05Z",
+        "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+        "sourceService": "billing"
+      },
+      "why": "falta organizationId"
+    },
+    {
+      "value": {
+        "eventId": "0b8e7c6d-5a4f-4e3d-9c2b-1a0f9e8d7c6b",
+        "eventType": "InvoiceIssued",
+        "version": "1",
+        "occurredAt": "2026-09-24T15:04:05Z",
+        "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+        "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+        "sourceService": "billing"
+      },
+      "why": "version como string"
+    },
+    {
+      "value": {
+        "eventId": "0b8e7c6d-5a4f-4e3d-9c2b-1a0f9e8d7c6b",
+        "eventType": "InvoiceIssued",
+        "version": 1,
+        "occurredAt": "2026-09-24T09:04:05-06:00",
+        "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+        "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+        "sourceService": "billing"
+      },
+      "why": "occurredAt sin Z"
+    },
+    {
+      "value": {
+        "eventId": "0b8e7c6d-5a4f-4e3d-9c2b-1a0f9e8d7c6b",
+        "eventType": "InvoiceIssued",
+        "version": 1,
+        "occurredAt": "2026-09-24T15:04:05Z",
+        "correlationId": "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a",
+        "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+        "sourceService": "e-invoice"
+      },
+      "why": "servicio desconocido: E-Invoice se llama fiscal"
+    }
+  ]
+}

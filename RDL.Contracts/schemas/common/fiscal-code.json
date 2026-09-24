@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/fiscal-code.json",
+  "title": "FiscalCode",
+  "description": "Código de un catálogo fiscal (tipo de impuesto, tarifa, unidad de medida, condición de venta, medio de pago, tipo de documento de exoneración...). TODO(fiscal): valores y formato por catálogo según la especificación de Hacienda; los catálogos viven en fiscal.* y hoy están vacíos. Mientras tanto solo se exige un código alfanumérico corto, sin espacios.",
+  "type": "string",
+  "pattern": "^[0-9A-Za-z._-]{1,20}$"
+}

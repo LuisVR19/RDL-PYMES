@@ -1,0 +1,47 @@
+{
+  "schema": "schemas/common/customer-snapshot.json",
+  "valid": [
+    {
+      "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+      "identification": { "typeCode": "02", "number": "3101123456" },
+      "legalName": "Cliente Ejemplo S.A.",
+      "email": "facturas@cliente.example",
+      "phone": "2222-2222",
+      "address": "San José, 100 m norte del parque"
+    },
+    {
+      "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+      "identification": { "typeCode": "01", "number": "112345678" },
+      "legalName": "Persona Física"
+    }
+  ],
+  "invalid": [
+    { "value": { "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b", "legalName": "Sin identificación" }, "why": "falta identification" },
+    {
+      "value": {
+        "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+        "identification": { "typeCode": "02", "number": "3101123456" },
+        "legalName": "X",
+        "tradeName": "campo no acordado"
+      },
+      "why": "campo extra (additionalProperties: false)"
+    },
+    {
+      "value": {
+        "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+        "identification": { "typeCode": "02", "number": "3101123456" },
+        "legalName": "X",
+        "email": "no-es-email"
+      },
+      "why": "email inválido"
+    },
+    {
+      "value": {
+        "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+        "identification": { "typeCode": "02" },
+        "legalName": "X"
+      },
+      "why": "identificación sin número"
+    }
+  ]
+}

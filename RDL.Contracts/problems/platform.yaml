@@ -1,0 +1,82 @@
+# Problem types de platform: type = urn:rdl:platform:problem:<code> (docs/convenciones.md §6).
+# Platform API. Tomado de RDL.Platform.API (internal/adapters/http/problem y errors.go).
+# Un type que no está aquí no se usa. `contractsctl lint` exige los tipos comunes y valida el formato.
+version: 1
+service: platform
+problems:
+  - code: unauthenticated
+    status: 401
+    title: Autenticación requerida
+    when: Falta el token o no es válido (firma, exp, aud, iss).
+  - code: no-active-organization
+    status: 403
+    title: Sin organización activa
+    when: El token no trae org_id.
+  - code: membership-inactive
+    status: 403
+    title: Membresía inactiva
+    when: La membresía está suspendida o la organización no está activa.
+  - code: forbidden
+    status: 403
+    title: Permisos insuficientes
+    when: El rol no concede la operación dentro de la organización.
+  - code: not-found
+    status: 404
+    title: Recurso no encontrado
+    when: No existe o pertenece a otra organización (no se distingue).
+  - code: method-not-allowed
+    status: 405
+    title: Método no permitido
+    when: La ruta existe pero no admite el método.
+  - code: malformed-request
+    status: 400
+    title: Petición mal formada
+    when: El cuerpo no es JSON válido o trae campos desconocidos.
+  - code: validation
+    status: 422
+    title: Datos inválidos
+    when: Uno o más campos no cumplen su formato; errors[] lista cada campo.
+  - code: conflict
+    status: 409
+    title: Conflicto con el estado actual
+    when: El estado del recurso no permite la operación o hay un duplicado.
+  - code: idempotency-key-required
+    status: 400
+    title: Idempotency-Key requerida
+    when: Un comando POST llegó sin el header.
+  - code: idempotency-key-reused
+    status: 422
+    title: Idempotency-Key reutilizada
+    when: La misma clave llegó con otro cuerpo dentro de las 24 h.
+  - code: internal
+    status: 500
+    title: Error interno
+    when: Falla no controlada; el detalle queda en el log con el correlationId.
+  - code: unavailable
+    status: 503
+    title: Servicio no disponible
+    when: Una dependencia (base, JWKS) no responde.
+  - code: email-required
+    status: 422
+    title: Email requerido
+    when: El token no trae email y la operación lo necesita.
+  - code: user-disabled
+    status: 403
+    title: Usuario deshabilitado
+    when: core.users.status = disabled.
+  - code: last-owner
+    status: 409
+    title: La organización quedaría sin owner
+    when: Degradar o suspender al último owner activo.
+  - code: owner-required
+    status: 403
+    title: Solo un owner puede gestionar owners
+    when: Un admin intenta asignar, degradar o suspender un owner.
+  - code: invitation-expired
+    status: 410
+    title: Invitación vencida
+    when: La invitación pasó su vigencia de 7 días.
+  - code: invitation-not-pending
+    status: 409
+    title: La invitación ya no está pendiente
+    when: Aceptar o revocar una invitación aceptada, revocada o vencida.

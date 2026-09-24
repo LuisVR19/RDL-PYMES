@@ -1,0 +1,29 @@
+{
+  "description": "InvoiceCancelled v1: anulación de FAC-0000001 (valid[0] de invoice-issued).",
+  "schema": "schemas/events/invoice-cancelled.v1.json",
+  "valid": [
+    {
+      "eventId": "3e1b0a9f-8d7c-4b6a-8f5e-4d3c2b1a0f9e",
+      "eventType": "InvoiceCancelled",
+      "version": 1,
+      "occurredAt": "2026-09-25T14:00:00Z",
+      "correlationId": "8a7f6e5d-4c3b-4a2f-9e1d-0c9b8a7f6e5d",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "billing",
+      "invoiceId": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d",
+      "invoiceNumber": "FAC-0000001",
+      "cancelledAt": "2026-09-25T14:00:00Z",
+      "cancelledByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "reason": "Factura emitida al cliente equivocado",
+      "currency": "CRC",
+      "total": "11300"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "remove", "path": "/reason" }], "why": "anulación sin motivo" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/reason", "value": "" }], "why": "motivo vacío" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/total", "value": 11300 }], "why": "total como number" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/lines", "value": [] }], "why": "la anulación no lleva líneas" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/sourceService", "value": "receivables" }], "why": "solo billing anula facturas" }
+  ]
+}

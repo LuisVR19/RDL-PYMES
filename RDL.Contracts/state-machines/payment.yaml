@@ -1,0 +1,24 @@
+# Máquina de estados del pago (receivables.payments, columna status).
+# Los estados son los del CHECK payments_status_ck. Explicación y diagrama: docs/maquinas-de-estado/payment.md.
+version: 1
+entity: payment
+owner: receivables
+table: receivables.payments
+column: status
+created:
+  state: posted
+  trigger: {kind: command, name: POST /v1/payments}
+  emits: PaymentReceived
+states:
+  posted:
+    description: Pago registrado. Puede aplicarse a una o varias cuentas por cobrar, total o parcialmente.
+  voided:
+    description: Pago anulado con motivo (CHECK payments_voided_ck). Sus aplicaciones se revierten. Estado final.
+    final: true
+transitions:
+  - from: posted
+    to: voided
+    trigger: {kind: command, name: "POST /v1/payments/{id}/void"}
+    requires: [motivo, revertir las aplicaciones vigentes]
+todo:
+  - "TODO: el catálogo no tiene evento de pago anulado; el BFF y reportes no se enteran por eventos."

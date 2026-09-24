@@ -1,0 +1,35 @@
+# CI del repo de contratos. Un PR que rompa un contrato publicado sin versión nueva debe fallar aquí.
+image: golang:1.27
+
+clone:
+  depth: full # breaking necesita el último tag para armar la base
+
+definitions:
+  steps:
+    - step: &check
+        name: build, test, lint y validación de contratos
+        caches: [gomod]
+        script:
+          - go build ./...
+          - go vet ./...
+          - go test -race -count=1 ./...
+          - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin"
+          - golangci-lint run ./...
+          - go run ./cmd/contractsctl validate
+          - go run ./cmd/contractsctl lint
+          # breaking compara contra la última versión publicada, extraída a un directorio (ADR 0006).
+          - LAST=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          - if [ -n "$LAST" ]; then mkdir -p /tmp/base && git archive "$LAST" | tar -x -C /tmp/base && go run ./cmd/contractsctl breaking -base /tmp/base; else echo "Sin versión publicada todavía: se omite breaking"; fi
+  caches:
+    gomod: /root/go/pkg/mod
+
+pipelines:
+  pull-requests:
+    '**':
+      - step: *check
+  branches:
+    main:
+      - step: *check
+  tags:
+    'v*':
+      - step: *check

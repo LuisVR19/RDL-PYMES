@@ -1,0 +1,66 @@
+# Máquina de estados del documento electrónico (fiscal.electronic_documents, columna status).
+# Los estados son los del CHECK electronic_documents_status_ck. Las transiciones son una PROPUESTA para que el dueño
+# de fiscal las confirme (decisión C3 del informe 0001). Explicación y diagrama: docs/maquinas-de-estado/electronic-document.md.
+version: 1
+entity: electronic-document
+owner: fiscal
+table: fiscal.electronic_documents
+column: status
+documentTypes: [invoice, credit_note, debit_note]
+created:
+  state: processing
+  trigger: {kind: event, name: InvoiceIssued}
+  alsoBy:
+    - {kind: event, name: CreditNoteIssued}
+    - {kind: event, name: DebitNoteIssued}
+states:
+  processing:
+    description: Creado a partir del evento de Billing. Se arma el XML.
+  signed:
+    description: XML generado y firmado con el certificado de la organización.
+  sent:
+    description: Enviado a Hacienda; se espera o se consulta la respuesta.
+  accepted:
+    description: Aceptado por Hacienda (accepted_at). Estado final.
+    final: true
+  rejected:
+    description: Rechazado por Hacienda (rejected_at). Estado final para este documento; la corrección es otro documento.
+    final: true
+  contingency:
+    description: Hacienda no disponible; se procesa según el procedimiento de contingencia y se reenvía.
+  error:
+    description: Falla que impide continuar sin intervención (XML inválido, certificado vencido). Se reintenta a mano.
+transitions:
+  - from: processing
+    to: signed
+    trigger: {kind: worker, name: firmar XML}
+  - from: processing
+    to: error
+    trigger: {kind: worker, name: generar o firmar XML}
+    requires: [detalle del error en submission_attempts]
+  - from: signed
+    to: sent
+    trigger: {kind: worker, name: enviar a Hacienda}
+  - from: signed
+    to: contingency
+    trigger: {kind: worker, name: enviar a Hacienda}
+    requires: [Hacienda no disponible]
+  - from: contingency
+    to: sent
+    trigger: {kind: worker, name: reenviar a Hacienda}
+  - from: sent
+    to: accepted
+    trigger: {kind: worker, name: consultar estado en Hacienda}
+    emits: ElectronicDocumentAccepted
+  - from: sent
+    to: rejected
+    trigger: {kind: worker, name: consultar estado en Hacienda}
+    emits: ElectronicDocumentRejected
+    requires: [motivo de rechazo]
+  - from: error
+    to: processing
+    trigger: {kind: command, name: "POST /v1/electronic-documents/{id}/retry"}
+    requires: [causa corregida]
+todo:
+  - "TODO(fiscal): confirmar todas las transiciones con la especificación de Hacienda (C3)."
+  - "TODO(fiscal): ¿un documento en error o contingencia por mucho tiempo emite algún evento? Hoy no hay en el catálogo."

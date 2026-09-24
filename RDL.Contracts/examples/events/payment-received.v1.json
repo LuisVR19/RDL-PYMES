@@ -1,0 +1,54 @@
+{
+  "description": "PaymentReceived v1. valid[0]: pago aplicado a dos cuentas por cobrar (un pago, varias facturas). valid[1]: pago sin aplicar. Código de medio de pago ILUSTRATIVO (TODO(fiscal)).",
+  "schema": "schemas/events/payment-received.v1.json",
+  "valid": [
+    {
+      "eventId": "8d6a5f4e-3c2b-4a1f-9e0d-9c8b7a6f5e4d",
+      "eventType": "PaymentReceived",
+      "version": 1,
+      "occurredAt": "2026-10-01T18:00:00Z",
+      "correlationId": "1d0c9b8a-7f6e-4d5c-8b4a-3f2e1d0c9b8a",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "receivables",
+      "paymentId": "e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f7a8b",
+      "customerId": "8a1c2e3f-4b5d-4e6f-8a7b-9c0d1e2f3a4b",
+      "receivedOn": "2026-10-01",
+      "amount": "15000",
+      "currency": "CRC",
+      "exchangeRate": "1",
+      "paymentMethodCode": "04",
+      "reference": "TRF-778899",
+      "receivedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "applications": [
+        { "applicationId": "f6a7b8c9-d0e1-4f2a-9b3c-4d5e6f7a8b9c", "receivableId": "a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0d", "sourceInvoiceId": "7c1e9a2b-3d4f-4a5b-8c6d-7e8f9a0b1c2d", "amount": "11300" },
+        { "applicationId": "b8c9d0e1-f2a3-4b4c-9d5e-6f7a8b9c0d1e", "receivableId": "c9d0e1f2-a3b4-4c5d-8e6f-7a8b9c0d1e2f", "sourceInvoiceId": "9e3a1c4d-5f6b-4c7d-8e8f-9a0b1c2d3e4f", "amount": "3700" }
+      ]
+    },
+    {
+      "eventId": "9e7b6a5f-4d3c-4b2a-8f1e-0d9c8b7a6f5e",
+      "eventType": "PaymentReceived",
+      "version": 1,
+      "occurredAt": "2026-10-02T15:30:00Z",
+      "correlationId": "2e1d0c9b-8a7f-4e6d-9c5b-4a3f2e1d0c9b",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "receivables",
+      "paymentId": "d0e1f2a3-b4c5-4d6e-9f7a-8b9c0d1e2f3a",
+      "customerId": "3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f",
+      "receivedOn": "2026-10-02",
+      "amount": "500.50",
+      "currency": "USD",
+      "exchangeRate": "512.34",
+      "paymentMethodCode": "01",
+      "receivedByUserId": "9f8e7d6c-5b4a-4938-8271-605f4e3d2c1b",
+      "applications": []
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "replace", "path": "/amount", "value": "0" }], "why": "pago de cero (CHECK payments_amount_ck)" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/amount", "value": 15000 }], "why": "monto como number" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/applications" }], "why": "applications es obligatorio (puede ir vacío)" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/applications/0/receivableId" }], "why": "aplicación sin cuenta por cobrar" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/receivedOn", "value": "2026-10-01T18:00:00Z" }], "why": "fecha de pago con hora" },
+    { "base": 0, "patch": [{ "op": "replace", "path": "/sourceService", "value": "billing" }], "why": "solo receivables registra pagos" }
+  ]
+}

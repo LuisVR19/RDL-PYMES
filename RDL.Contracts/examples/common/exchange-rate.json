@@ -1,0 +1,10 @@
+{
+  "schema": "schemas/common/exchange-rate.json",
+  "valid": ["1", "512.34", "0.00185"],
+  "invalid": [
+    { "value": "0", "why": "cero: shared.exchange_rate > 0" },
+    { "value": "0.00000", "why": "cero con decimales" },
+    { "value": 512.34, "why": "number" },
+    { "value": "-512", "why": "negativo" }
+  ]
+}

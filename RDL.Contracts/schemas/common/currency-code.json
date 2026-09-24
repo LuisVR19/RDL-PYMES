@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/currency-code.json",
+  "title": "CurrencyCode",
+  "description": "Código de moneda ISO 4217 en mayúsculas, igual que shared.currency_code.",
+  "type": "string",
+  "pattern": "^[A-Z]{3}$",
+  "examples": ["CRC", "USD"]
+}

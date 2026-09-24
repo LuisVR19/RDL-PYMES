@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/invoice-cancelled.v1.json",
+  "title": "InvoiceCancelled v1",
+  "description": "Billing anuló una factura emitida (issued → cancelled) con motivo obligatorio (CHECK invoices_cancelled_ck). fiscal inicia la corrección o el reverso permitido; Receivables registra un ajuste cancellation por el saldo. Sin líneas (D13): el consumidor ya recibió el detalle en InvoiceIssued.",
+  "allOf": [{ "$ref": "envelope.v1.json" }],
+  "type": "object",
+  "required": ["invoiceId", "invoiceNumber", "cancelledAt", "cancelledByUserId", "reason", "currency", "total"],
+  "properties": {
+    "eventType": { "const": "InvoiceCancelled" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "billing" },
+    "invoiceId": { "$ref": "../common/uuid.json" },
+    "invoiceNumber": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "cancelledAt": { "$ref": "../common/utc-datetime.json" },
+    "cancelledByUserId": { "$ref": "../common/uuid.json" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 500, "description": "billing.invoices.cancellation_reason. TODO(fiscal): si Hacienda exige un código de motivo." },
+    "currency": { "$ref": "../common/currency-code.json" },
+    "total": { "$ref": "../common/money.json", "description": "Total de la factura anulada, para que el consumidor verifique contra lo que registró." }
+  },
+  "unevaluatedProperties": false
+}

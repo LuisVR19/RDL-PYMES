@@ -1,0 +1,122 @@
+# Componentes comunes de todas las APIs (docs/convenciones.md). Las APIs los referencian con $ref y no los copian:
+#   $ref: 'components/common.yaml#/components/parameters/IdempotencyKey'
+# Los tipos de datos (Money, Uuid, UtcDateTime...) son los JSON Schema de schemas/common/, los mismos de los eventos.
+openapi: 3.1.0
+info:
+  title: RDL · componentes comunes
+  version: 0.1.0
+  description: Componentes compartidos. No es una API; se valida como documento OpenAPI 3.1 que solo tiene components.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT (Supabase Auth, ES256, verificado con JWKS). La organización activa sale del claim org_id.
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 1 a 255 caracteres ASCII visibles (se recomienda un UUID). Vale 24 h por organización y servicio (convenciones §7).
+      schema: { type: string, minLength: 1, maxLength: 255, pattern: '^[\x21-\x7E]+$' }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: UUID. Si falta o no es UUID, el servicio genera uno. Siempre se devuelve (convenciones §8).
+      schema: { $ref: '../../schemas/common/uuid.json' }
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Tamaño de página (convenciones §9).
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Cursor opaco devuelto en nextCursor. El cliente no lo interpreta.
+      schema: { type: string, maxLength: 512 }
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { $ref: '../../schemas/common/uuid.json' }
+
+  headers:
+    CorrelationId:
+      description: El X-Correlation-Id del request (o el generado).
+      schema: { $ref: '../../schemas/common/uuid.json' }
+
+  schemas:
+    Problem:
+      type: object
+      description: Error RFC 9457 (convenciones §6). type = urn:rdl:<servicio>:problem:<código>, registrado en problems/<servicio>.yaml.
+      required: [type, title, status]
+      properties:
+        type: { type: string, pattern: '^urn:rdl:(platform|billing|fiscal|receivables):problem:[a-z0-9]+(-[a-z0-9]+)*$' }
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string, description: Sin datos internos (SQL, stack, constraints). }
+        instance: { type: string, description: Ruta del request. }
+        correlationId: { $ref: '../../schemas/common/uuid.json' }
+        errors:
+          type: array
+          description: Solo en errores de validación (422). field es el nombre del campo JSON.
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string }
+              message: { type: string }
+    PageInfo:
+      type: object
+      description: Campos de paginación que acompañan a items (convenciones §9).
+      required: [nextCursor]
+      properties:
+        nextCursor: { type: [string, 'null'], description: null cuando no hay más páginas. }
+    Money: { $ref: '../../schemas/common/money.json' }
+    ExchangeRate: { $ref: '../../schemas/common/exchange-rate.json' }
+    Quantity: { $ref: '../../schemas/common/quantity.json' }
+    Percentage: { $ref: '../../schemas/common/percentage.json' }
+    CurrencyCode: { $ref: '../../schemas/common/currency-code.json' }
+    Uuid: { $ref: '../../schemas/common/uuid.json' }
+    UtcDateTime: { $ref: '../../schemas/common/utc-datetime.json' }
+    BusinessDate: { $ref: '../../schemas/common/business-date.json' }
+    Identification: { $ref: '../../schemas/common/identification.json' }
+    FiscalCode: { $ref: '../../schemas/common/fiscal-code.json' }
+    CabysCode: { $ref: '../../schemas/common/cabys-code.json' }
+    DocumentType: { $ref: '../../schemas/common/document-type.json' }
+
+  responses:
+    BadRequest:
+      description: Cuerpo mal formado o falta Idempotency-Key.
+      headers: { X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Unauthorized:
+      description: Falta el token o no es válido.
+      headers:
+        X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' }
+        WWW-Authenticate: { schema: { type: string } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Forbidden:
+      description: Sin organización activa, membresía inactiva o rol insuficiente.
+      headers: { X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    NotFound:
+      description: No existe o es de otra organización (no se revela cuál).
+      headers: { X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Conflict:
+      description: El estado no permite la operación o hay un duplicado.
+      headers: { X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    UnprocessableEntity:
+      description: Validación de campos, o Idempotency-Key reutilizada con otro cuerpo.
+      headers: { X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    InternalError:
+      description: Error interno. El detalle va al log con el correlationId, nunca a la respuesta.
+      headers: { X-Correlation-Id: { $ref: '#/components/headers/CorrelationId' } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }

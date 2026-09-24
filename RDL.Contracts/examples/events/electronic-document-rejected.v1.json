@@ -1,0 +1,30 @@
+{
+  "description": "ElectronicDocumentRejected v1: Hacienda rechazó el documento de FAC-0000002. Clave, consecutivo y mensaje ILUSTRATIVOS (TODO(fiscal)).",
+  "schema": "schemas/events/electronic-document-rejected.v1.json",
+  "valid": [
+    {
+      "eventId": "7c5f4e3d-2b1a-4f0e-8d9c-8b7a6f5e4d3c",
+      "eventType": "ElectronicDocumentRejected",
+      "version": 1,
+      "occurredAt": "2026-09-24T16:02:10Z",
+      "correlationId": "6e5d4c3b-2a1f-4e0d-9c8b-7a6f5e4d3c2b",
+      "organizationId": "304b6c9e-d2cd-56ab-ac15-919e708ec232",
+      "sourceService": "fiscal",
+      "electronicDocumentId": "d4e5f6a7-b8c9-4d0e-9f1a-2b3c4d5e6f7a",
+      "sourceType": "invoice",
+      "sourceDocumentId": "8d2f0b3c-4e5a-4b6c-9d7e-8f9a0b1c2d3e",
+      "sourceDocumentNumber": "FAC-0000002",
+      "numericKey": "50624092600310112345600100001010000000002100000002",
+      "consecutiveNumber": "00100001010000000002",
+      "rejectedAt": "2026-09-24T16:02:10Z",
+      "rejectionReason": "La identificación del receptor no coincide con el registro",
+      "haciendaStatusMessage": "Rechazado"
+    }
+  ],
+  "invalid": [
+    { "base": 0, "patch": [{ "op": "remove", "path": "/rejectionReason" }], "why": "rechazo sin motivo: el usuario no puede corregir" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/rejectedAt" }], "why": "rechazo sin fecha" },
+    { "base": 0, "patch": [{ "op": "remove", "path": "/sourceDocumentId" }], "why": "sin el documento comercial Billing no sabe qué marcar" },
+    { "base": 0, "patch": [{ "op": "add", "path": "/acceptedAt", "value": "2026-09-24T16:02:10Z" }], "why": "campo del evento de aceptación" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "schemas/common/fiscal-code.json",
+  "valid": ["01", "08", "Unid", "Sp"],
+  "invalid": [
+    { "value": "", "why": "vacío" },
+    { "value": "01 ", "why": "con espacio" },
+    { "value": 1, "why": "number: los códigos son strings (conservan ceros a la izquierda)" }
+  ]
+}

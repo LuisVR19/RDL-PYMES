@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/envelope.v1.json",
+  "x-rdl-base": true,
+  "title": "EventEnvelope v1",
+  "description": "Sobre común de todo evento (convenciones §10). Los campos del cuerpo van en el mismo objeto: cada evento hace allOf con este schema y cierra con unevaluatedProperties: false. Mapeo a integration.outbox_messages: eventId→id, eventType→event_type, version→event_version, occurredAt→occurred_at, correlationId→correlation_id, organizationId→organization_id, sourceService→source_service; el objeto completo→payload.",
+  "type": "object",
+  "required": ["eventId", "eventType", "version", "occurredAt", "correlationId", "organizationId", "sourceService"],
+  "properties": {
+    "eventId": { "$ref": "../common/uuid.json", "description": "Único por evento; el consumidor deduplica por este valor (integration.inbox_messages)." },
+    "eventType": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]+$", "description": "Nombre del evento en PascalCase y pasado (InvoiceIssued)." },
+    "version": { "type": "integer", "minimum": 1, "description": "Versión del schema del evento." },
+    "occurredAt": { "$ref": "../common/utc-datetime.json", "description": "Momento en que ocurrió el hecho de negocio (no el de publicación)." },
+    "correlationId": { "$ref": "../common/uuid.json", "description": "X-Correlation-Id del request que originó el evento." },
+    "organizationId": { "$ref": "../common/uuid.json", "description": "Tenant: el consumidor lo usa como organización de su transacción." },
+    "sourceService": { "$ref": "../common/service-name.json", "description": "Servicio productor (D3)." }
+  }
+}

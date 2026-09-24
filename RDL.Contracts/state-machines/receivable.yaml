@@ -1,0 +1,73 @@
+# Máquina de estados de la cuenta por cobrar (receivables.receivables, columna status).
+# Los estados son los del CHECK receivables_status_ck. El estado se deriva del saldo (balance_amount) frente al monto
+# original; los disparadores son aplicaciones de pago y ajustes (receivable_adjustments).
+# Explicación y diagrama: docs/maquinas-de-estado/receivable.md.
+version: 1
+entity: receivable
+owner: receivables
+table: receivables.receivables
+column: status
+created:
+  state: open
+  trigger: {kind: event, name: InvoiceIssued}
+states:
+  open:
+    description: Saldo igual al monto original (más notas de débito).
+  partially_paid:
+    description: Saldo mayor que cero y menor que el total adeudado.
+  paid:
+    description: Saldo cero (settled_at). Puede reabrirse si se revierte una aplicación o llega una nota de débito.
+  cancelled:
+    description: La factura se anuló (ajuste cancellation). Estado final.
+    final: true
+transitions:
+  - from: open
+    to: partially_paid
+    trigger: {kind: command, name: POST /v1/payments}
+    requires: [aplicación menor que el saldo]
+  - from: open
+    to: partially_paid
+    trigger: {kind: event, name: CreditNoteIssued}
+    requires: [nota menor que el saldo]
+  - from: open
+    to: paid
+    trigger: {kind: command, name: POST /v1/payments}
+    emits: ReceivableSettled
+    requires: [aplicación igual al saldo]
+  - from: open
+    to: paid
+    trigger: {kind: event, name: CreditNoteIssued}
+    emits: ReceivableSettled
+    requires: [nota igual al saldo]
+  - from: partially_paid
+    to: paid
+    trigger: {kind: command, name: POST /v1/payments}
+    emits: ReceivableSettled
+    requires: [aplicación igual al saldo]
+  - from: partially_paid
+    to: paid
+    trigger: {kind: event, name: CreditNoteIssued}
+    emits: ReceivableSettled
+    requires: [nota igual al saldo]
+  - from: partially_paid
+    to: open
+    trigger: {kind: command, name: "POST /v1/payment-applications/{id}/reverse"}
+    requires: [motivo, el saldo vuelve al total]
+  - from: paid
+    to: partially_paid
+    trigger: {kind: command, name: "POST /v1/payment-applications/{id}/reverse"}
+    requires: [motivo]
+  - from: paid
+    to: partially_paid
+    trigger: {kind: event, name: DebitNoteIssued}
+  - from: open
+    to: cancelled
+    trigger: {kind: event, name: InvoiceCancelled}
+  - from: partially_paid
+    to: cancelled
+    trigger: {kind: event, name: InvoiceCancelled}
+    requires: ["TODO: qué pasa con lo ya aplicado (¿saldo a favor?)"]
+todo:
+  - "TODO: castigo (write_off): ¿deja la cuenta en paid o en cancelled? La base lo admite como ajuste, sin estado propio."
+  - "TODO: ¿una nota de débito que llega con la cuenta en paid la reabre o crea otra cuenta? Se propone reabrir."
+  - "TODO: anulación de una factura ya pagada (paid → ?)."

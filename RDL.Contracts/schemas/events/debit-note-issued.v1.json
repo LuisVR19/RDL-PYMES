@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/events/debit-note-issued.v1.json",
+  "title": "DebitNoteIssued v1",
+  "description": "Billing emitió una nota de débito sobre una factura emitida. fiscal crea su documento electrónico; Receivables registra un ajuste debit_note que aumenta el saldo. Lleva vencimiento propio porque genera un monto a cobrar.",
+  "allOf": [{ "$ref": "envelope.v1.json" }, { "$ref": "parts/issued-note.v1.json" }],
+  "required": ["dueDate"],
+  "properties": {
+    "eventType": { "const": "DebitNoteIssued" },
+    "version": { "const": 1 },
+    "sourceService": { "const": "billing" },
+    "dueDate": { "$ref": "../common/business-date.json", "description": "Vencimiento del monto de la nota. Nunca anterior a issueDate." }
+  },
+  "unevaluatedProperties": false
+}

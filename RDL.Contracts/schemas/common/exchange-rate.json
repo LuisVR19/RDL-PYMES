@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.rdl.invalid/schemas/common/exchange-rate.json",
+  "title": "ExchangeRate",
+  "description": "Tipo de cambio hacia la moneda local, igual que shared.exchange_rate (numeric(18,5), > 0). String decimal distinto de cero.",
+  "type": "string",
+  "pattern": "^(0|[1-9][0-9]{0,12})(\\.[0-9]{1,5})?$",
+  "not": { "pattern": "^0(\\.0+)?$" },
+  "examples": ["1", "512.34"]
+}
