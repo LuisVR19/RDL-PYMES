@@ -3,7 +3,7 @@
 
 GO ?= go
 
-.PHONY: run build test test-isolation lint migrate-up migrate-status migrate-mark-baseline docker
+.PHONY: run build test test-isolation lint migrate-up migrate-status migrate-mark-baseline sqlc docker
 
 run:
 	$(GO) run ./cmd/api
@@ -37,3 +37,7 @@ migrate-mark-baseline:
 # El contexto es el monorepo: a partir del incremento 3 el build necesita ../RDL.Contracts (replace en go.mod).
 docker:
 	docker build -f Dockerfile -t receivables-api:dev ..
+
+# Regenera internal/adapters/postgres/db desde queries/ (sqlc v1.31.1, igual que Platform).
+sqlc:
+	sqlc generate
