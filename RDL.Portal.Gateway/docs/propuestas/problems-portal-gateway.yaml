@@ -1,0 +1,54 @@
+# PROPUESTA para el repo de contratos: copiar a `problems/portal-gateway.yaml` en un PR aparte
+# (2 aprobaciones + entrada en el CHANGELOG, como pide el CLAUDE.md de RDL.Contracts).
+#
+# Problem types del Portal Gateway: type = urn:rdl:portal-gateway:problem:<code> (docs/convenciones.md §6).
+# Solo nacen aquí los errores PROPIOS del gateway. Los de las APIs se reenvían sin cambios, con su `type`
+# original: el gateway nunca los reescribe.
+version: 1
+service: portal-gateway
+problems:
+  - code: unauthenticated
+    status: 401
+    title: Autenticación requerida
+    when: Falta el token, no es Bearer, o no pasó la verificación (firma, exp, aud, iss). Ninguna API se llamó.
+
+  - code: not-found
+    status: 404
+    title: Ruta no encontrada
+    when: La ruta no está declarada en la tabla del gateway. No existe reenvío de rutas no declaradas.
+
+  - code: method-not-allowed
+    status: 405
+    title: Método no permitido
+    when: La ruta está declarada pero no para ese método. La respuesta incluye el encabezado Allow.
+
+  - code: payload-too-large
+    status: 413
+    title: El cuerpo excede el máximo permitido
+    when: El cuerpo supera HTTP_MAX_REQUEST_BODY. Se corta en el gateway y no se reenvía.
+
+  - code: upstream-unavailable
+    status: 502
+    title: El servicio no está disponible
+    when: >
+      La API dueña no respondió (conexión rechazada, DNS, 5xx tras agotar el reintento de lectura).
+      El detalle queda en el log del gateway, nunca en la respuesta.
+
+  - code: upstream-timeout
+    status: 504
+    title: El servicio tardó demasiado en responder
+    when: La API dueña no respondió dentro de su timeout, o se agotó el presupuesto de la petición.
+
+  - code: upstream-not-configured
+    status: 503
+    title: El servicio todavía no está disponible en este ambiente
+    when: >
+      La ruta está declarada pero su API no tiene URL en este ambiente (E-Invoice y Receivables mientras
+      P5 y P6 no estén desplegadas). Es distinto de 404: la función existe en el producto, todavía no aquí.
+
+  - code: upstream-error
+    status: null  # conserva el status de la API
+    title: La API respondió con un error
+    when: >
+      Solo en composiciones: la API principal respondió un error SIN Problem Details. Se conserva su status.
+      Si mandó Problem Details, se reenvía el suyo y este tipo no se usa.

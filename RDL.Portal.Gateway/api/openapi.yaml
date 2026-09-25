@@ -1,0 +1,340 @@
+# Rutas PÚBLICAS del Portal Gateway. Es la única superficie que consume RDL.Web.Portal.
+#
+# Este archivo y `internal/domain/routes` no pueden separarse: `TestOpenAPIMatchesRouteTable` falla si una
+# ruta está en uno y no en el otro.
+#
+# Casi todo es PASO DIRECTO: el gateway reenvía a la API dueña sin tocar el cuerpo, así que el esquema de la
+# petición y de la respuesta es el de esa API (`openapi/platform.yaml`, `billing.yaml`, `fiscal.yaml` y
+# `receivables.yaml` del repo de contratos). Aquí se declara la ruta, quién la sirve y los errores que puede
+# agregar el gateway. Lo único que el gateway define por su cuenta son las COMPOSICIONES.
+openapi: 3.1.0
+info:
+  title: Portal Gateway (BFF del portal web)
+  version: 0.1.0
+  description: |
+    Único punto de entrada del portal de la PYME. Verifica el token del usuario, lo reenvía sin modificar a la
+    API dueña y compone las vistas que necesitan varias APIs.
+
+    **Tenancy:** la organización sale del `org_id` del token verificado y la revalida cada API contra su base.
+    Nunca viaja en la ruta, la query, el cuerpo ni un header; si el cliente la manda por query, se descarta.
+
+    **Errores:** los Problem Details de las APIs se reenvían sin cambios (mismo status, mismo `type`). Los
+    propios del gateway usan `urn:rdl:portal-gateway:problem:<código>` (ver `docs/propuestas/`).
+
+    **Alcance de esta versión:** esqueleto, identidad, paso directo y la vista transversal de factura.
+    Pendientes: listados enriquecidos, notificaciones en tiempo real y read model (ver `docs/ESTADO.md`).
+servers:
+  - url: http://localhost:8090
+    description: Desarrollo local
+security:
+  - bearerAuth: []
+tags:
+  - { name: sesión, description: Perfil, membresías y organización activa · Platform }
+  - { name: organización, description: Organización, miembros, invitaciones y sucursales · Platform }
+  - { name: facturación, description: Clientes, productos, facturas y numeración · Billing }
+  - { name: hacienda, description: Configuración fiscal y documentos electrónicos · E-Invoice }
+  - { name: cobranza, description: Cuentas por cobrar y pagos · Receivables }
+  - { name: vistas, description: Composiciones del gateway }
+  - { name: operación, description: Health checks }
+
+paths:
+  /healthz:
+    get:
+      tags: [operación]
+      operationId: live
+      summary: El proceso vive.
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/Health' }
+  /readyz:
+    get:
+      tags: [operación]
+      operationId: ready
+      summary: |
+        El JWKS y las APIs configuradas responden. `degraded` = alguna API destino no contesta, pero el
+        gateway sirve lo demás. 503 solo si falla una dependencia crítica (el JWKS).
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/Health' }
+        '503': { $ref: '#/components/responses/Health' }
+
+  # ---------------------------------------------------------------- Platform
+  /portal/v1/me:
+    get: { tags: [sesión], operationId: getMe, summary: 'Perfil del usuario. Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/me/memberships:
+    get: { tags: [sesión], operationId: listMyMemberships, summary: 'Organizaciones del usuario. Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/me/active-organization:
+    put: { tags: [sesión], operationId: setActiveOrganization, summary: 'Cambia la organización activa; el cliente refresca el token. Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+
+  /portal/v1/organizations:
+    post: { tags: [organización], operationId: createOrganization, summary: 'Crea una organización. Paso directo → Platform.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current:
+    get: { tags: [organización], operationId: getCurrentOrganization, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    patch: { tags: [organización], operationId: patchCurrentOrganization, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current/users:
+    get: { tags: [organización], operationId: listMembers, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current/users/{userId}:
+    parameters: [{ $ref: '#/components/parameters/UserId' }]
+    patch: { tags: [organización], operationId: patchMember, summary: 'Cambia rol o estado. Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current/invitations:
+    get: { tags: [organización], operationId: listInvitations, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [organización], operationId: createInvitation, summary: 'Paso directo → Platform.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current/invitations/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    delete: { tags: [organización], operationId: revokeInvitation, summary: 'Paso directo → Platform.', responses: { '204': { description: Revocada } } }
+  /portal/v1/invitations/{token}/accept:
+    parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+    post: { tags: [organización], operationId: acceptInvitation, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current/branches:
+    get: { tags: [organización], operationId: listBranches, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [organización], operationId: createBranch, summary: 'Paso directo → Platform.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/organizations/current/branches/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [organización], operationId: getBranch, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    patch: { tags: [organización], operationId: patchBranch, summary: 'Paso directo → Platform.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+
+  # ---------------------------------------------------------------- Billing
+  /portal/v1/customers:
+    get: { tags: [facturación], operationId: listCustomers, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [facturación], operationId: createCustomer, summary: 'Paso directo → Billing.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/customers/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [facturación], operationId: getCustomer, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    patch: { tags: [facturación], operationId: patchCustomer, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/products:
+    get: { tags: [facturación], operationId: listProducts, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [facturación], operationId: createProduct, summary: 'Paso directo → Billing.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/products/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [facturación], operationId: getProduct, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    patch: { tags: [facturación], operationId: patchProduct, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/invoices:
+    get:
+      tags: [facturación]
+      operationId: listInvoices
+      summary: |
+        Paso directo → Billing. **TODO(incremento 5):** enriquecer con el estado fiscal y el saldo, con una
+        sola llamada por API (rutas por lote propuestas en docs/decisiones/0001, §4).
+      responses: { '200': { $ref: '#/components/responses/Upstream' } }
+    post: { tags: [facturación], operationId: createInvoice, summary: 'Crea un borrador. Paso directo → Billing.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/invoices/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [facturación], operationId: getInvoice, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    patch: { tags: [facturación], operationId: patchInvoice, summary: 'Solo en borrador. Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    delete: { tags: [facturación], operationId: discardInvoice, summary: 'Descarta el borrador. Paso directo → Billing.', responses: { '204': { description: Descartada } } }
+  /portal/v1/invoices/{id}/lines:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    put: { tags: [facturación], operationId: replaceInvoiceLines, summary: 'Reemplaza las líneas y recalcula. Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/invoices/{id}/issue:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [facturación]
+      operationId: issueInvoice
+      summary: |
+        **Emite** la factura. Paso directo → Billing. El gateway NUNCA reintenta este comando: si no llega
+        respuesta, el cliente reintenta con la misma `Idempotency-Key`.
+      responses: { '201': { $ref: '#/components/responses/Upstream' } }
+  /portal/v1/invoices/{id}/history:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [facturación], operationId: getInvoiceHistory, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/document-sequences:
+    get: { tags: [facturación], operationId: listDocumentSequences, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/document-sequences/{documentType}:
+    parameters: [{ name: documentType, in: path, required: true, schema: { type: string, enum: [invoice, credit_note, debit_note] } }]
+    put: { tags: [facturación], operationId: putDocumentSequence, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+
+  # ---------------------------------------------------------------- E-Invoice (fiscal)
+  # Declaradas desde hoy. Sin FISCAL_API_URL responden 503 upstream-not-configured (ADR 0002).
+  /portal/v1/fiscal-profile:
+    get: { tags: [hacienda], operationId: getFiscalProfile, summary: 'Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    put: { tags: [hacienda], operationId: putFiscalProfile, summary: 'Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/fiscal-profile/certificate:
+    put: { tags: [hacienda], operationId: uploadCertificate, summary: 'Sube el certificado de firma. Paso directo → E-Invoice.', responses: { '204': { description: Guardado } } }
+  /portal/v1/establishments:
+    get: { tags: [hacienda], operationId: listEstablishments, summary: 'Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/electronic-documents:
+    get: { tags: [hacienda], operationId: listElectronicDocuments, summary: 'Bandeja. Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/electronic-documents/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [hacienda], operationId: getElectronicDocument, summary: 'Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/electronic-documents/{id}/files/{kind}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: kind, in: path, required: true, schema: { type: string } }
+    get: { tags: [hacienda], operationId: getElectronicDocumentFile, summary: 'XML o respuesta de Hacienda. Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/electronic-documents/{id}/retry:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post: { tags: [hacienda], operationId: retryElectronicDocument, summary: 'Reintenta el envío. Paso directo → E-Invoice. No lo reintenta el gateway.', responses: { '202': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/catalogs/cabys:
+    get: { tags: [hacienda], operationId: searchCabys, summary: 'Buscador de CABYS. Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/catalogs/{catalog}:
+    parameters: [{ name: catalog, in: path, required: true, schema: { type: string } }]
+    get: { tags: [hacienda], operationId: getCatalog, summary: 'Catálogo fiscal. Paso directo → E-Invoice.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+
+  # ---------------------------------------------------------------- Receivables
+  /portal/v1/receivables:
+    get: { tags: [cobranza], operationId: listReceivables, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/receivables/aging:
+    get: { tags: [cobranza], operationId: getAging, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/receivables/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [cobranza], operationId: getReceivable, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/receivables/{id}/follow-ups:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [cobranza], operationId: listFollowUps, summary: 'Gestiones de cobro. Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/payments:
+    get: { tags: [cobranza], operationId: listPayments, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [cobranza], operationId: createPayment, summary: 'Paso directo → Receivables.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/payments/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [cobranza], operationId: getPayment, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/payments/{id}/void:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post: { tags: [cobranza], operationId: voidPayment, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/payment-applications:
+    post: { tags: [cobranza], operationId: createPaymentApplication, summary: 'Paso directo → Receivables.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/payment-applications/{id}/reverse:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post: { tags: [cobranza], operationId: reversePaymentApplication, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+
+  # ---------------------------------------------------------------- Composiciones
+  /portal/v1/invoices/{id}/overview:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [vistas]
+      operationId: getInvoiceOverview
+      summary: Vista transversal de una factura.
+      description: |
+        Junta el documento de Billing, el estado del documento electrónico de E-Invoice y el saldo de
+        Receivables, en tres llamadas paralelas (arquitectura 2.2).
+
+        **Degradación (criterio 2):** si una API secundaria falla o no responde a tiempo, la vista NO falla:
+        esa parte sale con `availability: "unavailable"` y sin datos. Si falla Billing, se responde el error
+        de Billing tal cual.
+      responses:
+        '200':
+          description: La vista, completa o degradada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvoiceOverview' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '502': { $ref: '#/components/responses/Problem' }
+        '504': { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token de Supabase Auth. El gateway lo verifica y lo reenvía sin modificar.
+
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { $ref: '#/components/schemas/Uuid' } }
+    UserId: { name: userId, in: path, required: true, schema: { $ref: '#/components/schemas/Uuid' } }
+
+  schemas:
+    Uuid: { type: string, format: uuid }
+    # Decimal exacto como string. NUNCA `number`: ver convenciones §3 del repo de contratos.
+    Money: { type: string, pattern: '^-?\d+(\.\d+)?$' }
+    BusinessDate: { type: string, format: date }
+
+    Availability:
+      type: string
+      enum: [available, absent, unavailable]
+      description: |
+        Si el gateway pudo traer esa parte. Es un concepto del gateway y vive APARTE del `status` de cada API
+        (ADR 0004): `absent` = la API dijo que no existe (un borrador no tiene documento electrónico ni cuenta
+        por cobrar); `unavailable` = no se pudo saber.
+
+    InvoiceOverview:
+      type: object
+      additionalProperties: false
+      required: [invoice, fiscal, receivable]
+      properties:
+        invoice: { $ref: '#/components/schemas/InvoiceSummary' }
+        fiscal: { $ref: '#/components/schemas/FiscalPart' }
+        receivable: { $ref: '#/components/schemas/BalancePart' }
+
+    InvoiceSummary:
+      type: object
+      additionalProperties: false
+      required: [id, documentType, status, requiresCorrection, currency, total]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        documentType: { type: string, enum: [invoice, credit_note, debit_note] }
+        number: { type: string, description: Ausente mientras es borrador. }
+        status: { type: string, enum: [draft, issued, cancelled] }
+        requiresCorrection: { type: boolean }
+        customerLegalName: { type: string, description: Ausente antes de emitir (el snapshot se toma al emitir). }
+        currency: { type: string }
+        total: { $ref: '#/components/schemas/Money' }
+
+    FiscalPart:
+      type: object
+      additionalProperties: false
+      required: [availability]
+      properties:
+        availability: { $ref: '#/components/schemas/Availability' }
+        status:
+          type: object
+          description: Solo cuando availability es available.
+          additionalProperties: false
+          required: [electronicDocumentId, status]
+          properties:
+            electronicDocumentId: { $ref: '#/components/schemas/Uuid' }
+            status: { type: string, enum: [processing, signed, sent, accepted, rejected, contingency, error] }
+            haciendaStatusMessage: { type: string }
+
+    BalancePart:
+      type: object
+      additionalProperties: false
+      required: [availability]
+      properties:
+        availability: { $ref: '#/components/schemas/Availability' }
+        balance:
+          type: object
+          description: Solo cuando availability es available.
+          additionalProperties: false
+          required: [receivableId, status, currency, balanceAmount, dueOn]
+          properties:
+            receivableId: { $ref: '#/components/schemas/Uuid' }
+            status: { type: string, enum: [open, partially_paid, paid, cancelled] }
+            currency: { type: string }
+            balanceAmount: { $ref: '#/components/schemas/Money' }
+            dueOn: { $ref: '#/components/schemas/BusinessDate' }
+
+    Problem:
+      type: object
+      description: RFC 9457. En el paso directo es el de la API dueña, sin modificar.
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        correlationId: { $ref: '#/components/schemas/Uuid' }
+
+  responses:
+    Upstream:
+      description: |
+        La respuesta de la API dueña, sin modificar. Su esquema es el de esa API en el repo de contratos.
+      content:
+        application/json:
+          schema: {}
+    Problem:
+      description: Error
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Health:
+      description: Estado del servicio
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [status]
+            properties:
+              status: { type: string, enum: [ok, degraded, unavailable] }
+              checks: { type: object, additionalProperties: { type: string } }
