@@ -14,7 +14,6 @@ import (
 	"time"
 	_ "time/tzdata" // la imagen distroless no trae zoneinfo: las fechas de negocio usan la zona de la organización
 
-	"rdl/receivables-api/internal/adapters/auth"
 	httpadapter "rdl/receivables-api/internal/adapters/http"
 	"rdl/receivables-api/internal/adapters/postgres"
 	"rdl/receivables-api/internal/platform/config"
@@ -22,7 +21,6 @@ import (
 	"rdl/receivables-api/internal/platform/logger"
 	"rdl/receivables-api/internal/platform/telemetry"
 	"rdl/receivables-api/internal/wiring"
-	"rdl/receivables-api/pkg/tenancy"
 )
 
 func main() {
@@ -56,13 +54,6 @@ func run() error {
 	}
 	defer pool.Close()
 
-	verifier, err := auth.NewVerifier(ctx, log, cfg.Auth.JWKSURL, cfg.Auth.Issuer, cfg.Auth.Audience, cfg.Auth.JWKSRefresh)
-	if err != nil {
-		return err
-	}
-	memberships := tenancy.NewCachedResolver(postgres.NewMembershipResolver(pool), cfg.Auth.MembershipCacheTTL)
-	txm := postgres.NewTxManager(pool)
-
 	httpClient := &http.Client{Timeout: 5 * time.Second}
 	checks := health.New(log, 3*time.Second,
 		postgres.PingChecker{Pool: pool},
@@ -73,7 +64,7 @@ func run() error {
 
 	srv := &http.Server{
 		Addr:              cfg.HTTP.Addr,
-		Handler:           httpadapter.NewRouter(wiring.Deps(log, checks, verifier, memberships, txm)),
+		Handler:           httpadapter.NewRouter(wiring.Deps(log, checks)),
 		ReadHeaderTimeout: cfg.HTTP.ReadHeaderTimeout,
 		ReadTimeout:       cfg.HTTP.ReadTimeout,
 		WriteTimeout:      cfg.HTTP.WriteTimeout,

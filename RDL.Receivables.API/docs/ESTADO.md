@@ -1,7 +1,7 @@
 # Estado del proyecto · Receivables API
 
-**Última actualización:** 2026-09-25
-**Punto de corte:** incremento 2 terminado y probado contra dev (incluido el `GRANT` sobre `core`); sigue el incremento 3.
+**Última actualización:** 2026-09-24
+**Punto de corte:** incremento 1 terminado y probado contra dev. `GRANT` sobre `core` aplicado; sigue el incremento 2.
 
 ## Decisiones aprobadas (2026-09-24)
 
@@ -19,9 +19,8 @@ aplica `database-platform` · R10 el endpoint interno admite además `biller` ·
 | # | Incremento | Estado |
 |---|---|---|
 | 1 | Esqueleto, config, health, OTel, logins y baseline | ✅ |
-| 2 | JWT, TenantContext, `GET /v1/receivables` | ✅ |
-| 3 | Dominio de saldos, agregados, migraciones 00003/00004 | pendiente (siguiente) |
-| 4–10 | Ver `docs/PLAN.md` §6 | pendiente |
+| 2 | JWT, TenantContext, `GET /v1/receivables` | pendiente (desbloqueado) |
+| 3–10 | Ver `docs/PLAN.md` §6 | pendiente |
 
 ## Incremento 1: qué hay
 
@@ -45,44 +44,16 @@ aplica `database-platform` · R10 el endpoint interno admite además `biller` ·
 - `go run ./cmd/api`: `/healthz` 200, `/readyz` 200 (`database: ok`, `jwks: ok`), ruta desconocida 404 en Problem Details
   con `correlationId`.
 
-## Incremento 2: qué hay
-
-- `pkg/tenancy` e `internal/adapters/auth` copiados de Platform (ADR 0003): JWKS con caché, solo ES256/RS256/EdDSA,
-  `TenantContext` inmutable, revalidación de la membresía en `core` con caché de 30 s (solo resultados positivos).
-- `internal/adapters/postgres`: `TxManager.WithinTenantTx` (`set_config(..., true)`), `MembershipResolver` y
-  repositorios sobre sqlc (`queries/`, `sqlc.yaml`, `sqlc/external.sql` con las columnas de `core` que se leen).
-- `internal/domain/permission`: la matriz completa de `docs/PLAN.md` §4, con un test que la fija.
-  `internal/domain/civil`: fecha de negocio ("hoy" en la zona de la organización). `internal/domain/receivable`: por
-  ahora solo `Status`.
-- `GET /v1/receivables`: filtros `status`, `customerId` y `overdue` (vencida = `open`/`partially_paid` con `due_on`
-  anterior al día de negocio de la organización), `limit` 1–100 y `cursor` opaco sobre `(created_at, id)` descendente.
-  Montos como string decimal con `trim_scale` (la conversión a `shopspring/decimal` llega con el agregado).
-  Todo `/v1` exige JWT + TenantContext: 401 `unauthenticated`; 403 `no-active-organization`, `membership-inactive` o
-  `forbidden`; 422 `validation`; 405 en Problem Details.
-- Tests: tenancy, verificador JWT, matriz, fecha civil, caso de uso con fakes y handler HTTP (incluido que un
-  `organization_id` en la query no cambia el tenant). `golangci-lint` con 0 issues.
-
-## Verificación contra dev (2026-09-25)
-
-- `/readyz` 200; `/v1/receivables` sin token o con token inválido → 401 en Problem Details.
-- Con los adapters reales y el login `receivables_api` (programa temporal, ya borrado), usando usuarios de la suite de
-  aislamiento de Platform: la membresía de un owner se resuelve con sus roles; un miembro de otra organización y un
-  sujeto desconocido → `ErrNoMembership`; listado vacío con y sin filtros (el filtro `overdue` lee
-  `core.organizations.timezone`); `biller` → `ErrForbidden`. **Con esto queda validado el `GRANT` sobre `core`.**
-- Falta probar con un JWT real de Supabase (hay que iniciar sesión en Auth con el hook de `org_id`). El verificador
-  está cubierto por tests con un JWKS propio.
-
 ## Lectura de `core` (ADR 0002 §2)
 
 Aplicada en dev el 2026-09-24 por pedido explícito del usuario (migración `0011_receivables_core_read` en
-`supabase_migrations`, fuera del flujo normal de `database-platform`, que debe incorporarla a su repo). Validada en la
-práctica el 2026-09-25 (incremento 2).
+`supabase_migrations`, fuera del flujo normal de `database-platform`, que debe incorporarla a su repo). La consulta de
+verificación de privilegios la bloqueó el modo automático; el incremento 2 la valida en la práctica (revalidación de
+membresía contra `core`).
 
 ## Pendientes y TODOs
 
 - `TODO(P2)`: transporte de eventos.
-- `tests/isolation` (incremento 10): agregar el caso cruzado de `GET /v1/receivables` (cuentas de la organización B
-  invisibles para A, también con `organization_id` en la query).
 - `RDL.Contracts`: tag `v0.1.0` sin crear (el `replace` hacia `../RDL.Contracts` se agrega en el incremento 3); PR con
   `customer-mismatch` (R11) y con el OpenAPI de Receivables completo.
 - `database-platform`: incorporar a su repo las migraciones 0010 y 0011 aplicadas desde aquí, y las revocaciones de R9 (ADR 0002 §3).
