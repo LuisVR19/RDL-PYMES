@@ -1,0 +1,39 @@
+/* Prototipo: inline-flex, gap 5, 12/600, relleno 2×9, radio 12. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  padding: 2px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.sm {
+  font-size: 11px;
+  padding: 1px 7px;
+}
+.strike > span {
+  text-decoration: line-through;
+}
+.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+.warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+.danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+.info {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+.neutral {
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-fg);
+}

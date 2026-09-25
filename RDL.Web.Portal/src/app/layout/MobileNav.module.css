@@ -1,0 +1,50 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  background: var(--scrim);
+}
+
+.panel {
+  position: fixed;
+  z-index: var(--z-drawer);
+  inset: 0 64px 0 0;
+  background: var(--color-bg-nav);
+  color: var(--color-text-nav);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  box-shadow: var(--shadow-lg);
+  animation: slide var(--duration-slow) var(--ease-standard);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.close {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+.close:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-brand-bar);
+  outline: none;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+}

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>body{margin:0;background:#F4F5F7;font-family:'IBM Plex Sans',sans-serif;color:#161B26}a{color:#2355C9}a:hover{color:#173C94}*{box-sizing:border-box}</style></helmet>
+<div style="max-width:1280px;margin:0 auto;padding:32px 32px 80px;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-direction:column;gap:12px;padding-bottom:8px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="font-weight:700;font-size:17px;letter-spacing:.14em;color:#FFFFFF;background:#0F1B33;padding:4px 8px;border-radius:3px">RDL</div>
+    <span style="font-size:13px;color:#5A6272">Portal de la PYME · Sistema de diseño v0.1 · Dirección 1a Institucional</span>
+  </div>
+  <h1 style="margin:0;font-size:32px;line-height:40px;font-weight:600">Sistema de diseño</h1>
+  <p style="margin:0;max-width:820px;font-size:14px;line-height:22px;color:#343B48;text-wrap:pretty">Paso 3 del brief, para aprobar antes de las pantallas. Contiene tokens con nombres de variable CSS (claro y oscuro), el mapeo único de estados, la tipografía y los componentes con sus estados. Los componentes llevan el nombre que tendrán en React (<code style="font-family:'IBM Plex Mono',monospace;font-size:13px">StatusBadge</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px">MoneyInput</code>…). Datos ficticios.</p>
+  <nav style="display:flex;flex-wrap:wrap;gap:6px;font-size:13px">
+    <a href="#color" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Color</a>
+    <a href="#estados" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Estados</a>
+    <a href="#tipo" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Tipografía</a>
+    <a href="#base" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Espaciado, radios, sombras, capas, movimiento</a>
+    <a href="#botones" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Botones</a>
+    <a href="#campos" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Campos</a>
+    <a href="#tabla" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Tabla</a>
+    <a href="#datos" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Visualización</a>
+    <a href="#nav" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Navegación</a>
+    <a href="#capas" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Diálogos y capas</a>
+    <a href="#avisos" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Avisos</a>
+    <a href="#sistema" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Estados de pantalla</a>
+    <a href="#shell" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Estructura</a>
+    <a href="#abierto" style="padding:5px 10px;background:#fff;border:1px solid #DDE1E7;border-radius:6px;text-decoration:none">Decisiones abiertas</a>
+  </nav>
+</header>
+
+<section id="color" data-screen-label="Color" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">01 · Tokens</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Color por rol</h2><p style="margin:0;font-size:13px;color:#5A6272;max-width:760px">Los nombres describen el uso, no el tono. En oscuro se cambia solo el valor, con el mismo nombre.</p></div>
+  <div style="display:grid;grid-template-columns:minmax(190px,1.4fr) 140px 140px minmax(160px,1.6fr);gap:0;font-size:13px;border:1px solid #DDE1E7;border-radius:6px;overflow-x:auto">
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Token</div>
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Claro</div>
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Oscuro</div>
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Uso</div>
+    <sc-for list="{{ colors }}" as="c" hint-placeholder-count="16">
+      <div style="padding:8px 12px;border-bottom:1px solid #EBEEF2;font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;align-items:center">{{ c.name }}</div>
+      <div style="padding:8px 12px;border-bottom:1px solid #EBEEF2;display:flex;align-items:center;gap:8px"><span style="width:28px;height:20px;border-radius:4px;border:1px solid rgba(0,0,0,.12);background:{{ c.light }}"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">{{ c.light }}</span></div>
+      <div style="padding:8px 12px;border-bottom:1px solid #EBEEF2;display:flex;align-items:center;gap:8px"><span style="width:28px;height:20px;border-radius:4px;border:1px solid rgba(0,0,0,.12);background:{{ c.dark }}"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">{{ c.dark }}</span></div>
+      <div style="padding:8px 12px;border-bottom:1px solid #EBEEF2;color:#343B48;display:flex;align-items:center">{{ c.use }}</div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h3 style="margin:0;font-size:16px;line-height:24px;font-weight:600">Tonos de estado</h3>
+    <p style="margin:0;font-size:13px;color:#5A6272">Cada tono tiene <code style="font-family:'IBM Plex Mono',monospace">-bg</code> (fondo suave), <code style="font-family:'IBM Plex Mono',monospace">-fg</code> (texto e icono, 4.5:1 o más sobre su fondo) y <code style="font-family:'IBM Plex Mono',monospace">-border</code>.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px">
+      <sc-for list="{{ tones }}" as="t" hint-placeholder-count="5">
+        <div style="border:1px solid #DDE1E7;border-radius:6px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="padding:14px;background:{{ t.lbg }};color:{{ t.lfg }};border-bottom:1px solid {{ t.lbd }};display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:14px">{{ t.i }}  {{ t.name }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px">{{ t.lbg }} / {{ t.lfg }}</span></div>
+          <div style="padding:14px;background:{{ t.dbg }};color:{{ t.dfg }};display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:14px">{{ t.i }}  {{ t.name }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px">{{ t.dbg }} / {{ t.dfg }}</span></div>
+          <div style="padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A6272;background:#F8F9FB">--color-{{ t.key }}-*</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section id="estados" data-screen-label="Estados" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">02 · StatusBadge</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Mapeo único de estados</h2><p style="margin:0;font-size:13px;color:#5A6272;max-width:760px">Todas las pantallas usan esta tabla. Cada estado lleva un icono y un texto además del color. Props: <code style="font-family:'IBM Plex Mono',monospace">domain</code>, <code style="font-family:'IBM Plex Mono',monospace">status</code>, <code style="font-family:'IBM Plex Mono',monospace">detail?</code>, <code style="font-family:'IBM Plex Mono',monospace">size: sm | md</code>.</p></div>
+  <div style="display:grid;grid-template-columns:120px minmax(120px,1fr) 190px 72px 190px;font-size:13px;border:1px solid #DDE1E7;border-radius:6px;overflow-x:auto">
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Dominio</div>
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Valor</div>
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Claro</div>
+    <div style="padding:8px 12px;background:#F8F9FB;font-size:12px;font-weight:600;color:#5A6272;border-bottom:1px solid #DDE1E7">Tono</div>
+    <div style="padding:8px 12px;background:#0E131C;font-size:12px;font-weight:600;color:#A3ABBA;border-bottom:1px solid #2A3342">Oscuro</div>
+    <sc-for list="{{ states }}" as="s" hint-placeholder-count="23">
+      <div style="padding:7px 12px;border-bottom:1px solid #EBEEF2;color:{{ s.domFg }};font-weight:{{ s.domW }}">{{ s.dom }}</div>
+      <div style="padding:7px 12px;border-bottom:1px solid #EBEEF2;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#343B48;display:flex;align-items:center;overflow-wrap:anywhere;min-width:0">{{ s.val }}</div>
+      <div style="padding:7px 12px;border-bottom:1px solid #EBEEF2;display:flex;align-items:center"><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:{{ s.lbg }};color:{{ s.lfg }};text-decoration:{{ s.deco }}"><span>{{ s.i }}</span>{{ s.label }}</span></div>
+      <div style="padding:7px 12px;border-bottom:1px solid #EBEEF2;font-size:12px;color:#5A6272;display:flex;align-items:center">{{ s.tone }}</div>
+      <div style="padding:7px 12px;border-bottom:1px solid #1C2330;background:#0E131C;display:flex;align-items:center"><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:{{ s.dbg }};color:{{ s.dfg }};text-decoration:{{ s.deco }}"><span>{{ s.i }}</span>{{ s.label }}</span></div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;font-size:13px;color:#5A6272">
+    <div style="display:flex;align-items:center;gap:8px">Con detalle: <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#E7EEFC;color:#1F4FB8">◷ En proceso · Firmando</span></div>
+    <div style="display:flex;align-items:center;gap:8px">Tamaño sm: <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:0 7px;border-radius:10px;background:#E6F4EC;color:#1B6B3A;line-height:18px">✓ Aceptada</span></div>
+    <div style="display:flex;align-items:center;gap:8px">Tag (no es estado): <span style="font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid #C9CFD8;color:#343B48">Sucursal Central</span><span style="font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid #C9CFD8;color:#343B48">Crédito 30 días</span></div>
+  </div>
+</section>
+
+<section id="tipo" data-screen-label="Tipografía" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">03 · Tokens</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Tipografía</h2><p style="margin:0;font-size:13px;color:#5A6272;max-width:760px">Usa IBM Plex Sans para la interfaz e IBM Plex Mono para códigos y claves, ambas con licencia SIL OFL. Todas las cifras llevan <code style="font-family:'IBM Plex Mono',monospace">font-variant-numeric: tabular-nums</code>. Pesos: 400, 500, 600 y 700 (este último solo en el logotipo).</p></div>
+  <div style="display:flex;flex-direction:column;border-top:1px solid #EBEEF2">
+    <sc-for list="{{ type }}" as="t" hint-placeholder-count="10">
+      <div style="display:grid;grid-template-columns:220px 150px minmax(0,1fr);gap:16px;align-items:baseline;padding:12px 0;border-bottom:1px solid #EBEEF2">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#343B48">{{ t.token }}</span>
+        <span style="font-size:12px;color:#5A6272">{{ t.spec }}</span>
+        <span style="font-family:{{ t.fam }};font-size:{{ t.size }};line-height:{{ t.lh }};font-weight:{{ t.w }};letter-spacing:{{ t.ls }};text-transform:{{ t.tt }};font-variant-numeric:tabular-nums">{{ t.sample }}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:12px;font-weight:600;color:#5A6272">Montos · reglas</div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:6px 24px;font-size:14px;font-variant-numeric:tabular-nums">
+        <span>Subtotal</span><span style="text-align:right">₡100 000,00</span>
+        <span>Impuesto (código ilustrativo)</span><span style="text-align:right">₡13 000,00</span>
+        <span>Descuento</span><span style="text-align:right">−₡0,00</span>
+        <span style="font-weight:600;border-top:1px solid #DDE1E7;padding-top:6px">Total</span><span style="text-align:right;font-weight:600;border-top:1px solid #DDE1E7;padding-top:6px">₡113 000,00</span>
+      </div>
+      <p style="margin:0;font-size:12px;line-height:18px;color:#5A6272">Formato: símbolo pegado, espacio fino no separable para los miles, coma decimal y dos decimales. Los negativos llevan el signo menos (−) antes del símbolo. Los montos se alinean a la derecha y la moneda siempre se muestra.</p>
+    </div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:12px;font-weight:600;color:#5A6272">Fechas, identificaciones y claves</div>
+      <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 16px;font-size:14px;font-variant-numeric:tabular-nums">
+        <span style="color:#5A6272">Fecha</span><span>24/09/2026</span>
+        <span style="color:#5A6272">Fecha y hora</span><span>24/09/2026 15:15 <span style="font-size:12px;color:#5A6272">hora de Costa Rica</span></span>
+        <span style="color:#5A6272">Identificación</span><span>Jurídica 3-101-900412</span>
+        <span style="color:#5A6272">Clave (50)</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;word-break:break-all">50624 0926 0031 0190 0412 0010 0001 0100 0000 0341 9876 5432</span>
+      </div>
+      <p style="margin:0;font-size:12px;line-height:18px;color:#5A6272">Las claves largas se muestran en grupos, pero al copiarlas se copia la cadena sin espacios. La clave de ejemplo es ilustrativa.</p>
+    </div>
+  </div>
+</section>
+
+<section id="base" data-screen-label="Base" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:24px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">04 · Tokens</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Espaciado, radios, sombras, bordes, capas, movimiento y puntos de corte</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:32px">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <h3 style="margin:0;font-size:14px;font-weight:600">Espaciado (base 4)</h3>
+      <sc-for list="{{ space }}" as="s" hint-placeholder-count="11">
+        <div style="display:grid;grid-template-columns:96px 48px minmax(0,1fr);align-items:center;gap:12px;font-size:12px"><span style="font-family:'IBM Plex Mono',monospace">{{ s.name }}</span><span style="color:#5A6272">{{ s.px }}</span><span style="height:10px;background:#C2D3F7;border-radius:2px;width:{{ s.px }}"></span></div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3 style="margin:0;font-size:14px;font-weight:600">Radios</h3>
+        <div style="display:flex;gap:16px;font-size:12px">
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div style="width:56px;height:40px;border:1.5px solid #2355C9;border-radius:4px"></div><span style="font-family:'IBM Plex Mono',monospace">--radius-sm 4</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div style="width:56px;height:40px;border:1.5px solid #2355C9;border-radius:6px"></div><span style="font-family:'IBM Plex Mono',monospace">--radius-md 6</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div style="width:56px;height:40px;border:1.5px solid #2355C9;border-radius:8px"></div><span style="font-family:'IBM Plex Mono',monospace">--radius-lg 8</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><div style="width:56px;height:40px;border:1.5px solid #2355C9;border-radius:999px"></div><span style="font-family:'IBM Plex Mono',monospace">--radius-full</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3 style="margin:0;font-size:14px;font-weight:600">Sombras (solo capas)</h3>
+        <div style="display:flex;gap:16px;font-size:12px;padding:8px 4px 4px;background:#F4F5F7;border-radius:6px;padding:16px">
+          <div style="flex:1;height:56px;background:#fff;border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 0 0 1px rgba(16,24,40,.06);display:flex;align-items:flex-end;padding:6px 8px;font-family:'IBM Plex Mono',monospace">--shadow-sm</div>
+          <div style="flex:1;height:56px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.10),0 0 0 1px rgba(16,24,40,.06);display:flex;align-items:flex-end;padding:6px 8px;font-family:'IBM Plex Mono',monospace">--shadow-md</div>
+          <div style="flex:1;height:56px;background:#fff;border-radius:6px;box-shadow:0 16px 40px rgba(16,24,40,.18),0 0 0 1px rgba(16,24,40,.06);display:flex;align-items:flex-end;padding:6px 8px;font-family:'IBM Plex Mono',monospace">--shadow-lg</div>
+        </div>
+        <span style="font-size:12px;color:#5A6272">sm: tarjetas en hover · md: menús, popovers y toasts · lg: diálogos y drawer. Las superficies normales usan borde, no sombra.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h3 style="margin:0;font-size:14px;font-weight:600">Bordes y foco</h3>
+        <div style="display:flex;gap:16px;align-items:center;font-size:12px">
+          <div style="width:88px;height:36px;border:1px solid #DDE1E7;border-radius:6px"></div><span style="font-family:'IBM Plex Mono',monospace">--border-width 1</span>
+          <div style="width:88px;height:36px;border:1px solid #C9CFD8;border-radius:6px;box-shadow:0 0 0 2px #fff,0 0 0 4px #2355C9"></div><span style="font-family:'IBM Plex Mono',monospace">--focus-ring 2 + 2 desfase</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h3 style="margin:0 0 2px;font-size:14px;font-weight:600">Capas (z-index)</h3>
+      <sc-for list="{{ zs }}" as="z" hint-placeholder-count="7"><div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #EBEEF2"><span style="font-family:'IBM Plex Mono',monospace">{{ z.name }}</span><span style="color:#5A6272">{{ z.v }}</span></div></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h3 style="margin:0 0 2px;font-size:14px;font-weight:600">Movimiento</h3>
+      <sc-for list="{{ motion }}" as="m" hint-placeholder-count="6"><div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0;border-bottom:1px solid #EBEEF2"><span style="font-family:'IBM Plex Mono',monospace">{{ m.name }}</span><span style="color:#5A6272;text-align:right">{{ m.v }}</span></div></sc-for>
+      <span style="font-size:12px;color:#5A6272;line-height:18px">Con <code style="font-family:'IBM Plex Mono',monospace">prefers-reduced-motion</code>, todas las duraciones pasan a 0 ms y los esqueletos de carga dejan de pulsar.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h3 style="margin:0 0 2px;font-size:14px;font-weight:600">Puntos de corte</h3>
+      <sc-for list="{{ bps }}" as="b" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0;border-bottom:1px solid #EBEEF2"><span style="font-family:'IBM Plex Mono',monospace">{{ b.name }}</span><span style="color:#5A6272;text-align:right">{{ b.v }}</span></div></sc-for>
+    </div>
+  </div>
+</section>
+
+<section id="botones" data-screen-label="Botones" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">05 · Button · ButtonGroup · ActionMenu</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Botones</h2><p style="margin:0;font-size:13px;color:#5A6272">Tamaños sm 32 · md 36 (predeterminado) · lg 44 (móvil y áreas táctiles). Mientras carga, el botón conserva su ancho y cambia el texto a gerundio.</p></div>
+  <div style="overflow-x:auto"><div style="display:grid;grid-template-columns:110px repeat(6,minmax(0,1fr));min-width:980px;gap:14px 12px;align-items:center;padding:4px">
+    <span></span>
+    <span style="font-size:12px;font-weight:600;color:#5A6272">Normal</span><span style="font-size:12px;font-weight:600;color:#5A6272">Hover</span><span style="font-size:12px;font-weight:600;color:#5A6272">Foco</span><span style="font-size:12px;font-weight:600;color:#5A6272">Activo</span><span style="font-size:12px;font-weight:600;color:#5A6272">Deshabilitado</span><span style="font-size:12px;font-weight:600;color:#5A6272">Cargando</span>
+    <sc-for list="{{ btnRows }}" as="row" hint-placeholder-count="5">
+      <span style="font-size:13px;font-weight:500">{{ row.name }}</span>
+      <sc-for list="{{ row.cells }}" as="b" hint-placeholder-count="6">
+        <div><button style="height:36px;min-width:{{ b.minW }};padding:0 14px;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:{{ b.bg }};color:{{ b.fg }};border:{{ b.bd }};box-shadow:{{ b.sh }};cursor:{{ b.cur }}">{{ b.label }}</button></div>
+      </sc-for>
+    </sc-for>
+  </div></div>
+  <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;padding-top:8px;border-top:1px solid #EBEEF2">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Tamaños</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button style="height:32px;padding:0 12px;border:none;border-radius:6px;background:#2355C9;color:#fff;font:500 13px 'IBM Plex Sans',sans-serif">Guardar</button>
+        <button style="height:36px;padding:0 14px;border:none;border-radius:6px;background:#2355C9;color:#fff;font:500 14px 'IBM Plex Sans',sans-serif">Guardar</button>
+        <button style="height:44px;padding:0 18px;border:none;border-radius:6px;background:#2355C9;color:#fff;font:500 15px 'IBM Plex Sans',sans-serif">Guardar</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">ButtonGroup</span>
+      <div style="display:flex;border:1px solid #C9CFD8;border-radius:6px;overflow:hidden">
+        <button style="height:34px;padding:0 12px;border:none;background:#fff;font:500 13px 'IBM Plex Sans',sans-serif;color:#161B26">PDF</button>
+        <button style="height:34px;padding:0 12px;border:none;border-left:1px solid #C9CFD8;background:#fff;font:500 13px 'IBM Plex Sans',sans-serif;color:#161B26">XML firmado</button>
+        <button style="height:34px;padding:0 12px;border:none;border-left:1px solid #C9CFD8;background:#fff;font:500 13px 'IBM Plex Sans',sans-serif;color:#161B26">Respuesta de Hacienda</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">ActionMenu abierto</span>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <button style="height:36px;padding:0 12px;border:1px solid #C9CFD8;border-radius:6px;background:#EBEEF2;font:500 14px 'IBM Plex Sans',sans-serif;color:#161B26;box-shadow:0 0 0 2px #fff,0 0 0 4px #2355C9">Acciones ▾</button>
+        <div style="width:240px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.10),0 0 0 1px rgba(16,24,40,.06);padding:4px;display:flex;flex-direction:column;font-size:14px">
+          <div style="padding:8px 10px;border-radius:4px;background:#EEF3FD">Crear nota de crédito</div>
+          <div style="padding:8px 10px;border-radius:4px">Crear nota de débito</div>
+          <div style="padding:8px 10px;border-radius:4px">Ver documento electrónico</div>
+          <div style="height:1px;background:#EBEEF2;margin:4px 0"></div>
+          <div style="padding:8px 10px;border-radius:4px;color:#B42323">Anular factura…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="campos" data-screen-label="Campos" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:24px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">06 · Formularios</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Campos</h2><p style="margin:0;font-size:13px;color:#5A6272">Etiqueta arriba, ayuda o error abajo. Altura de 36 px en escritorio y 44 px en móvil. El error dice qué pasó y qué hacer.</p></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px 20px">
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Razón social</span><div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;display:flex;align-items:center;font-size:14px">Ferretería El Roble S.A.</div><span style="font-size:12px;color:#5A6272">Normal</span></label>
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Correo</span><div style="height:36px;border:1px solid #2355C9;border-radius:6px;padding:0 10px;display:flex;align-items:center;font-size:14px;box-shadow:0 0 0 3px #C2D3F7">compras@elroble.example|</div><span style="font-size:12px;color:#5A6272">Foco</span></label>
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Número de identificación</span><div style="height:36px;border:1px solid #B42323;border-radius:6px;padding:0 10px;display:flex;align-items:center;font-size:14px;background:#FFFBFB">3-101-900412</div><span style="font-size:12px;color:#B42323">✕ Ya existe un cliente con esta identificación. Ábralo desde Clientes.</span></label>
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500;color:#8A93A3">Consecutivo</span><div style="height:36px;border:1px solid #E4E7EC;border-radius:6px;padding:0 10px;display:flex;align-items:center;font-size:14px;background:#F4F5F7;color:#8A93A3">Se asigna al emitir</div><span style="font-size:12px;color:#5A6272">Deshabilitado</span></label>
+
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:13px;font-weight:500">MoneyInput · pruebe a escribir o pegar</span>
+      <div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;display:flex;align-items:stretch;overflow:hidden" style-focus-within="border-color:#2355C9">
+        <span style="display:flex;align-items:center;padding:0 10px;background:#F8F9FB;border-right:1px solid #DDE1E7;font-size:13px;font-weight:500;color:#343B48">₡ CRC ▾</span>
+        <input value="{{ money }}" onChange="{{ onMoney }}" style="flex:1;min-width:0;border:none;outline:none;padding:0 10px;font:500 14px 'IBM Plex Sans',sans-serif;text-align:right;font-variant-numeric:tabular-nums;color:#161B26">
+      </div>
+      <span style="font-size:12px;color:{{ moneyFg }};font-variant-numeric:tabular-nums">{{ moneyMsg }}</span>
+    </div>
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Cantidad</span><div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;display:flex;align-items:center;overflow:hidden"><span style="width:32px;text-align:center;color:#5A6272;border-right:1px solid #DDE1E7;line-height:34px">−</span><span style="flex:1;text-align:right;padding:0 10px;font-size:14px;font-variant-numeric:tabular-nums">12,000</span><span style="padding:0 8px;font-size:12px;color:#5A6272">Unid</span><span style="width:32px;text-align:center;color:#5A6272;border-left:1px solid #DDE1E7;line-height:34px">+</span></div><span style="font-size:12px;color:#5A6272">Hasta 3 decimales</span></label>
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Descuento</span><div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;display:flex;align-items:center;overflow:hidden"><span style="flex:1;text-align:right;padding:0 10px;font-size:14px;font-variant-numeric:tabular-nums">5,00</span><span style="padding:0 10px;background:#F8F9FB;border-left:1px solid #DDE1E7;line-height:34px;font-size:13px;color:#343B48">%</span></div><span style="font-size:12px;color:#8A5300">▲ Con descuento, el motivo es obligatorio.</span></label>
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Fecha de vencimiento</span><div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-variant-numeric:tabular-nums"><span>24/10/2026</span><span style="color:#5A6272">▦</span></div><span style="font-size:12px;color:#5A6272">Hora de Costa Rica (UTC−6)</span></label>
+
+    <div style="display:flex;flex-direction:column;gap:6px;grid-column:span 2">
+      <span style="font-size:13px;font-weight:500">Combobox con búsqueda · cliente</span>
+      <div style="height:36px;border:1px solid #2355C9;border-radius:6px;padding:0 10px;display:flex;align-items:center;gap:8px;font-size:14px;box-shadow:0 0 0 3px #C2D3F7"><span style="color:#5A6272">⌕</span>monte|</div>
+      <div style="background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.10),0 0 0 1px rgba(16,24,40,.06);padding:4px;display:flex;flex-direction:column;font-size:14px">
+        <div style="padding:8px 10px;border-radius:4px;background:#EEF3FD;display:flex;justify-content:space-between;gap:12px"><span><b style="font-weight:600">Monte</b>azul, Café S.A.</span><span style="font-size:12px;color:#5A6272">Jurídica 3-101-900288</span></div>
+        <div style="padding:8px 10px;border-radius:4px;display:flex;justify-content:space-between;gap:12px"><span>Inversiones <b style="font-weight:600">Monte</b> Claro Ltda.</span><span style="font-size:12px;color:#5A6272">Jurídica 3-102-900611</span></div>
+        <div style="height:1px;background:#EBEEF2;margin:4px 0"></div>
+        <div style="padding:8px 10px;border-radius:4px;color:#2355C9;font-weight:500">+ Crear cliente «monte»</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;grid-column:span 2">
+      <span style="font-size:13px;font-weight:500">Combobox · CABYS (texto o código de 13 dígitos)</span>
+      <div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;display:flex;align-items:center;gap:8px;font-size:14px"><span style="color:#5A6272">⌕</span>tornillo</div>
+      <div style="background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.10),0 0 0 1px rgba(16,24,40,.06);padding:4px;display:flex;flex-direction:column;font-size:14px">
+        <div style="padding:8px 10px;border-radius:4px;display:grid;grid-template-columns:150px 1fr;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px">0000000000001</span><span>Tornillos de acero (ilustrativo)</span></div>
+        <div style="padding:8px 10px;border-radius:4px;display:grid;grid-template-columns:150px 1fr;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px">0000000000002</span><span>Tornillos para madera (ilustrativo)</span></div>
+        <div style="padding:6px 10px;font-size:12px;color:#8A5300;background:#FDF1DC;border-radius:4px">▲ Códigos ilustrativos, catálogo oficial pendiente</div>
+      </div>
+    </div>
+
+    <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Select</span><div style="height:36px;border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;display:flex;align-items:center;justify-content:space-between;font-size:14px"><span>Crédito</span><span style="color:#5A6272;font-size:11px">▾</span></div><span style="font-size:12px;color:#5A6272">Condición de venta</span></label>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:13px;font-weight:500">Checkbox · Radio</span>
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px"><span style="width:16px;height:16px;border-radius:3px;background:#2355C9;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center">✓</span>Enviar copia al cliente</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:14px"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid #9AA3B2"></span>Incluir notas</div>
+      <div style="display:flex;gap:16px;font-size:14px"><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:16px;border-radius:50%;border:5px solid #2355C9"></span>Bien</span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:16px;border-radius:50%;border:1.5px solid #9AA3B2"></span>Servicio</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:13px;font-weight:500">Switch</span>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px"><span style="width:36px;height:20px;border-radius:10px;background:#2355C9;position:relative"><span style="position:absolute;top:2px;left:18px;width:16px;height:16px;border-radius:50%;background:#fff"></span></span>Activo</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#8A93A3"><span style="width:36px;height:20px;border-radius:10px;background:#DDE1E7;position:relative"><span style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff"></span></span>Inactivo (deshabilitado)</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:13px;font-weight:500">FileUpload · certificado</span>
+      <div style="border:1.5px dashed #C9CFD8;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;font-size:13px"><span style="font-weight:500">Arrastre el archivo .p12 o <span style="color:#2355C9">selecciónelo</span></span><span style="font-size:12px;color:#5A6272">Máximo 1 MB. Después se pide el PIN.</span></div>
+    </div>
+    <label style="display:flex;flex-direction:column;gap:6px;grid-column:span 2"><span style="font-size:13px;font-weight:500">Motivo de anulación <span style="color:#B42323">*</span></span><div style="min-height:72px;border:1px solid #C9CFD8;border-radius:6px;padding:8px 10px;font-size:14px;color:#8A93A3">Explique por qué se anula este documento</div><span style="font-size:12px;color:#5A6272">Obligatorio · mínimo 10 caracteres</span></label>
+    <div style="display:flex;flex-direction:column;gap:6px;grid-column:span 2">
+      <span style="font-size:13px;font-weight:500">Envío fallido: se conserva lo escrito</span>
+      <div style="border:1px solid #F2BDBD;background:#FCE8E8;border-radius:6px;padding:10px 12px;display:flex;gap:10px;font-size:13px;color:#7E1717"><span style="font-weight:700">✕</span><div style="display:flex;flex-direction:column;gap:6px"><span>No pudimos guardar el cliente. Sus datos siguen en el formulario.</span><div style="display:flex;gap:12px;align-items:center"><button style="height:28px;padding:0 10px;border:1px solid #B42323;background:#fff;border-radius:6px;font:500 12px 'IBM Plex Sans',sans-serif;color:#B42323">Reintentar</button><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">Ref. ERR-7F3K-92QD ⧉</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="tabla" data-screen-label="DataTable" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">07 · DataTable</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Tabla de datos</h2><p style="margin:0;font-size:13px;color:#5A6272;max-width:820px">Incluye encabezado fijo, orden por columna, barra de filtros, selección con acciones en lote, fila expandible, columnas numéricas a la derecha, fila de totales y paginación por cursor. Densidad cómoda de 52 px o compacta de 36 px.</p></div>
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:#0F1B33;color:#fff;border-radius:6px;font-size:13px">
+    <span style="font-weight:600">2 seleccionadas</span><span style="opacity:.4">|</span>
+    <button style="height:28px;padding:0 10px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;font:500 12px 'IBM Plex Sans',sans-serif">Descargar PDF</button>
+    <button style="height:28px;padding:0 10px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;font:500 12px 'IBM Plex Sans',sans-serif">Registrar pago</button>
+    <span style="margin-left:auto;opacity:.75">Esc para deseleccionar</span>
+  </div>
+  <div style="border:1px solid #DDE1E7;border-radius:6px;overflow-x:auto">
+    <div style="display:grid;min-width:1000px;grid-template-columns:20px 20px 120px minmax(200px,1fr) 88px 150px 120px 116px 16px;gap:12px;padding:10px 14px;background:#F8F9FB;border-bottom:1px solid #DDE1E7;font-size:12px;font-weight:600;color:#5A6272;align-items:center">
+      <span style="width:14px;height:14px;border-radius:3px;background:#2355C9;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center">–</span><span></span><span>Número</span><span>Cliente</span><span style="color:#161B26">Vence ↑</span><span>Hacienda</span><span style="text-align:right">Total</span><span style="text-align:right">Saldo</span><span></span>
+    </div>
+    <div style="display:grid;min-width:1000px;grid-template-columns:20px 20px 120px minmax(200px,1fr) 88px 150px 120px 116px 16px;gap:12px;padding:12px 14px;border-bottom:1px solid #EBEEF2;font-size:14px;align-items:center;background:#EEF3FD">
+      <span style="width:14px;height:14px;border-radius:3px;background:#2355C9;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center">✓</span><span style="color:#5A6272">▾</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500">FAC-0000034</span><span>Soluciones Ibis S.R.L.</span><span style="font-variant-numeric:tabular-nums">18/10/2026</span><span><span style="display:inline-flex;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#E6F4EC;color:#1B6B3A">✓ Aceptada</span></span><span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:500">₡113 000,00</span><span style="text-align:right;font-variant-numeric:tabular-nums">₡63 000,00</span><span style="color:#5A6272">⋯</span>
+    </div>
+    <div style="min-width:1000px;padding:12px 14px 14px 86px;border-bottom:1px solid #EBEEF2;background:#F8F9FB;display:flex;gap:40px;font-size:13px">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:#5A6272">Pagos aplicados</span><span style="font-variant-numeric:tabular-nums">PAG-0000018 · 20/09/2026 · ₡50 000,00</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:#5A6272">Estado de la cuenta</span><span style="display:inline-flex;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#FDF1DC;color:#8A5300;align-self:flex-start">◐ Pago parcial</span></div>
+    </div>
+    <div style="display:grid;min-width:1000px;grid-template-columns:20px 20px 120px minmax(200px,1fr) 88px 150px 120px 116px 16px;gap:12px;padding:12px 14px;border-bottom:1px solid #EBEEF2;font-size:14px;align-items:center;background:#EEF3FD;box-shadow:inset 0 0 0 2px #2355C9">
+      <span style="width:14px;height:14px;border-radius:3px;background:#2355C9;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center">✓</span><span style="color:#5A6272">▸</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500">FAC-0000036</span><span>Clínica Dental Sonrisa Plena</span><span style="font-variant-numeric:tabular-nums">21/10/2026</span><span><span style="display:inline-flex;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#EEF0F3;color:#4A5160">? Estado no disponible</span></span><span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:500">₡64 000,00</span><span style="text-align:right;font-variant-numeric:tabular-nums">₡64 000,00</span><span style="color:#5A6272">⋯</span>
+    </div>
+    <div style="display:grid;min-width:1000px;grid-template-columns:20px 20px 120px minmax(200px,1fr) 88px 150px 120px 116px 16px;gap:12px;padding:12px 14px;border-bottom:1px solid #EBEEF2;font-size:14px;align-items:center">
+      <span style="width:14px;height:14px;border-radius:3px;border:1.5px solid #9AA3B2"></span><span style="color:#5A6272">▸</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500">FAC-0000039</span><span>Hotel Brisas del Pacífico S.A.</span><span style="font-variant-numeric:tabular-nums">23/10/2026</span><span><span style="display:inline-flex;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#E6F4EC;color:#1B6B3A">✓ Aceptada</span></span><span style="text-align:right;font-variant-numeric:tabular-nums;font-weight:500">US$1 250,00</span><span style="text-align:right;font-variant-numeric:tabular-nums">US$1 250,00</span><span style="color:#5A6272">⋯</span>
+    </div>
+    <div style="display:grid;min-width:1000px;grid-template-columns:20px 20px 120px minmax(200px,1fr) 88px 150px 120px 116px 16px;gap:12px;padding:10px 14px;background:#F8F9FB;font-size:13px;font-weight:600;align-items:center">
+      <span></span><span></span><span>Totales</span><span style="font-weight:400;color:#5A6272">por moneda</span><span></span><span></span><span style="text-align:right;font-variant-numeric:tabular-nums;display:flex;flex-direction:column"><span>₡177 000,00</span><span>US$1 250,00</span></span><span style="text-align:right;font-variant-numeric:tabular-nums;display:flex;flex-direction:column"><span>₡127 000,00</span><span>US$1 250,00</span></span><span></span>
+    </div>
+    <div style="min-width:1000px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid #DDE1E7;font-size:13px;color:#5A6272">
+      <span>25 por página</span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button style="height:30px;padding:0 12px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 13px 'IBM Plex Sans',sans-serif;color:#161B26">‹ Anterior</button>
+        <button style="height:30px;padding:0 12px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 13px 'IBM Plex Sans',sans-serif;color:#161B26">Siguiente ›</button>
+      </div>
+    </div>
+  </div>
+  <p style="margin:0;font-size:12px;color:#5A6272">Teclado: ↑ ↓ mueve la fila activa (anillo de foco) · Espacio selecciona · → / ← expande o contrae · Enter abre. Si Hacienda no respondió para una fila, se muestra «Estado no disponible» sin romper la tabla.</p>
+</section>
+
+<section id="datos" data-screen-label="Visualización" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">08 · KpiCard · Timeline · AgingBar</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Visualización</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px">
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;color:#5A6272">Facturado en septiembre</span><span style="font-size:26px;line-height:32px;font-weight:600;font-variant-numeric:tabular-nums">₡8 420 300,00</span><span style="font-size:12px;color:#5A6272">114 facturas · y US$12 480,00</span></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;color:#5A6272">Saldo vencido</span><span style="font-size:26px;line-height:32px;font-weight:600;font-variant-numeric:tabular-nums;color:#B42323">₡1 245 000,00</span><span style="font-size:12px;color:#B42323">! 6 cuentas vencidas · <span style="text-decoration:underline">ver</span></span></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;color:#5A6272">Saldo por cobrar</span><span style="height:28px;width:70%;border-radius:4px;background:#EBEEF2"></span><span style="height:12px;width:45%;border-radius:4px;background:#EBEEF2"></span></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;color:#5A6272">Documentos rechazados</span><span style="font-size:13px;color:#343B48;line-height:18px">No pudimos cargar esta cifra.</span><button style="align-self:flex-start;height:28px;padding:0 10px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 12px 'IBM Plex Sans',sans-serif">Reintentar</button></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Timeline · documento electrónico</span>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ timeline }}" as="e" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px">
+            <div style="display:flex;flex-direction:column;align-items:center"><span style="width:20px;height:20px;border-radius:50%;background:{{ e.bg }};color:{{ e.fg }};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ e.i }}</span><span style="flex:1;width:2px;background:#DDE1E7;min-height:14px"></span></div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:14px"><span style="font-size:14px;font-weight:500">{{ e.l }}</span><span style="font-size:12px;color:#5A6272">{{ e.d }}</span></div>
+            <span style="font-size:12px;color:#5A6272;font-variant-numeric:tabular-nums">{{ e.t }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">AgingBar · CRC · corte 24/09/2026</span>
+      <div style="display:flex;height:28px;border-radius:4px;overflow:hidden;gap:2px">
+        <sc-for list="{{ aging }}" as="a" hint-placeholder-count="5"><div style="flex:{{ a.flex }};background:{{ a.c }}"></div></sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px">
+        <sc-for list="{{ aging }}" as="a" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:2px;border-top:3px solid {{ a.c }};padding-top:6px"><span style="font-size:12px;color:#5A6272">{{ a.l }}</span><span style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">{{ a.v }}</span><span style="font-size:11px;color:#5A6272">{{ a.p }}</span></div>
+        </sc-for>
+      </div>
+      <p style="margin:0;font-size:12px;color:#5A6272;line-height:18px">Cada tramo lleva su nombre, monto y porcentaje, así que no depende solo del color. Los tramos son configurables.</p>
+    </div>
+  </div>
+</section>
+
+<section id="nav" data-screen-label="Navegación" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">09 · Tabs · Breadcrumbs · Stepper · Accordion</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Navegación</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:28px">
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;gap:24px;border-bottom:1px solid #DDE1E7;font-size:14px">
+        <span style="padding:8px 0;border-bottom:2px solid #2355C9;font-weight:600;margin-bottom:-1px">Rechazados <span style="font-size:12px;background:#FCE8E8;color:#B42323;padding:0 6px;border-radius:8px">2</span></span>
+        <span style="padding:8px 0;color:#5A6272">En contingencia <span style="font-size:12px">1</span></span>
+        <span style="padding:8px 0;color:#5A6272">Con error <span style="font-size:12px">1</span></span>
+        <span style="padding:8px 0;color:#5A6272">Todos</span>
+      </div>
+      <div style="font-size:13px;color:#5A6272;display:flex;gap:6px"><span style="color:#2355C9">Facturación</span>/<span style="color:#2355C9">Documentos</span>/<span style="color:#161B26">FAC-0000034</span></div>
+      <div style="border:1px solid #DDE1E7;border-radius:6px">
+        <div style="padding:12px 14px;display:flex;justify-content:space-between;font-size:14px;font-weight:500;border-bottom:1px solid #EBEEF2">Respuesta de Hacienda · intento 2 <span style="color:#5A6272">▾</span></div>
+        <div style="padding:12px 14px;font-size:13px;color:#343B48;line-height:20px">Mensaje: «Aceptado» (texto ilustrativo). Recibido 24/09/2026 15:15.</div>
+        <div style="padding:12px 14px;display:flex;justify-content:space-between;font-size:14px;font-weight:500;border-top:1px solid #EBEEF2">Intento 1 · Con error <span style="color:#5A6272">▸</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Stepper · Registrar pago</span>
+      <div style="display:flex;align-items:center;gap:10px;font-size:14px">
+        <span style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:50%;background:#1B6B3A;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">✓</span>Datos del pago</span>
+        <span style="flex:1;height:2px;background:#1B6B3A"></span>
+        <span style="display:flex;align-items:center;gap:8px;font-weight:600"><span style="width:24px;height:24px;border-radius:50%;background:#2355C9;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center">2</span>Aplicar a cuentas</span>
+        <span style="flex:1;height:2px;background:#DDE1E7"></span>
+        <span style="display:flex;align-items:center;gap:8px;color:#5A6272"><span style="width:24px;height:24px;border-radius:50%;border:1.5px solid #9AA3B2;font-size:12px;display:flex;align-items:center;justify-content:center">3</span>Confirmación</span>
+      </div>
+      <div style="display:flex;gap:1px;background:#DDE1E7;border:1px solid #DDE1E7;border-radius:6px;overflow:hidden;font-variant-numeric:tabular-nums">
+        <div style="flex:1;background:#fff;padding:10px 14px;display:flex;flex-direction:column"><span style="font-size:12px;color:#5A6272">Pago</span><span style="font-weight:600">₡200 000,00</span></div>
+        <div style="flex:1;background:#fff;padding:10px 14px;display:flex;flex-direction:column"><span style="font-size:12px;color:#5A6272">Aplicado</span><span style="font-weight:600">₡215 000,00</span></div>
+        <div style="flex:1;background:#FCE8E8;padding:10px 14px;display:flex;flex-direction:column;color:#B42323"><span style="font-size:12px">Sin aplicar</span><span style="font-weight:600">−₡15 000,00</span></div>
+      </div>
+      <span style="font-size:13px;color:#B42323">✕ Lo aplicado supera el pago por ₡15 000,00. Reduzca alguna aplicación.</span>
+    </div>
+  </div>
+</section>
+
+<section id="capas" data-screen-label="Capas" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">10 · ConfirmDialog · Drawer · Popover · Tooltip</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Diálogos y capas</h2><p style="margin:0;font-size:13px;color:#5A6272">La confirmación crece con el riesgo. Guardar un borrador no pide confirmación. Emitir muestra un resumen. Anular exige un motivo (pruebe a escribirlo).</p></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:24px;background:rgba(15,27,51,.55);padding:32px;border-radius:6px">
+    <div style="background:#fff;border-radius:8px;box-shadow:0 16px 40px rgba(16,24,40,.18);display:flex;flex-direction:column">
+      <div style="padding:20px 20px 0;display:flex;flex-direction:column;gap:6px"><h3 style="margin:0;font-size:18px;line-height:26px;font-weight:600">¿Emitir la factura?</h3><p style="margin:0;font-size:14px;color:#343B48;line-height:20px">Al emitirla recibe número y ya no se puede editar. Para corregirla después habrá que crear una nota de crédito.</p></div>
+      <div style="margin:16px 20px;display:grid;grid-template-columns:120px 1fr;gap:6px 12px;font-size:14px;padding:12px;background:#F8F9FB;border-radius:6px;font-variant-numeric:tabular-nums">
+        <span style="color:#5A6272">Cliente</span><span>Soluciones Ibis S.R.L.</span>
+        <span style="color:#5A6272">Total</span><span style="font-weight:600">₡113 000,00</span>
+        <span style="color:#5A6272">Vencimiento</span><span>18/10/2026</span>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid #EBEEF2;display:flex;justify-content:flex-end;gap:8px">
+        <button style="height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Cancelar</button>
+        <button style="height:36px;padding:0 14px;border:none;background:#2355C9;color:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Emitir factura</button>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:8px;box-shadow:0 16px 40px rgba(16,24,40,.18);display:flex;flex-direction:column">
+      <div style="padding:20px 20px 0;display:flex;flex-direction:column;gap:6px"><h3 style="margin:0;font-size:18px;line-height:26px;font-weight:600">Anular FAC-0000034</h3><p style="margin:0;font-size:14px;color:#343B48;line-height:20px">La cuenta por cobrar se ajusta y su saldo de ₡63 000,00 queda en cero. Los pagos aplicados se conservan en el historial.</p></div>
+      <label style="margin:16px 20px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Motivo <span style="color:#B42323">*</span></span><textarea value="{{ reason }}" onChange="{{ onReason }}" placeholder="Explique por qué se anula" style="min-height:72px;border:1px solid #C9CFD8;border-radius:6px;padding:8px 10px;font:14px 'IBM Plex Sans',sans-serif;resize:vertical;color:#161B26"></textarea><span style="font-size:12px;color:#5A6272">{{ reasonHint }}</span></label>
+      <div style="padding:14px 20px;border-top:1px solid #EBEEF2;display:flex;justify-content:flex-end;gap:8px">
+        <button style="height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Cancelar</button>
+        <button style="height:36px;padding:0 14px;border:none;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif;background:{{ voidBg }};color:{{ voidFg }};cursor:{{ voidCur }}">Anular factura</button>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Tooltip</span>
+      <div style="background:#161B26;color:#fff;font-size:12px;padding:6px 8px;border-radius:4px;max-width:220px">Calculado por el servidor al guardar</div>
+      <span style="font-size:14px;border-bottom:1px dotted #5A6272">Total ⓘ</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Popover</span>
+      <div style="width:280px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.10),0 0 0 1px rgba(16,24,40,.06);padding:14px;display:flex;flex-direction:column;gap:6px;font-size:13px"><span style="font-weight:600">Tipo de cambio</span><span style="color:#343B48">₡512,40 por US$1,00 al 24/09/2026 (valor ilustrativo).</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:320px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Drawer · lateral derecho, 480 px</span>
+      <div style="height:150px;border:1px solid #DDE1E7;border-radius:6px;display:flex;overflow:hidden;background:#F4F5F7">
+        <div style="flex:1"></div>
+        <div style="width:55%;background:#fff;box-shadow:0 16px 40px rgba(16,24,40,.18);display:flex;flex-direction:column">
+          <div style="padding:12px 14px;border-bottom:1px solid #EBEEF2;display:flex;justify-content:space-between;font-weight:600;font-size:14px">Nuevo seguimiento <span style="color:#5A6272">✕</span></div>
+          <div style="padding:12px 14px;font-size:13px;color:#5A6272;flex:1">Tipo, fecha y nota…</div>
+          <div style="padding:10px 14px;border-top:1px solid #EBEEF2;display:flex;justify-content:flex-end"><button style="height:32px;padding:0 12px;border:none;background:#2355C9;color:#fff;border-radius:6px;font:500 13px 'IBM Plex Sans',sans-serif">Guardar</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="avisos" data-screen-label="Avisos" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">11 · Toast · InlineAlert</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Avisos</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:28px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="4">
+        <div style="display:flex;gap:10px;padding:12px 14px;border-radius:6px;border:1px solid {{ a.bd }};background:{{ a.bg }};color:{{ a.fg }};font-size:14px;line-height:20px">
+          <span style="font-weight:700;width:14px">{{ a.i }}</span>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1"><span style="font-weight:600">{{ a.t }}</span><span>{{ a.b }}</span><sc-if value="{{ a.ref }}" hint-placeholder-val="{{ false }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px">Código de referencia: {{ a.ref }}  ⧉ Copiar</span></sc-if></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:12px;font-weight:600;color:#5A6272">Toast · abajo a la derecha, 5 s (los de error se quedan)</span>
+      <div style="background:#161B26;color:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.2);padding:12px 14px;display:flex;gap:10px;font-size:14px"><span style="color:#7FD6A0;font-weight:700">✓</span><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:500">FAC-0000040 aceptada por Hacienda</span><span style="font-size:12px;color:#A3ABBA">Café Monteazul S.A. · hace un momento</span></div><span style="color:#A3ABBA">✕</span></div>
+      <div style="background:#161B26;color:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.2);padding:12px 14px;display:flex;gap:10px;font-size:14px"><span style="color:#F59A9A;font-weight:700">✕</span><div style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-weight:500">FAC-0000038 rechazada</span><span style="color:#9DBBFF;font-size:13px;text-decoration:underline">Ver motivo</span></div><span style="color:#A3ABBA">✕</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="sistema" data-screen-label="Estados de pantalla" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">12 · EmptyState · Skeleton · ErrorState · SystemScreen</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Estados de pantalla</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:28px 20px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Vacío</span><span style="font-size:16px;font-weight:600">Todavía no hay clientes</span><span style="font-size:13px;color:#5A6272;max-width:260px">Cree el primero para empezar a facturar.</span><button style="margin-top:6px;height:36px;padding:0 14px;border:none;background:#2355C9;color:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Crear cliente</button></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:12px"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Cargando</span><span style="height:14px;width:40%;background:#EBEEF2;border-radius:4px"></span><span style="height:10px;width:100%;background:#EBEEF2;border-radius:4px"></span><span style="height:10px;width:100%;background:#EBEEF2;border-radius:4px"></span><span style="height:10px;width:85%;background:#EBEEF2;border-radius:4px"></span><span style="height:10px;width:92%;background:#EBEEF2;border-radius:4px"></span></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:28px 20px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Error</span><span style="font-size:16px;font-weight:600">No pudimos cargar los pagos</span><span style="font-size:13px;color:#5A6272">Revise su conexión e intente de nuevo.</span><button style="margin-top:6px;height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Reintentar</button><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A6272">Ref. ERR-2M8P-44TZ ⧉</span></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:28px 20px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">403 · Sin permiso</span><span style="font-size:16px;font-weight:600">No tiene acceso a esta sección</span><span style="font-size:13px;color:#5A6272;max-width:280px">Su rol en Comercial Los Almendros S.A. es Cobrador. Si necesita acceso, pídalo a un administrador.</span><button style="margin-top:6px;height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Ir al inicio</button></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:28px 20px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">404 · No encontrado</span><span style="font-size:16px;font-weight:600">No encontramos esta página</span><span style="font-size:13px;color:#5A6272;max-width:280px">Puede que el enlace esté incompleto o que el documento no exista en esta organización.</span><button style="margin-top:6px;height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Ir al inicio</button></div>
+    <div style="border:1px solid #DDE1E7;border-radius:6px;padding:28px 20px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Servicio no disponible</span><span style="font-size:16px;font-weight:600">El servicio no está disponible</span><span style="font-size:13px;color:#5A6272;max-width:280px">Estamos trabajando para restablecerlo. Sus datos están seguros.</span><button style="margin-top:6px;height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Reintentar</button></div>
+  </div>
+  <div style="display:flex;gap:10px;padding:12px 14px;border-radius:6px;border:1px solid #F1D29B;background:#FDF1DC;color:#6E4200;font-size:14px;line-height:20px"><span style="font-weight:700">▲</span><div style="flex:1">Datos parciales: no pudimos obtener el estado de Hacienda. El resto de la información está al día.</div><span style="font-weight:600;text-decoration:underline">Reintentar</span></div>
+</section>
+
+<section id="shell" data-screen-label="Estructura" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">13 · AppShell · OrgSwitcher · NotificationBell</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Estructura de la aplicación, clara y oscura</h2><p style="margin:0;font-size:13px;color:#5A6272">La barra lateral se contrae a 64 px. La barra superior mide 56 px. La pantalla completa se diseña en el paso siguiente (A y G).</p></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:20px">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="background:#fff;border:1px solid #DDE1E7;border-radius:6px;padding:12px;display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid #2355C9;border-radius:6px;box-shadow:0 0 0 3px #C2D3F7"><div style="width:28px;height:28px;border-radius:4px;background:#E7EEFC;color:#1F4FB8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">CA</div><div style="display:flex;flex-direction:column;line-height:1.2"><span style="font-size:13px;font-weight:600">Comercial Los Almendros S.A.</span><span style="font-size:11px;color:#5A6272">Contador</span></div><span style="color:#5A6272;font-size:11px">▴</span></div>
+        <div style="margin-left:auto;position:relative;font-size:16px">🔔︎<span style="position:absolute;top:-6px;right:-10px;background:#B42323;color:#fff;font-size:10px;font-weight:600;padding:0 5px;border-radius:8px;line-height:15px">2</span></div>
+      </div>
+      <div style="width:340px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.10),0 0 0 1px rgba(16,24,40,.06);padding:6px;display:flex;flex-direction:column;font-size:14px">
+        <div style="height:34px;border:1px solid #C9CFD8;border-radius:6px;margin:4px 4px 6px;padding:0 10px;display:flex;align-items:center;color:#5A6272;font-size:13px">⌕ Buscar organización</div>
+        <div style="padding:8px 10px;border-radius:4px;background:#EEF3FD;display:flex;justify-content:space-between"><span>Comercial Los Almendros S.A.</span><span style="font-size:12px;color:#1F4FB8">✓ Activa</span></div>
+        <div style="padding:8px 10px;border-radius:4px;display:flex;justify-content:space-between"><span>Café Monteazul S.A.</span><span style="font-size:12px;color:#5A6272">Contador</span></div>
+        <div style="padding:8px 10px;border-radius:4px;display:flex;justify-content:space-between"><span>Taller Mecánico Los Pinos</span><span style="font-size:12px;color:#5A6272">Solo lectura</span></div>
+      </div>
+    </div>
+    <div style="background:#0E131C;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px;color:#E6E9EF">
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#A3ABBA">Tema oscuro · mismos tokens</div>
+      <div style="background:#151B26;border:1px solid #2A3342;border-radius:6px;overflow-x:auto">
+        <div style="display:grid;grid-template-columns:104px minmax(90px,1fr) 124px 100px;gap:12px;padding:9px 12px;border-bottom:1px solid #2A3342;font-size:12px;font-weight:600;color:#A3ABBA;background:#1C2330"><span>Número</span><span>Cliente</span><span>Hacienda</span><span style="text-align:right">Saldo</span></div>
+        <div style="display:grid;grid-template-columns:104px minmax(90px,1fr) 124px 100px;gap:12px;padding:10px 12px;border-bottom:1px solid #222A37;font-size:13px;align-items:center"><span style="font-family:'IBM Plex Mono',monospace">FAC-0000040</span><span>Café Monteazul S.A.</span><span><span style="font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#16274A;color:#9DBBFF">◷ En proceso</span></span><span style="text-align:right;font-variant-numeric:tabular-nums">₡452 500,00</span></div>
+        <div style="display:grid;grid-template-columns:104px minmax(90px,1fr) 124px 100px;gap:12px;padding:10px 12px;font-size:13px;align-items:center;box-shadow:inset 0 0 0 2px #9DBBFF"><span style="font-family:'IBM Plex Mono',monospace">FAC-0000038</span><span>Laura Jiménez Solís</span><span><span style="font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#3D1717;color:#F59A9A">✕ Rechazada</span></span><span style="text-align:right;font-variant-numeric:tabular-nums">₡86 400,00</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button style="height:36px;padding:0 14px;border:none;background:#7FA3F5;color:#0B1220;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Nueva factura</button>
+        <button style="height:36px;padding:0 14px;border:1px solid #3A4454;background:#151B26;color:#E6E9EF;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Exportar</button>
+        <button style="height:36px;padding:0 14px;border:none;background:#E05656;color:#0B1220;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif">Anular</button>
+        <div style="flex:1;height:36px;border:1px solid #3A4454;border-radius:6px;background:#151B26;display:flex;align-items:center;justify-content:flex-end;padding:0 10px;font-variant-numeric:tabular-nums;font-size:14px">₡113 000,00</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="abierto" data-screen-label="Decisiones abiertas" style="background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px">
+  <div style="display:flex;flex-direction:column;gap:4px"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">14</div><h2 style="margin:0;font-size:20px;line-height:28px;font-weight:600">Decisiones abiertas y supuestos</h2></div>
+  <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:21px;color:#343B48">
+    <li>Los iconos son glifos provisionales. Se propone Lucide (licencia ISC) con trazo de 1,5 px y tamaños de 16 y 20 px.</li>
+    <li>Cantidades con hasta 3 decimales y montos con 2. Falta confirmarlo con Hacienda.</li>
+    <li>Los códigos CABYS, las tarifas de impuesto, la clave numérica y el tipo de cambio son ilustrativos. El catálogo oficial está pendiente.</li>
+    <li>Los tramos de aging (al día, 1–30, 31–60, 61–90, más de 90) son configurables por organización. Falta definir quién los cambia.</li>
+    <li>El toast de error no se cierra solo, y los demás duran 5 s. El centro de notificaciones guarda el historial.</li>
+    <li>Tema oscuro: botones con acento claro y texto oscuro para mantener 4.5:1.</li>
+  </ol>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const COLORS = [
+  ['--color-bg-canvas','#F4F5F7','#0E131C','Fondo de la aplicación'],
+  ['--color-bg-surface','#FFFFFF','#151B26','Tarjetas, tablas, formularios'],
+  ['--color-bg-surface-raised','#FFFFFF','#1C2330','Menús, diálogos, popovers (con sombra)'],
+  ['--color-bg-subtle','#F8F9FB','#1A212D','Encabezados de tabla, prefijos de campo'],
+  ['--color-bg-nav','#0F1B33','#0A101B','Barra lateral'],
+  ['--color-bg-selected','#EEF3FD','#1A2A4D','Fila activa o seleccionada, opción resaltada'],
+  ['--color-text-primary','#161B26','#E6E9EF','Texto principal'],
+  ['--color-text-secondary','#5A6272','#A3ABBA','Etiquetas, metadatos (≥ 4.5:1)'],
+  ['--color-text-disabled','#8A93A3','#5F6878','Controles deshabilitados'],
+  ['--color-text-on-accent','#FFFFFF','#0B1220','Texto sobre acento'],
+  ['--color-border-default','#DDE1E7','#2A3342','Bordes de superficie y filas'],
+  ['--color-border-strong','#C9CFD8','#3A4454','Bordes de controles'],
+  ['--color-accent','#2355C9','#7FA3F5','Acción principal, enlaces, selección'],
+  ['--color-accent-hover','#1B46AA','#9DBBFF','Hover del acento'],
+  ['--color-accent-soft','#E7EEFC','#16274A','Fondo suave del acento, filtros activos'],
+  ['--color-focus-ring','#2355C9','#9DBBFF','Anillo de foco (2 px + 2 px de desfase)'],
+];
+const TONES = {
+  success:{name:'success',i:'✓',l:['#E6F4EC','#1B6B3A','#B7DEC5'],d:['#12301F','#7FD6A0']},
+  warning:{name:'warning',i:'▲',l:['#FDF1DC','#8A5300','#F1D29B'],d:['#3A2A0C','#F2C170']},
+  danger:{name:'danger',i:'✕',l:['#FCE8E8','#B42323','#F2BDBD'],d:['#3D1717','#F59A9A']},
+  info:{name:'info',i:'●',l:['#E7EEFC','#1F4FB8','#C2D3F7'],d:['#16274A','#9DBBFF']},
+  neutral:{name:'neutral',i:'○',l:['#EEF0F3','#4A5160','#D5DAE1'],d:['#232A36','#B4BCC9']},
+};
+const STATES = [
+  ['Factura','draft','Borrador','neutral','○'],['Factura','issued','Emitida','info','●'],['Factura','cancelled','Anulada','neutral','⊘',1],['Factura','requires_correction','Requiere corrección','warning','▲'],
+  ['Hacienda','processing · signed · sent','En proceso','info','◷'],['Hacienda','accepted','Aceptada','success','✓'],['Hacienda','rejected','Rechazada','danger','✕'],['Hacienda','contingency','En contingencia','warning','▲'],['Hacienda','error','Con error','danger','!'],['Hacienda','(sin dato)','Estado no disponible','neutral','?'],
+  ['Cuenta por cobrar','open','Pendiente','info','●'],['Cuenta por cobrar','partially_paid','Pago parcial','warning','◐'],['Cuenta por cobrar','paid','Pagada','success','✓'],['Cuenta por cobrar','cancelled','Anulada','neutral','⊘'],['Cuenta por cobrar','vencida (atributo)','Vencida · 12 días','danger','!'],
+  ['Pago','posted','Registrado','success','✓'],['Pago','voided','Anulado','neutral','⊘'],
+  ['Membresía','active','Activo','success','✓'],['Membresía','suspended','Suspendido','neutral','‖'],
+  ['Invitación','pending','Pendiente','info','◷'],['Invitación','accepted','Aceptada','success','✓'],['Invitación','revoked','Revocada','neutral','⊘'],['Invitación','expired','Vencida','neutral','○'],
+];
+const SANS = "'IBM Plex Sans',sans-serif", MONO = "'IBM Plex Mono',monospace";
+const TYPE = [
+  ['--text-display','32 / 40 · 600','32px','40px',600,'Sistema de diseño'],
+  ['--text-h1','24 / 32 · 600','24px','32px',600,'Documentos'],
+  ['--text-h2','20 / 28 · 600','20px','28px',600,'Líneas de la factura'],
+  ['--text-h3','16 / 24 · 600','16px','24px',600,'Pagos aplicados'],
+  ['--text-body','14 / 20 · 400','14px','20px',400,'La factura ya fue emitida; para corregirla cree una nota de crédito.'],
+  ['--text-body-sm','13 / 18 · 400','13px','18px',400,'Editar un cliente no cambia las facturas ya emitidas.'],
+  ['--text-caption','12 / 16 · 400','12px','16px',400,'Hora de Costa Rica · actualizado hace 2 min'],
+  ['--text-overline','11 / 16 · 600 · +8%','11px','16px',600,'Facturación',1],
+  ['--text-amount-lg','28 / 36 · 600 · tnum','28px','36px',600,'₡113 000,00'],
+  ['--text-amount','14 / 20 · 500 · tnum','14px','20px',500,'₡63 000,00   US$1 250,00'],
+  ['--text-code','13 / 20 · Plex Mono 400','13px','20px',400,'FAC-0000034 · 00100001010000000034',0,1],
+];
+const SPACE = [1,2,3,4,5,6,8,10,12,16].map(n => ({ name:'--space-'+n, px:(n*4)+'px' }));
+const ZS = [['--z-base','0'],['--z-sticky','100 · encabezados de tabla'],['--z-nav','200 · barra lateral y superior'],['--z-dropdown','1000'],['--z-drawer','1100'],['--z-modal','1200'],['--z-toast','1300'],['--z-tooltip','1400']];
+const MOTION = [['--duration-fast','120 ms · hover, foco'],['--duration-base','180 ms · menús, toasts'],['--duration-slow','260 ms · drawer, diálogos'],['--ease-standard','cubic-bezier(.2,0,0,1)'],['--ease-exit','cubic-bezier(.3,0,1,1)'],['Cambio de organización','fundido 180 ms + esqueletos']];
+const BPS = [['--bp-mobile','0–767 · diseño a 390'],['--bp-tablet','768–1279 · diseño a 1024'],['--bp-desktop','1280–1535 · diseño a 1440'],['--bp-wide','≥ 1536 · contenido máx. 1600']];
+const BTN = {
+  Principal:{n:['#2355C9','#fff','none'],h:['#1B46AA','#fff','none'],a:['#173C94','#fff','none'],d:['#E4E7EC','#8A93A3','none'],label:'Emitir factura',load:'Emitiendo…'},
+  Secundario:{n:['#fff','#161B26','1px solid #C9CFD8'],h:['#F4F5F7','#161B26','1px solid #C9CFD8'],a:['#EBEEF2','#161B26','1px solid #9AA3B2'],d:['#fff','#9AA3B2','1px solid #E4E7EC'],label:'Guardar borrador',load:'Guardando…'},
+  Terciario:{n:['transparent','#2355C9','none'],h:['#EEF3FD','#1B46AA','none'],a:['#E0E9FB','#173C94','none'],d:['transparent','#9AA3B2','none'],label:'Ver historial',load:'Cargando…'},
+  Peligro:{n:['#B42323','#fff','none'],h:['#971C1C','#fff','none'],a:['#7E1717','#fff','none'],d:['#E4E7EC','#8A93A3','none'],label:'Anular',load:'Anulando…'},
+  'Solo icono':{n:['#fff','#161B26','1px solid #C9CFD8'],h:['#F4F5F7','#161B26','1px solid #C9CFD8'],a:['#EBEEF2','#161B26','1px solid #9AA3B2'],d:['#fff','#9AA3B2','1px solid #E4E7EC'],label:'⋯',load:'◌',icon:1},
+};
+const TIMELINE = [
+  {i:'✓',l:'Firmado',d:'Certificado vigente hasta 12/03/2027',t:'24/09/2026 15:02',k:'success'},
+  {i:'✓',l:'Enviado a Hacienda',d:'Intento 1 · con error, reintentado automáticamente',t:'24/09/2026 15:03',k:'success'},
+  {i:'✓',l:'Enviado a Hacienda',d:'Intento 2',t:'24/09/2026 15:06',k:'success'},
+  {i:'✓',l:'Aceptada',d:'Respuesta de Hacienda disponible para descarga',t:'24/09/2026 15:15',k:'success'},
+];
+const AGING = [
+  {l:'Al día',v:'₡2 140 000,00',n:2140000,c:'#2355C9'},{l:'1–30 días',v:'₡1 427 350,00',n:1427350,c:'#7AA2F7'},
+  {l:'31–60 días',v:'₡620 000,00',n:620000,c:'#E0A63A'},{l:'61–90 días',v:'₡410 000,00',n:410000,c:'#D2691E'},{l:'Más de 90',v:'₡215 000,00',n:215000,c:'#B42323'},
+];
+const ALERTS = [
+  ['info','Hacienda está procesando el documento','Le avisaremos cuando llegue la respuesta. Puede seguir trabajando.'],
+  ['success','Pago registrado','₡200 000,00 aplicados a 3 cuentas de Soluciones Ibis S.R.L.'],
+  ['warning','Su certificado de firma vence en 18 días','Súbalo de nuevo en Configuración fiscal antes del 12/10/2026 para no interrumpir la facturación.'],
+  ['danger','No pudimos emitir la factura','La factura sigue como borrador y no se perdió nada. Intente de nuevo; si el problema continúa, comparta este código con soporte.','ERR-7F3K-92QD'],
+];
+function parseMoney(s) {
+  const clean = String(s).replace(/[\s\u00A0\u202F₡]|US\$/g, '');
+  if (!/^\d+(,\d{0,2})?$/.test(clean)) return null;
+  return Number(clean.replace(',', '.'));
+}
+class Component extends DCLogic {
+  state = { money: '113 000,00', reason: '' };
+  renderVals() {
+    const tones = Object.entries(TONES).map(([k, t]) => ({ key:k, name:t.name, i:t.i, lbg:t.l[0], lfg:t.l[1], lbd:t.l[2], dbg:t.d[0], dfg:t.d[1] }));
+    let prev = '';
+    const states = STATES.map(([dom,val,label,tone,i,strike]) => {
+      const t = TONES[tone]; const first = dom !== prev; prev = dom;
+      return { dom: first ? dom : '', domFg:'#161B26', domW: 600, val, label, tone, i, lbg:t.l[0], lfg:t.l[1], dbg:t.d[0], dfg:t.d[1], deco: strike ? 'line-through' : 'none' };
+    });
+    const type = TYPE.map(([token,spec,size,lh,w,sample,over,mono]) => ({ token, spec, size, lh, w, sample, fam: mono ? MONO : SANS, ls: over ? '.08em' : '0', tt: over ? 'uppercase' : 'none' }));
+    const btnRows = Object.entries(BTN).map(([name, b]) => ({
+      name,
+      cells: ['n','h','f','a','d','l'].map(s => {
+        const base = b[s === 'f' || s === 'l' ? 'n' : s];
+        return { bg: base[0], fg: base[1], bd: base[2], sh: s === 'f' ? '0 0 0 2px #fff,0 0 0 4px #2355C9' : 'none', cur: s === 'd' ? 'not-allowed' : 'pointer', label: s === 'l' ? (b.icon ? b.load : '◌ ' + b.load) : b.label, minW: b.icon ? '36px' : '0' };
+      }),
+    }));
+    const tot = AGING.reduce((a, x) => a + x.n, 0);
+    const aging = AGING.map(a => ({ ...a, flex: String(a.n), p: Math.round(a.n / tot * 100) + ' %' }));
+    const alerts = ALERTS.map(([k, t, b, ref]) => ({ t, b, ref: ref || '', i: TONES[k].i, bg: TONES[k].l[0], fg: k === 'warning' ? '#6E4200' : TONES[k].l[1], bd: TONES[k].l[2] }));
+    const timeline = TIMELINE.map(e => ({ ...e, bg: TONES[e.k].l[0], fg: TONES[e.k].l[1] }));
+    const v = parseMoney(this.state.money);
+    const ok = this.state.reason.trim().length >= 10;
+    return {
+      colors: COLORS.map(([name, light, dark, use]) => ({ name, light, dark, use })),
+      tones, states, type, space: SPACE, btnRows, aging, alerts, timeline,
+      zs: ZS.map(([name, v]) => ({ name, v })), motion: MOTION.map(([name, v]) => ({ name, v })), bps: BPS.map(([name, v]) => ({ name, v })),
+      money: this.state.money,
+      onMoney: e => this.setState({ money: e.target.value }),
+      moneyMsg: v == null ? '✕ Use el formato 113 000,00' : 'Se envía al servidor: ' + v.toFixed(2),
+      moneyFg: v == null ? '#B42323' : '#5A6272',
+      reason: this.state.reason,
+      onReason: e => this.setState({ reason: e.target.value }),
+      reasonHint: ok ? '✓ Motivo suficiente' : 'Obligatorio · mínimo 10 caracteres (' + this.state.reason.trim().length + '/10)',
+      voidBg: ok ? '#B42323' : '#E4E7EC', voidFg: ok ? '#fff' : '#8A93A3', voidCur: ok ? 'pointer' : 'not-allowed',
+    };
+  }
+}
+</script>
+</body>
+</html>

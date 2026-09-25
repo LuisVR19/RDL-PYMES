@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><title>RDL · Prototipo</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='13' fill='%230F1B33'/%3E%3Ctext x='32' y='39.5' text-anchor='middle' font-family='Arial' font-weight='700' font-size='20' fill='%23fff'%3ERDL%3C/text%3E%3Crect x='14' y='45' width='36' height='3' rx='1.5' fill='%237AA2F7'/%3E%3C/svg%3E"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>html,body{margin:0;height:100%}body{background:#D9DDE3;font-family:'IBM Plex Sans',sans-serif;color:#161B26}*{box-sizing:border-box}a{color:#2355C9}a:hover{color:#173C94}input,select,textarea,button{font-family:inherit}input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none;border-color:#2355C9 !important;box-shadow:0 0 0 3px #C2D3F7}button:focus-visible{outline:2px solid #2355C9;outline-offset:2px}@media (prefers-reduced-motion: reduce){*{transition:none !important}}</style></helmet>
+<div style="height:100vh;display:flex;flex-direction:column">
+
+<div data-screen-label="Barra del prototipo" style="background:#161B26;color:#E6E9EF;padding:8px 14px;display:flex;flex-direction:column;gap:8px;font-size:12px;flex:none">
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <span style="font:600 11px 'IBM Plex Mono',monospace;color:#8C97AD;margin-right:6px">PROTOTIPO · A + G</span>
+    <sc-for list="{{ entries }}" as="e" hint-placeholder-count="8">
+      <button onClick="{{ e.onClick }}" style="height:26px;padding:0 9px;border-radius:4px;border:1px solid #3A4454;cursor:pointer;font-size:12px;background:{{ e.bg }};color:{{ e.fg }}"><span style="font-family:'IBM Plex Mono',monospace;opacity:.7">{{ e.n }}</span> {{ e.l }}</button>
+    </sc-for>
+    <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+      <div style="display:flex;border:1px solid #3A4454;border-radius:4px;overflow:hidden">
+        <button onClick="{{ setDesktop }}" style="height:26px;padding:0 10px;border:none;cursor:pointer;font-size:12px;background:{{ vpD.bg }};color:{{ vpD.fg }}">Escritorio</button>
+        <button onClick="{{ setMobile }}" style="height:26px;padding:0 10px;border:none;border-left:1px solid #3A4454;cursor:pointer;font-size:12px;background:{{ vpM.bg }};color:{{ vpM.fg }}">Móvil 390</button>
+      </div>
+      <button onClick="{{ resetFlow }}" style="height:26px;padding:0 10px;border-radius:4px;border:1px solid #3A4454;background:transparent;color:#E6E9EF;cursor:pointer;font-size:12px">↺ Reiniciar flujo</button>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <span style="color:#8C97AD">Estado:</span>
+    <sc-for list="{{ variants }}" as="v" hint-placeholder-count="4">
+      <button onClick="{{ v.onClick }}" style="height:24px;padding:0 9px;border-radius:12px;cursor:pointer;font-size:12px;border:1px solid {{ v.bd }};background:{{ v.bg }};color:{{ v.fg }}">{{ v.l }}</button>
+    </sc-for>
+    <span style="width:1px;height:16px;background:#3A4454;margin:0 6px"></span>
+    <button onClick="{{ simNotif }}" style="height:24px;padding:0 9px;border-radius:12px;cursor:pointer;font-size:12px;border:1px dashed #5F6878;background:transparent;color:#C9D1E0">+ Simular notificación</button>
+    <button onClick="{{ simDirect }}" style="height:24px;padding:0 9px;border-radius:12px;cursor:pointer;font-size:12px;border:1px dashed #5F6878;background:transparent;color:#C9D1E0">Abrir enlace directo a Usuarios y roles</button>
+    <span style="margin-left:auto;color:#8C97AD">Atajos: <b style="color:#E6E9EF">/</b> buscar · <b style="color:#E6E9EF">N</b> nueva factura · <b style="color:#E6E9EF">?</b> atajos · <b style="color:#E6E9EF">Esc</b> cerrar</span>
+  </div>
+</div>
+
+<div style="flex:1;min-height:0;display:flex;align-items:safe center;justify-content:safe center;padding:{{ stagePad }};overflow:auto">
+<div style="position:relative;overflow:hidden;background:#F4F5F7;width:{{ frameW }};height:{{ frameH }};border-radius:{{ frameR }};box-shadow:{{ frameSh }};flex:none;display:flex;flex-direction:column">
+
+<sc-if value="{{ sLogin }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="01 Iniciar sesión" style="flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:32px 16px;gap:20px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <svg width="40" height="40" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0F1B33"></rect><text x="32" y="39.5" text-anchor="middle" font-family="IBM Plex Sans" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF">RDL</text><rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect></svg>
+    <span style="font-size:14px;color:#5A6272">Facturación electrónica</span>
+  </div>
+  <div style="width:100%;max-width:400px;background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:16px">
+    <sc-if value="{{ lForm }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">Iniciar sesión</h1><span style="font-size:14px;color:#5A6272">Ingrese con su correo y contraseña.</span></div>
+      <sc-if value="{{ lExpired }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:10px;padding:10px 12px;border-radius:6px;border:1px solid #C2D3F7;background:#E7EEFC;color:#1F4FB8;font-size:13px;line-height:19px"><b>●</b><span>Su sesión venció. Al ingresar volverá a <span style="font-family:'IBM Plex Mono',monospace">/facturas/FAC-0000034</span>.</span></div></sc-if>
+      <sc-if value="{{ lError }}" hint-placeholder-val="{{ false }}"><div role="alert" style="display:flex;gap:10px;padding:10px 12px;border-radius:6px;border:1px solid #F2BDBD;background:#FCE8E8;color:#7E1717;font-size:13px;line-height:19px"><b>✕</b><span>El correo o la contraseña no son correctos. Revíselos e intente de nuevo.</span></div></sc-if>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Correo</span><input type="email" value="{{ email }}" onChange="{{ onEmail }}" placeholder="nombre@empresa.cr" style="height:{{ inH }};border:1px solid {{ emailBd }};border-radius:6px;padding:0 10px;font-size:14px;color:#161B26;background:#fff"><sc-if value="{{ emailErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#B42323">✕ {{ emailErr }}</span></sc-if></label>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500;display:flex;justify-content:space-between">Contraseña<span onClick="{{ toRecover }}" style="font-weight:400;color:#2355C9;cursor:pointer">¿Olvidó su contraseña?</span></span><input type="password" value="{{ pass }}" onChange="{{ onPass }}" onKeyDown="{{ onLoginKey }}" style="height:{{ inH }};border:1px solid {{ passBd }};border-radius:6px;padding:0 10px;font-size:14px;color:#161B26;background:#fff"><sc-if value="{{ passErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#B42323">✕ {{ passErr }}</span></sc-if></label>
+      <button onClick="{{ submitLogin }}" style="height:{{ btnH }};border:none;border-radius:6px;background:{{ loginBtn.bg }};color:#fff;font-size:15px;font-weight:500;cursor:pointer">{{ loginBtn.l }}</button>
+      <span style="font-size:12px;color:#5A6272;text-align:center">Pruebe con cualquier correo válido y una contraseña.</span>
+    </sc-if>
+    <sc-if value="{{ lRecover }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">Recuperar contraseña</h1><span style="font-size:14px;color:#5A6272;line-height:20px">Escriba su correo y le enviaremos un enlace para crear una contraseña nueva.</span></div>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Correo</span><input type="email" value="{{ email }}" onChange="{{ onEmail }}" style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;font-size:14px;color:#161B26"></label>
+      <button onClick="{{ submitRecover }}" style="height:{{ btnH }};border:none;border-radius:6px;background:#2355C9;color:#fff;font-size:15px;font-weight:500;cursor:pointer">Enviar enlace</button>
+      <span onClick="{{ backToLogin }}" style="font-size:14px;color:#2355C9;cursor:pointer;text-align:center">‹ Volver a iniciar sesión</span>
+    </sc-if>
+    <sc-if value="{{ lRecoverSent }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="width:36px;height:36px;border-radius:50%;background:#E6F4EC;color:#1B6B3A;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span><h1 style="margin:0;font-size:22px;line-height:30px;font-weight:600">Revise su correo</h1><span style="font-size:14px;color:#343B48;line-height:21px">Si el correo está registrado, recibirá un enlace en unos minutos. El enlace vence en 30 minutos.</span></div>
+      <button onClick="{{ backToLogin }}" style="height:{{ btnH }};border:1px solid #C9CFD8;border-radius:6px;background:#fff;color:#161B26;font-size:15px;font-weight:500;cursor:pointer">Volver a iniciar sesión</button>
+    </sc-if>
+  </div>
+  <span style="font-size:12px;color:#5A6272">¿Recibió una invitación? Ábrala desde el enlace que le compartieron.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ sOrgs }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="02 Selector de organización" style="flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:40px 16px;gap:20px">
+  <div style="width:100%;max-width:560px;display:flex;justify-content:space-between;align-items:center">
+    <svg width="32" height="32" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0F1B33"></rect><text x="32" y="39.5" text-anchor="middle" font-family="IBM Plex Sans" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF">RDL</text><rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect></svg>
+    <span onClick="{{ logout }}" style="font-size:13px;color:#2355C9;cursor:pointer">Cerrar sesión</span>
+  </div>
+  <div style="width:100%;max-width:560px;display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">Elija una organización</h1><span style="font-size:14px;color:#5A6272">Hola, María. Puede cambiarla después desde la barra superior.</span></div>
+  <div style="width:100%;max-width:560px;background:#fff;border:1px solid #DDE1E7;border-radius:8px;overflow:hidden">
+    <sc-if value="{{ oNormal }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:12px;border-bottom:1px solid #EBEEF2"><input value="{{ orgQ }}" onChange="{{ onOrgQ }}" placeholder="Buscar por nombre o identificación" style="width:100%;height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;font-size:14px;color:#161B26"></div>
+      <sc-for list="{{ orgRows }}" as="o" hint-placeholder-count="5">
+        <div onClick="{{ o.pick }}" tabindex="0" style="display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:{{ rowH }};border-bottom:1px solid #EBEEF2;cursor:pointer" style-hover="background:#F6F8FB">
+          <span style="width:36px;height:36px;border-radius:6px;background:#E7EEFC;color:#1F4FB8;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none">{{ o.ini }}</span>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:500">{{ o.name }}</span><span style="font-size:12px;color:#5A6272">{{ o.idn }}</span></div>
+          <span style="font-size:12px;padding:2px 8px;border-radius:4px;border:1px solid #C9CFD8;color:#343B48;white-space:nowrap">{{ o.roleL }}</span>
+          <span style="color:#9AA3B2">›</span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noMatch }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 16px;font-size:14px;color:#5A6272;text-align:center">Ninguna organización coincide con «{{ orgQ }}».</div></sc-if>
+      <div onClick="{{ toCreate }}" style="padding:14px 16px;font-size:14px;color:#2355C9;font-weight:500;cursor:pointer">+ Crear una organización</div>
+    </sc-if>
+    <sc-if value="{{ oLoading }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ skel4 }}" as="k" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #EBEEF2"><span style="width:36px;height:36px;border-radius:6px;background:#EBEEF2"></span><div style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="height:12px;width:55%;background:#EBEEF2;border-radius:4px"></span><span style="height:10px;width:30%;background:#EBEEF2;border-radius:4px"></span></div></div></sc-for>
+    </sc-if>
+    <sc-if value="{{ oEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><span style="font-size:17px;font-weight:600">Todavía no pertenece a ninguna organización</span><span style="font-size:14px;color:#5A6272;max-width:380px;line-height:21px">Cree la de su empresa o, si otra persona lo va a invitar, ábrala desde el enlace que le compartan.</span><button onClick="{{ toCreate }}" style="margin-top:6px;height:{{ btnH }};padding:0 16px;border:none;border-radius:6px;background:#2355C9;color:#fff;font-size:14px;font-weight:500;cursor:pointer">Crear organización</button></div>
+    </sc-if>
+    <sc-if value="{{ oError }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center"><span style="font-size:17px;font-weight:600">No pudimos cargar sus organizaciones</span><span style="font-size:14px;color:#5A6272">Revise su conexión e intente de nuevo.</span><button onClick="{{ retryOrgs }}" style="margin-top:6px;height:{{ btnH }};padding:0 16px;border:1px solid #C9CFD8;border-radius:6px;background:#fff;font-size:14px;font-weight:500;cursor:pointer">Reintentar</button><span onClick="{{ copyRef }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A6272;cursor:pointer">Ref. ERR-4Q1D-77MN ⧉</span></div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sCreate }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="03 Crear organización" style="flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;padding:40px 16px;gap:20px">
+  <div style="width:100%;max-width:720px;display:flex;flex-direction:column;gap:4px"><span onClick="{{ cancelCreate }}" style="font-size:13px;color:#2355C9;cursor:pointer">‹ Mis organizaciones</span><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">Crear organización</h1><span style="font-size:14px;color:#5A6272">Usted quedará como propietario. Los datos fiscales se configuran después.</span></div>
+  <div style="width:100%;max-width:720px;background:#fff;border:1px solid #DDE1E7;border-radius:8px;display:flex;flex-direction:column">
+    <sc-if value="{{ cServerErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="margin:20px 24px 0;display:flex;gap:10px;padding:10px 12px;border-radius:6px;border:1px solid #F2BDBD;background:#FCE8E8;color:#7E1717;font-size:13px;line-height:19px"><b>✕</b><div style="display:flex;flex-direction:column;gap:4px"><span>No pudimos crear la organización. Sus datos siguen en el formulario; intente de nuevo.</span><span onClick="{{ copyRef }}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer">Código de referencia: ERR-9B2C-31XE ⧉ Copiar</span></div></div></sc-if>
+    <div style="padding:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px 20px">
+      <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1"><span style="font-size:13px;font-weight:500">Razón social <span style="color:#B42323">*</span></span><input value="{{ f.razon }}" onChange="{{ onF.razon }}" style="height:{{ inH }};border:1px solid {{ fe.razonBd }};border-radius:6px;padding:0 10px;font-size:14px;color:#161B26"><sc-if value="{{ fe.razon }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#B42323">✕ {{ fe.razon }}</span></sc-if></label>
+      <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1"><span style="font-size:13px;font-weight:500">Nombre comercial</span><input value="{{ f.comercial }}" onChange="{{ onF.comercial }}" style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;font-size:14px;color:#161B26"><span style="font-size:12px;color:#5A6272">Opcional. Es el nombre que verán sus clientes.</span></label>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Tipo de identificación <span style="color:#B42323">*</span></span><select value="{{ f.tipo }}" onChange="{{ onF.tipo }}" style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 8px;font-size:14px;background:#fff;color:#161B26"><option value="Jurídica">Jurídica</option><option value="Física">Física</option><option value="DIMEX">DIMEX</option><option value="NITE">NITE</option></select></label>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Número de identificación <span style="color:#B42323">*</span></span><input value="{{ f.numero }}" onChange="{{ onF.numero }}" placeholder="3-101-000000" style="height:{{ inH }};border:1px solid {{ fe.numeroBd }};border-radius:6px;padding:0 10px;font-size:14px;color:#161B26;font-variant-numeric:tabular-nums"><sc-if value="{{ fe.numero }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#B42323">✕ {{ fe.numero }}</span></sc-if></label>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Correo <span style="color:#B42323">*</span></span><input value="{{ f.correo }}" onChange="{{ onF.correo }}" style="height:{{ inH }};border:1px solid {{ fe.correoBd }};border-radius:6px;padding:0 10px;font-size:14px;color:#161B26"><sc-if value="{{ fe.correo }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#B42323">✕ {{ fe.correo }}</span></sc-if></label>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Teléfono</span><input value="{{ f.tel }}" onChange="{{ onF.tel }}" style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;font-size:14px;color:#161B26"></label>
+      <label style="display:flex;flex-direction:column;gap:6px;grid-column:1/-1"><span style="font-size:13px;font-weight:500">Zona horaria</span><select style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 8px;font-size:14px;background:#fff;color:#161B26"><option>Costa Rica (UTC−6) · America/Costa_Rica</option></select><span style="font-size:12px;color:#5A6272">Todas las fechas y horas del portal se mostrarán en esta zona.</span></label>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid #EBEEF2;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
+      <button onClick="{{ cancelCreate }}" style="height:{{ btnH }};padding:0 16px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Cancelar</button>
+      <button onClick="{{ submitCreate }}" style="height:{{ btnH }};padding:0 16px;border:none;background:{{ createBtn.bg }};color:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;min-width:170px">{{ createBtn.l }}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sInvite }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="04 Aceptar invitación" style="flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:32px 16px;gap:20px">
+  <svg width="40" height="40" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0F1B33"></rect><text x="32" y="39.5" text-anchor="middle" font-family="IBM Plex Sans" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF">RDL</text><rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect></svg>
+  <div style="width:100%;max-width:460px;background:#fff;border:1px solid #DDE1E7;border-radius:8px;padding:28px;display:flex;flex-direction:column;gap:16px">
+    <sc-if value="{{ iValid }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;color:#5A6272">Andrés Quesada lo invitó a</span><h1 style="margin:0;font-size:22px;line-height:30px;font-weight:600">Transportes Cerro Verde S.A.</h1></div>
+      <div style="display:grid;grid-template-columns:110px 1fr;gap:8px 12px;font-size:14px;padding:14px;background:#F8F9FB;border-radius:6px">
+        <span style="color:#5A6272">Rol</span><span style="font-weight:600">Cobrador</span>
+        <span style="color:#5A6272">Podrá</span><span style="line-height:20px">Ver y gestionar cuentas por cobrar, pagos, seguimientos y promesas de pago.</span>
+        <span style="color:#5A6272">Para</span><span>maria.rojas@correo.example</span>
+        <span style="color:#5A6272">Vence</span><span style="font-variant-numeric:tabular-nums">30/09/2026 23:59</span>
+      </div>
+      <button onClick="{{ acceptInvite }}" style="height:{{ btnH }};border:none;border-radius:6px;background:{{ acceptBtn.bg }};color:#fff;font-size:15px;font-weight:500;cursor:pointer">{{ acceptBtn.l }}</button>
+    </sc-if>
+    <sc-if value="{{ iBad }}" hint-placeholder-val="{{ false }}">
+      <span style="width:36px;height:36px;border-radius:50%;background:#EEF0F3;color:#4A5160;display:flex;align-items:center;justify-content:center;font-weight:700">{{ inv.i }}</span>
+      <div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:22px;line-height:30px;font-weight:600">{{ inv.t }}</h1><span style="font-size:14px;color:#343B48;line-height:21px">{{ inv.b }}</span></div>
+      <button onClick="{{ inv.action }}" style="height:{{ btnH }};border:1px solid #C9CFD8;border-radius:6px;background:#fff;color:#161B26;font-size:15px;font-weight:500;cursor:pointer">{{ inv.cta }}</button>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sApp }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex">
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+  <aside style="width:{{ sideW }};flex:none;background:#0F1B33;color:#C9D1E0;display:flex;flex-direction:column;padding:14px 10px;gap:12px;overflow:auto;transition:width 180ms cubic-bezier(.2,0,0,1)">
+    <div style="display:flex;align-items:center;gap:10px;padding:2px 6px 6px">
+      <svg width="30" height="30" viewBox="0 0 64 64" style="flex:none"><rect width="64" height="64" rx="13" fill="#23345A"></rect><text x="32" y="39.5" text-anchor="middle" font-family="IBM Plex Sans" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF">RDL</text><rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect></svg>
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:#8C97AD">Facturación</span></sc-if>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:1px;font-size:14px">
+      <sc-for list="{{ navRows }}" as="n" hint-placeholder-count="12">
+        <sc-if value="{{ n.isSec }}" hint-placeholder-val="{{ false }}"><div style="padding:12px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B879E;white-space:nowrap;overflow:hidden">{{ n.l }}</div></sc-if>
+        <sc-if value="{{ n.isItem }}" hint-placeholder-val="{{ true }}"><div onClick="{{ n.go }}" title="{{ n.l }}" style="padding:7px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }}" style-hover="background:#1B2A4A"><span style="flex:1;overflow:hidden;text-overflow:ellipsis">{{ n.text }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:#B42323;color:#fff;font-size:11px;font-weight:600;padding:0 6px;border-radius:9px;line-height:17px">{{ n.badge }}</span></sc-if></div></sc-if>
+      </sc-for>
+    </nav>
+    <div onClick="{{ toggleCollapse }}" style="margin-top:auto;padding:8px 10px;font-size:12px;color:#8C97AD;cursor:pointer;white-space:nowrap">{{ collapseL }}</div>
+  </aside>
+  </sc-if>
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;position:relative">
+    <header style="height:56px;flex:none;background:#fff;border-bottom:1px solid #DDE1E7;display:flex;align-items:center;gap:12px;padding:{{ hdrPad }}">
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toggleMNav }}" aria-label="Menú" style="width:44px;height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#161B26"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+        <svg width="30" height="30" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0F1B33"></rect><text x="32" y="39.5" text-anchor="middle" font-family="IBM Plex Sans" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF">RDL</text><rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect></svg>
+      </sc-if>
+      <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ toggleOrgMenu }}" aria-haspopup="listbox" style="flex:0 1 auto;min-width:0;max-width:320px;display:flex;align-items:center;gap:10px;padding:5px 10px;border:1px solid {{ orgBtnBd }};border-radius:6px;background:#fff;cursor:pointer;text-align:left">
+          <span style="width:28px;height:28px;border-radius:4px;background:#E7EEFC;color:#1F4FB8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ org.ini }}</span>
+          <span style="display:flex;flex-direction:column;line-height:1.25;min-width:0"><span style="font-size:13px;font-weight:600;color:#161B26;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ org.name }}</span><span style="font-size:11px;color:#5A6272;white-space:nowrap">{{ org.roleL }}</span></span>
+          <span style="color:#5A6272;font-size:11px;margin-left:4px">▾</span>
+        </button>
+        <span style="flex:none;display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;background:#FDF1DC;color:#8A5300;font-size:12px;font-weight:600;white-space:nowrap">▲ Ambiente de pruebas</span>
+        <div style="flex:1;max-width:420px;margin-left:auto;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid #DDE1E7;border-radius:6px;background:#F8F9FB;color:#5A6272">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <input ref="{{ searchRef }}" placeholder="Buscar facturas, clientes, CABYS…" style="flex:1;min-width:0;border:none;background:transparent;font-size:13px;color:#161B26;outline:none;box-shadow:none">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid #C9CFD8;border-radius:3px;padding:0 5px;background:#fff">/</span>
+        </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:{{ bellMl }}">
+        <button onClick="{{ toggleNotif }}" aria-label="Notificaciones" style="position:relative;width:{{ iconBtn }};height:{{ iconBtn }};border:none;border-radius:6px;background:{{ bellBg }};display:flex;align-items:center;justify-content:center;cursor:pointer;color:#343B48">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:3px;right:1px;background:#B42323;color:#fff;font-size:10px;font-weight:600;padding:0 5px;border-radius:8px;line-height:15px">{{ unread }}</span></sc-if>
+          <sc-if value="{{ rtOff }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;bottom:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#8A5300;border:2px solid #fff"></span></sc-if>
+        </button>
+        <button onClick="{{ toggleUser }}" aria-label="Menú de usuario" style="width:{{ iconBtn }};height:{{ iconBtn }};border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"><span style="width:32px;height:32px;border-radius:50%;background:#0F1B33;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">MR</span></button>
+      </div>
+    </header>
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ toggleOrgMenu }}" style="flex:none;display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 16px;border:none;border-bottom:1px solid #DDE1E7;background:#fff;text-align:left;cursor:pointer">
+        <span style="width:30px;height:30px;border-radius:4px;background:#E7EEFC;color:#1F4FB8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ org.ini }}</span>
+        <span style="flex:1;display:flex;flex-direction:column;line-height:1.25;min-width:0"><span style="font-size:14px;font-weight:600;color:#161B26;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ org.name }}</span><span style="font-size:12px;color:#5A6272">{{ org.roleL }} · <span style="color:#8A5300;font-weight:600">▲ Pruebas</span></span></span>
+        <span style="color:#5A6272;font-size:12px">Cambiar ▾</span>
+      </button>
+    </sc-if>
+    <sc-if value="{{ rtOff }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 20px;background:#FDF1DC;border-bottom:1px solid #F1D29B;color:#6E4200;font-size:13px"><b>▲</b><span style="flex:1;min-width:200px">Sin conexión en tiempo real. Las notificaciones pueden llegar con retraso; el resto del portal funciona. {{ rtMsg }}</span><span onClick="{{ reconnect }}" style="font-weight:600;text-decoration:underline;cursor:pointer">Reintentar ahora</span></div>
+    </sc-if>
+
+    <main style="flex:1;min-height:0;overflow:auto;padding:{{ mainPad }};opacity:{{ mainOpacity }};transition:opacity 180ms cubic-bezier(.2,0,0,1)">
+      <sc-if value="{{ pInicio }}" hint-placeholder-val="{{ true }}">
+        <div data-screen-label="05 Inicio (provisional)" style="display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px"><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">Inicio</h1><span style="font-size:13px;color:#5A6272">{{ org.name }} · al 24/09/2026 15:20, hora de Costa Rica</span></div>
+            <sc-if value="{{ canCreate }}" hint-placeholder-val="{{ true }}"><button onClick="{{ newInvoice }}" style="height:{{ btnH }};padding:0 14px;border:none;background:#2355C9;border-radius:6px;font-size:14px;font-weight:500;color:#fff;display:flex;align-items:center;gap:10px;cursor:pointer">Nueva factura <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid rgba(255,255,255,.5);border-radius:3px;padding:0 5px">N</span></sc-if></button></sc-if>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #DDE1E7;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px;min-height:112px">
+                <span style="font-size:13px;color:#5A6272">{{ k.l }}</span>
+                <sc-if value="{{ switching }}" hint-placeholder-val="{{ false }}"><span style="height:28px;width:70%;border-radius:4px;background:#EBEEF2"></span><span style="height:12px;width:45%;border-radius:4px;background:#EBEEF2"></span></sc-if>
+                <sc-if value="{{ notSwitching }}" hint-placeholder-val="{{ true }}"><span style="font-size:24px;line-height:32px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ k.fg }}">{{ k.v }}</span><span style="font-size:12px;color:{{ k.subFg }}">{{ k.sub }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border:1.5px dashed #C9CFD8;border-radius:6px;padding:20px;font-size:13px;color:#5A6272;line-height:20px">El resto del resumen (últimas facturas y pagos, con carga y error independientes por bloque) corresponde a la pantalla 6 y se diseña en el paso B. Cambie de organización desde la barra superior para ver cómo cambian los datos y el menú según el rol.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ pForm }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="05 Formulario con cambios" style="display:flex;flex-direction:column;gap:16px;max-width:760px">
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:#5A6272">Facturación / Clientes / Ferretería El Roble S.A.</span><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">Editar cliente</h1><span style="font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:#FDF1DC;color:#8A5300">● Cambios sin guardar</span></div></div>
+          <div style="display:flex;gap:10px;padding:10px 12px;border-radius:6px;border:1px solid #C2D3F7;background:#E7EEFC;color:#1F4FB8;font-size:13px"><b>●</b>Editar un cliente no cambia las facturas ya emitidas.</div>
+          <div style="background:#fff;border:1px solid #DDE1E7;border-radius:6px;padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Razón social</span><input value="Ferretería El Roble S.A." readonly style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;font-size:14px"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Teléfono · modificado</span><input value="2222-0101" readonly style="height:{{ inH }};border:1px solid #E0A63A;background:#FFFCF5;border-radius:6px;padding:0 10px;font-size:14px"></label>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end"><button onClick="{{ discardForm }}" style="height:{{ btnH }};padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Descartar</button><button onClick="{{ saveForm }}" style="height:{{ btnH }};padding:0 14px;border:none;background:#2355C9;color:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Guardar  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:.8">Ctrl S</span></button></div>
+          <span style="font-size:12px;color:#5A6272">Formulario de ejemplo (pantalla 8, se diseña en C). Pruebe a cambiar de organización.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ pPending }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px"><h1 style="margin:0;font-size:24px;line-height:32px;font-weight:600">{{ pendingTitle }}</h1><div style="border:1.5px dashed #C9CFD8;border-radius:6px;padding:28px;font-size:14px;color:#5A6272;line-height:21px">{{ pendingNote }}</div></div>
+      </sc-if>
+      <sc-if value="{{ pSys }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="35 Pantalla de sistema" style="min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px 0">
+          <div style="max-width:440px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+            <span style="font:600 12px 'IBM Plex Mono',monospace;color:#5A6272;letter-spacing:.06em">{{ sys.code }}</span>
+            <h1 style="margin:0;font-size:22px;line-height:30px;font-weight:600">{{ sys.t }}</h1>
+            <span style="font-size:14px;color:#343B48;line-height:21px">{{ sys.b }}</span>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+              <sc-if value="{{ sys.retry }}" hint-placeholder-val="{{ false }}"><button onClick="{{ goInicio }}" style="height:{{ btnH }};padding:0 16px;border:none;background:#2355C9;color:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Reintentar</button></sc-if>
+              <button onClick="{{ goInicio }}" style="height:{{ btnH }};padding:0 16px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Ir al inicio</button>
+            </div>
+            <sc-if value="{{ sys.ref }}" hint-placeholder-val="{{ false }}"><span onClick="{{ copyRef }}" style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A6272;cursor:pointer;padding:6px 10px;border:1px solid #DDE1E7;border-radius:6px;background:#fff">Código de referencia: {{ sys.ref }}  ⧉ Copiar</span></sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+
+    <sc-if value="{{ anyMenu }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeMenus }}" style="position:absolute;inset:0;z-index:900;background:{{ scrim }}"></div></sc-if>
+
+    <sc-if value="{{ orgMenuOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="05 Cambio de organización" role="listbox" style="position:absolute;z-index:1000;background:#fff;box-shadow:0 4px 12px rgba(16,24,40,.12),0 0 0 1px rgba(16,24,40,.06);padding:6px;display:flex;flex-direction:column;font-size:14px;top:{{ om.top }};left:{{ om.left }};right:{{ om.right }};bottom:{{ om.bottom }};width:{{ om.w }};border-radius:{{ om.r }}">
+        <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 10px 6px;font-size:16px;font-weight:600">Cambiar de organización</div></sc-if>
+        <input value="{{ orgQ }}" onChange="{{ onOrgQ }}" placeholder="Buscar organización" style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;margin:4px 4px 6px;padding:0 10px;font-size:13px;color:#161B26">
+        <div style="overflow:auto;max-height:320px;display:flex;flex-direction:column">
+          <sc-for list="{{ switchRows }}" as="o" hint-placeholder-count="5">
+            <div onClick="{{ o.pick }}" style="padding:8px 10px;min-height:{{ rowH }};border-radius:4px;display:flex;align-items:center;gap:10px;cursor:pointer;background:{{ o.bg }}" style-hover="background:#F4F6FA">
+              <span style="width:26px;height:26px;border-radius:4px;background:#E7EEFC;color:#1F4FB8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none">{{ o.ini }}</span>
+              <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.name }}</span>
+              <span style="font-size:12px;color:{{ o.tagFg }};white-space:nowrap">{{ o.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="height:1px;background:#EBEEF2;margin:4px 0"></div>
+        <div onClick="{{ goAllOrgs }}" style="padding:10px;color:#2355C9;font-weight:500;cursor:pointer;font-size:13px">Ver todas mis organizaciones</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="34 Notificaciones" style="position:absolute;z-index:1000;background:#fff;box-shadow:0 4px 12px rgba(16,24,40,.12),0 0 0 1px rgba(16,24,40,.06);display:flex;flex-direction:column;top:{{ np.top }};right:{{ np.right }};left:{{ np.left }};bottom:{{ np.bottom }};width:{{ np.w }};border-radius:{{ np.r }};max-height:{{ np.maxH }}">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #EBEEF2">
+          <span style="font-size:15px;font-weight:600;flex:1">Notificaciones</span>
+          <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span onClick="{{ markAll }}" style="font-size:13px;color:#2355C9;cursor:pointer">Marcar todas como leídas</span></sc-if>
+          <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}"><button onClick="{{ closeMenus }}" aria-label="Cerrar" style="width:44px;height:44px;border:none;background:transparent;font-size:18px;cursor:pointer">✕</button></sc-if>
+        </div>
+        <sc-if value="{{ rtOff }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 16px;background:#FDF1DC;color:#6E4200;font-size:12px;border-bottom:1px solid #F1D29B">▲ Sin conexión en tiempo real. {{ rtMsg }}</div></sc-if>
+        <div style="overflow:auto;flex:1">
+          <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+            <div onClick="{{ n.read }}" style="display:grid;grid-template-columns:28px minmax(0,1fr) 10px;gap:10px;padding:12px 16px;border-bottom:1px solid #EBEEF2;cursor:pointer;background:{{ n.bg }}">
+              <span style="width:24px;height:24px;border-radius:50%;background:{{ n.ibg }};color:{{ n.ifg }};font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ n.i }}</span>
+              <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;font-weight:{{ n.fw }}">{{ n.t }}</span><span style="font-size:13px;color:#5A6272;line-height:18px">{{ n.b }}</span><div style="display:flex;gap:12px;align-items:center"><span style="font-size:12px;color:#5A6272">{{ n.time }}</span><sc-if value="{{ n.action }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;font-weight:500;color:#2355C9">{{ n.action }} ›</span></sc-if></div></div>
+              <sc-if value="{{ n.unread }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:50%;background:#2355C9;margin-top:6px" aria-label="Sin leer"></span></sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noNotifs }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:600">No tiene notificaciones</span><span style="font-size:13px;color:#5A6272">Aquí verá los documentos aceptados o rechazados y los pagos registrados.</span></div></sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ userOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;z-index:1000;top:52px;right:12px;width:260px;background:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.12),0 0 0 1px rgba(16,24,40,.06);padding:6px;display:flex;flex-direction:column;font-size:14px">
+        <div style="padding:10px;display:flex;flex-direction:column;border-bottom:1px solid #EBEEF2;margin-bottom:4px"><span style="font-weight:600">María Rojas Vargas</span><span style="font-size:12px;color:#5A6272">maria.rojas@correo.example</span></div>
+        <div onClick="{{ myProfile }}" style="padding:10px;border-radius:4px;cursor:pointer" style-hover="background:#F4F6FA">Mi perfil</div>
+        <div onClick="{{ openShortcuts }}" style="padding:10px;border-radius:4px;cursor:pointer;display:flex;justify-content:space-between" style-hover="background:#F4F6FA">Atajos de teclado <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A6272">?</span></div>
+        <div style="height:1px;background:#EBEEF2;margin:4px 0"></div>
+        <div onClick="{{ logout }}" style="padding:10px;border-radius:4px;cursor:pointer" style-hover="background:#F4F6FA">Cerrar sesión</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mNavOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;z-index:1100;inset:0 64px 0 0;background:#0F1B33;color:#C9D1E0;padding:14px 10px;display:flex;flex-direction:column;gap:10px;overflow:auto;box-shadow:0 16px 40px rgba(16,24,40,.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 6px"><svg width="30" height="30" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#23345A"></rect><text x="32" y="39.5" text-anchor="middle" font-family="IBM Plex Sans" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF">RDL</text><rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect></svg><button onClick="{{ closeMenus }}" aria-label="Cerrar menú" style="width:44px;height:44px;border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
+        <sc-for list="{{ navRows }}" as="n" hint-placeholder-count="12">
+          <sc-if value="{{ n.isSec }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 10px 2px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B879E">{{ n.l }}</div></sc-if>
+          <sc-if value="{{ n.isItem }}" hint-placeholder-val="{{ true }}"><div onClick="{{ n.go }}" style="min-height:44px;padding:0 12px;border-radius:6px;display:flex;align-items:center;font-size:15px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }};font-weight:{{ n.fw }}">{{ n.l }}</div></sc-if>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;z-index:1200;background:rgba(15,27,51,.5);display:flex;align-items:center;justify-content:center;padding:16px">
+        <div role="dialog" aria-modal="true" style="width:100%;max-width:440px;background:#fff;border-radius:8px;box-shadow:0 16px 40px rgba(16,24,40,.18)">
+          <div style="padding:20px;display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-size:18px;line-height:26px;font-weight:600">Tiene cambios sin guardar</h2><span style="font-size:14px;color:#343B48;line-height:20px">Si cambia a {{ confirmName }}, perderá los cambios de «Editar cliente».</span></div>
+          <div style="padding:14px 20px;border-top:1px solid #EBEEF2;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><button onClick="{{ confirmStay }}" style="height:{{ btnH }};padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Seguir editando</button><button onClick="{{ confirmGo }}" style="height:{{ btnH }};padding:0 14px;border:none;background:#2355C9;color:#fff;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer">Descartar y cambiar</button></div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ expiredOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="35 Sesión vencida" style="position:absolute;inset:0;z-index:1200;background:rgba(15,27,51,.55);display:flex;align-items:center;justify-content:center;padding:16px">
+        <div role="dialog" aria-modal="true" style="width:100%;max-width:400px;background:#fff;border-radius:8px;box-shadow:0 16px 40px rgba(16,24,40,.18);padding:24px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-size:18px;line-height:26px;font-weight:600">Su sesión venció</h2><span style="font-size:14px;color:#343B48;line-height:20px">Por seguridad, ingrese de nuevo su contraseña. Seguirá en la misma página y no perderá lo que estaba viendo.</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Correo</span><div style="height:{{ inH }};border:1px solid #E4E7EC;background:#F4F5F7;border-radius:6px;padding:0 10px;display:flex;align-items:center;font-size:14px;color:#5A6272">maria.rojas@correo.example</div></div>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Contraseña</span><input type="password" style="height:{{ inH }};border:1px solid #C9CFD8;border-radius:6px;padding:0 10px;font-size:14px"></label>
+          <button onClick="{{ relogin }}" style="height:{{ btnH }};border:none;border-radius:6px;background:#2355C9;color:#fff;font-size:15px;font-weight:500;cursor:pointer">Continuar</button>
+          <span onClick="{{ logout }}" style="font-size:13px;color:#2355C9;cursor:pointer;text-align:center">Entrar con otra cuenta</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ shortcutsOpen }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="36 Atajos de teclado" onClick="{{ closeMenus }}" style="position:absolute;inset:0;z-index:1200;background:rgba(15,27,51,.5);display:flex;align-items:center;justify-content:center;padding:16px">
+        <div role="dialog" aria-modal="true" onClick="{{ stop }}" style="width:100%;max-width:560px;background:#fff;border-radius:8px;box-shadow:0 16px 40px rgba(16,24,40,.18);display:flex;flex-direction:column;max-height:100%">
+          <div style="padding:18px 20px;border-bottom:1px solid #EBEEF2;display:flex;align-items:center"><h2 style="margin:0;font-size:18px;line-height:26px;font-weight:600;flex:1">Atajos de teclado</h2><button onClick="{{ closeMenus }}" aria-label="Cerrar" style="width:36px;height:36px;border:none;background:transparent;font-size:16px;cursor:pointer">✕</button></div>
+          <div style="padding:8px 20px 20px;overflow:auto;display:flex;flex-direction:column">
+            <sc-for list="{{ shortcuts }}" as="s" hint-placeholder-count="10">
+              <sc-if value="{{ s.isSec }}" hint-placeholder-val="{{ false }}"><div style="padding:14px 0 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">{{ s.l }}</div></sc-if>
+              <sc-if value="{{ s.isRow }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #EBEEF2;font-size:14px"><span>{{ s.l }}</span><span style="display:flex;gap:4px"><sc-for list="{{ s.keys }}" as="k" hint-placeholder-count="1"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;min-width:24px;text-align:center;padding:2px 6px;border:1px solid #C9CFD8;border-bottom-width:2px;border-radius:4px;background:#F8F9FB">{{ k }}</span></sc-for></span></div></sc-if>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <div aria-live="polite" style="position:absolute;z-index:1300;display:flex;flex-direction:column;gap:8px;right:{{ toastPos.right }};left:{{ toastPos.left }};bottom:{{ toastPos.bottom }};width:{{ toastPos.w }}">
+      <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+        <div style="background:#161B26;color:#fff;border-radius:6px;box-shadow:0 4px 12px rgba(16,24,40,.25);padding:12px 14px;display:flex;gap:10px;font-size:14px">
+          <span style="font-weight:700;color:{{ t.ic }}">{{ t.i }}</span>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:500">{{ t.t }}</span><sc-if value="{{ t.b }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#A3ABBA">{{ t.b }}</span></sc-if></div>
+          <span onClick="{{ t.close }}" style="color:#A3ABBA;cursor:pointer">✕</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ROLE = { owner:'Propietario', admin:'Administrador', biller:'Facturador', collector:'Cobrador', accountant:'Contador', read_only:'Solo lectura' };
+const ORGS0 = [
+  { id:'ca', name:'Comercial Los Almendros S.A.', ini:'CA', idn:'Jurídica 3-101-900001', role:'admin', k:['₡8 420 300,00','114 facturas · y US$12 480,00','₡4 812 350,00','32 cuentas abiertas','₡1 245 000,00','6 cuentas vencidas','3 documentos','2 rechazados · 1 en contingencia'] },
+  { id:'cm', name:'Café Monteazul S.A.', ini:'CM', idn:'Jurídica 3-101-900288', role:'accountant', k:['₡3 118 900,00','41 facturas','₡1 904 000,00','12 cuentas abiertas','₡310 500,00','2 cuentas vencidas','Ninguno','Todo al día'] },
+  { id:'hb', name:'Hotel Brisas del Pacífico S.A.', ini:'HB', idn:'Jurídica 3-101-900731', role:'accountant', k:['US$48 250,00','63 facturas · y ₡2 140 000,00','US$19 880,00','21 cuentas abiertas','US$3 480,00','1 cuenta vencida','1 documento','1 con error'] },
+  { id:'fr', name:'Ferretería El Roble S.A.', ini:'FR', idn:'Jurídica 3-101-900412', role:'owner', k:['₡12 905 000,00','208 facturas','₡6 330 400,00','57 cuentas abiertas','₡980 000,00','9 cuentas vencidas','Ninguno','Todo al día'] },
+  { id:'si', name:'Soluciones Ibis S.R.L.', ini:'SI', idn:'Jurídica 3-102-900219', role:'biller', k:['₡2 450 000,00','18 facturas','₡1 120 000,00','7 cuentas abiertas','₡0,00','Sin vencidas','Ninguno','Todo al día'] },
+  { id:'tp', name:'Taller Mecánico Los Pinos', ini:'TP', idn:'Física 1-0900-0415', role:'read_only', k:['₡1 380 500,00','26 facturas','₡412 000,00','5 cuentas abiertas','₡96 000,00','1 cuenta vencida','Ninguno','Todo al día'] },
+];
+const INVITE_ORG = { id:'tc', name:'Transportes Cerro Verde S.A.', ini:'TC', idn:'Jurídica 3-101-900563', role:'collector', k:['₡5 612 800,00','72 facturas','₡2 998 700,00','24 cuentas abiertas','₡640 200,00','4 cuentas vencidas','1 documento','1 en contingencia'] };
+const ALL = ['owner','admin','biller','collector','accountant','read_only'];
+const BILL = ['owner','admin','biller','accountant','read_only'];
+const AR = ['owner','admin','collector','accountant','read_only'];
+const NAV = [
+  { items:[{k:'inicio',l:'Inicio',r:ALL}] },
+  { sec:'Facturación', items:[{k:'clientes',l:'Clientes',r:BILL,n:'7–9',m:'C'},{k:'productos',l:'Productos y servicios',r:BILL,n:'10–11',m:'C'},{k:'documentos',l:'Documentos',r:BILL,n:'12–17',m:'C'}] },
+  { sec:'Hacienda', items:[{k:'bandeja',l:'Bandeja',r:BILL,badge:'3',n:'20–21',m:'D'},{k:'fiscal',l:'Configuración fiscal',r:['owner','admin','accountant'],n:'18–19',m:'D'}] },
+  { sec:'Cobranza', items:[{k:'cxc',l:'Cuentas por cobrar',r:AR,n:'22, 24',m:'E'},{k:'aging',l:'Aging',r:AR,n:'23',m:'E'},{k:'pagos',l:'Pagos',r:AR,n:'25–27',m:'E'}] },
+  { sec:'Administración', items:[{k:'organizacion',l:'Organización',r:['owner','admin'],n:'28–29',m:'F'},{k:'usuarios',l:'Usuarios y roles',r:['owner','admin'],n:'30–31',m:'F'},{k:'auditoria',l:'Exportar auditoría',r:['owner','admin'],n:'32',m:'F'}] },
+];
+const NOTIFS0 = [
+  { id:1, tone:'success', i:'✓', t:'FAC-0000040 aceptada por Hacienda', b:'Café Monteazul S.A. · ₡452 500,00', time:'hace 5 min', unread:true },
+  { id:2, tone:'danger', i:'✕', t:'FAC-0000038 rechazada por Hacienda', b:'Laura Jiménez Solís. Revise el motivo y corrija con una nota de crédito.', time:'hace 22 min', unread:true, action:'Ver motivo' },
+  { id:3, tone:'success', i:'✓', t:'Pago registrado', b:'PAG-0000018 · ₡50 000,00 · Soluciones Ibis S.R.L.', time:'hoy 09:12', unread:false },
+  { id:4, tone:'success', i:'✓', t:'Cuenta pagada', b:'FAC-0000035 · Martín Ochoa Reyes', time:'ayer 16:40', unread:false },
+];
+const TONE = { success:['#E6F4EC','#1B6B3A','#7FD6A0'], danger:['#FCE8E8','#B42323','#F59A9A'], info:['#E7EEFC','#1F4FB8','#9DBBFF'], warning:['#FDF1DC','#8A5300','#F2C170'] };
+const ENTRIES = [
+  { id:'s1', n:'1', l:'Iniciar sesión', v:[['normal','Normal'],['sending','Enviando'],['error','Credenciales incorrectas'],['recover','Recuperar contraseña'],['recover-sent','Correo enviado']] },
+  { id:'s2', n:'2', l:'Organizaciones', v:[['normal','Normal'],['loading','Cargando'],['empty','Sin organizaciones'],['error','Error']] },
+  { id:'s3', n:'3', l:'Crear organización', v:[['normal','Normal'],['invalid','Validación'],['sending','Enviando'],['server-error','Error del servidor']] },
+  { id:'s4', n:'4', l:'Aceptar invitación', v:[['valid','Válida'],['expired','Vencida'],['revoked','Revocada'],['used','Ya usada'],['other','Para otro correo']] },
+  { id:'s5', n:'5', l:'Cambio de organización', v:[['normal','Menú abierto'],['dirty','Con cambios sin guardar'],['loading','Cargando datos nuevos']] },
+  { id:'s34', n:'34', l:'Notificaciones', v:[['open','Panel abierto'],['empty','Sin notificaciones'],['offline','Sin conexión en tiempo real']] },
+  { id:'s35', n:'35', l:'Sistema', v:[['403','Sin permiso'],['404','No encontrado'],['expired','Sesión vencida'],['unavailable','Servicio no disponible'],['error','Error inesperado']] },
+  { id:'s36', n:'36', l:'Atajos', v:[['open','Hoja abierta']] },
+];
+const INV_BAD = {
+  expired:{ i:'○', t:'Esta invitación venció', b:'Venció el 20/09/2026. Pida a Andrés Quesada que le envíe una nueva.', cta:'Ir a mis organizaciones' },
+  revoked:{ i:'⊘', t:'Esta invitación fue revocada', b:'Quien lo invitó la canceló. Si cree que es un error, comuníquese con Transportes Cerro Verde S.A.', cta:'Ir a mis organizaciones' },
+  used:{ i:'✓', t:'Esta invitación ya fue usada', b:'Si fue usted quien la aceptó, ya tiene acceso a la organización.', cta:'Ir a mis organizaciones' },
+  other:{ i:'!', t:'Esta invitación es para otro correo', b:'La invitación es para j•••@transportescv.example y usted inició sesión como maria.rojas@correo.example.', cta:'Cerrar sesión y entrar con otro correo', logout:true },
+};
+const SYS = {
+  '403':{ code:'403 · SIN PERMISO', t:'No tiene acceso a esta sección', b:'' },
+  '404':{ code:'404 · NO ENCONTRADO', t:'No encontramos esta página', b:'Puede que el enlace esté incompleto o que el documento no exista en esta organización.' },
+  unavailable:{ code:'SERVICIO NO DISPONIBLE', t:'El servicio no está disponible en este momento', b:'Estamos trabajando para restablecerlo. Sus datos están seguros. Intente de nuevo en unos minutos.', retry:true },
+  error:{ code:'ERROR INESPERADO', t:'Algo salió mal', b:'No pudimos completar la acción. Intente de nuevo; si el problema continúa, comparta el código con soporte.', retry:true, ref:'ERR-5H7R-08KC' },
+};
+const SHORTCUTS = [
+  { sec:'General' }, { l:'Buscar', keys:['/'] }, { l:'Ver esta hoja de atajos', keys:['?'] }, { l:'Cerrar menú, panel o diálogo', keys:['Esc'] },
+  { sec:'Documentos' }, { l:'Nueva factura', keys:['N'] }, { l:'Guardar (borrador o formulario)', keys:['Ctrl','S'] },
+  { sec:'Tablas' }, { l:'Fila anterior / siguiente', keys:['↑','↓'] }, { l:'Abrir la fila activa', keys:['Enter'] }, { l:'Seleccionar la fila activa', keys:['Espacio'] }, { l:'Expandir / contraer fila', keys:['→','←'] },
+];
+const EMPTY_FORM = { razon:'', comercial:'', tipo:'Jurídica', numero:'', correo:'', tel:'' };
+
+class Component extends DCLogic {
+  state = this.initial();
+  searchRef = React.createRef();
+  initial() {
+    return { entry:'s1', variant:'normal', screen:'login', vp:'desktop', loginV:'normal', email:'', pass:'', lErr:{}, orgsV:'normal', orgQ:'', orgs:ORGS0, createV:'normal', form:{...EMPTY_FORM}, fErr:{}, inviteV:'valid', orgId:'ca', page:'inicio', navKey:'inicio', collapsed:false, orgMenu:false, notifOpen:false, userOpen:false, mNav:false, shortcuts:false, expired:false, dirty:false, switching:false, confirm:null, rt:'ok', rtCount:8, notifs:NOTIFS0, toasts:[] };
+  }
+  componentDidMount() {
+    this._timers = [];
+    this._key = (e) => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      const typing = tag === 'input' || tag === 'textarea' || tag === 'select';
+      if (e.key === 'Escape') { this.closeMenus(); return; }
+      if (this.state.screen !== 'app') return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (this.state.dirty) this.saveForm(); return; }
+      if (typing) return;
+      if (e.key === '/') { e.preventDefault(); this.searchRef.current && this.searchRef.current.focus(); }
+      else if (e.key === '?') { this.setState({ shortcuts:true }); }
+      else if (e.key.toLowerCase() === 'n') { this.newInvoice(); }
+    };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._key); this._timers.forEach(clearTimeout); clearInterval(this._rtI); }
+  later(fn, ms) { const t = setTimeout(fn, ms); this._timers.push(t); }
+  toast(tone, t, b) {
+    const id = Math.random();
+    this.setState(s => ({ toasts:[...s.toasts, { id, tone, t, b }].slice(-3) }));
+    if (tone !== 'danger') this.later(() => this.setState(s => ({ toasts:s.toasts.filter(x => x.id !== id) })), 5000);
+  }
+  closeMenus = () => this.setState({ orgMenu:false, notifOpen:false, userOpen:false, mNav:false, shortcuts:false });
+  appBase(extra) { return { screen:'app', orgMenu:false, notifOpen:false, userOpen:false, mNav:false, shortcuts:false, expired:false, confirm:null, switching:false, page:'inicio', navKey:'inicio', ...extra }; }
+  go(entry, v) {
+    const s = { entry, variant:v, toasts:[] };
+    clearInterval(this._rtI);
+    if (entry === 's1') Object.assign(s, { screen:'login', loginV:v, lErr:{} }, v === 'error' ? { email:'maria.rojas@correo.example', pass:'••••••' } : {});
+    if (entry === 's2') Object.assign(s, { screen:'orgs', orgsV:v, orgQ:'' });
+    if (entry === 's3') {
+      Object.assign(s, { screen:'create', createV:v === 'invalid' ? 'normal' : v });
+      if (v === 'invalid') Object.assign(s, { form:{ ...EMPTY_FORM, razon:'Distribuidora Ágil', numero:'3-101', correo:'ventas@agil' }, fErr:{ numero:'Revise el número: una cédula jurídica tiene 10 dígitos (3-101-000000).', correo:'Escriba un correo válido, por ejemplo ventas@empresa.cr.' } });
+      else if (v === 'server-error' || v === 'sending') Object.assign(s, { form:{ ...EMPTY_FORM, razon:'Distribuidora Ágil S.A.', comercial:'Ágil', numero:'3-101-900777', correo:'ventas@agil.example', tel:'2222-0303' }, fErr:{} });
+      else Object.assign(s, { form:{ ...EMPTY_FORM }, fErr:{} });
+    }
+    if (entry === 's4') Object.assign(s, { screen:'invite', inviteV:v });
+    if (entry === 's5') Object.assign(s, this.appBase(), v === 'normal' ? { orgMenu:true } : v === 'dirty' ? { dirty:true, page:'form', navKey:'clientes' } : { switching:true, dirty:false });
+    if (entry === 's34') Object.assign(s, this.appBase({ notifOpen:true, notifs: v === 'empty' ? [] : NOTIFS0, rt: v === 'offline' ? 'off' : 'ok', rtCount:8 }));
+    if (entry === 's35') Object.assign(s, this.appBase(v === 'expired' ? { expired:true } : { page:'sys:' + v, navKey: v === '403' ? 'usuarios' : '' }), v === '403' && ['owner','admin'].includes(this.org().role) ? { orgId:'tp' } : {});
+    if (entry === 's36') Object.assign(s, this.appBase({ shortcuts:true }));
+    if (entry !== 's34') { s.rt = 'ok'; }
+    this.setState(s);
+    if (entry === 's34' && v === 'offline') this.startRt();
+  }
+  startRt() {
+    clearInterval(this._rtI);
+    this._rtI = setInterval(() => this.setState(s => ({ rtCount: s.rtCount <= 1 ? 8 : s.rtCount - 1 })), 1000);
+  }
+  org() { return this.state.orgs.find(o => o.id === this.state.orgId) || this.state.orgs[0] || INVITE_ORG; }
+  enterApp(orgId, msg) {
+    this.setState({ ...this.appBase({ switching:true }), orgId, entry:'s5', variant:'loading', orgQ:'' });
+    this.later(() => { this.setState({ switching:false, variant:'normal' }); if (msg) this.toast(...msg); }, 700);
+  }
+  switchOrg(id) {
+    if (id === this.state.orgId) { this.closeMenus(); return; }
+    if (this.state.dirty) { this.setState({ confirm:id, orgMenu:false }); return; }
+    this.doSwitch(id);
+  }
+  doSwitch(id) {
+    const o = this.state.orgs.find(x => x.id === id);
+    this.setState({ ...this.appBase({ switching:true }), orgId:id, dirty:false, orgQ:'' });
+    this.later(() => { this.setState({ switching:false }); this.toast('info', 'Ahora trabaja en ' + o.name, 'Su rol aquí: ' + ROLE[o.role]); }, 700);
+  }
+  newInvoice = () => { if (['owner','admin','biller'].includes(this.org().role)) this.toast('info', 'Nueva factura', 'La pantalla 13 se diseña en el módulo C.'); };
+  saveForm = () => { this.setState({ dirty:false, page:'inicio', navKey:'inicio' }); this.toast('success', 'Cliente guardado', 'Ferretería El Roble S.A.'); };
+  submitLogin = () => {
+    const { email, pass } = this.state; const e = {};
+    if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Escriba un correo válido.';
+    if (!pass) e.pass = 'Escriba su contraseña.';
+    if (Object.keys(e).length) { this.setState({ lErr:e, loginV:'normal' }); return; }
+    this.setState({ loginV:'sending', lErr:{}, variant:'sending' });
+    this.later(() => {
+      if (this.state.variant === 'expired-return') return;
+      this.setState({ screen:'orgs', orgsV:'loading', entry:'s2', variant:'loading' });
+      this.later(() => this.setState({ orgsV:'normal', variant:'normal' }), 600);
+    }, 900);
+  };
+  submitCreate = () => {
+    const f = this.state.form; const e = {};
+    if (!f.razon.trim()) e.razon = 'Escriba la razón social.';
+    if (f.numero.replace(/\D/g, '').length < 9) e.numero = 'Revise el número de identificación.';
+    if (!/^\S+@\S+\.\S+$/.test(f.correo)) e.correo = 'Escriba un correo válido, por ejemplo ventas@empresa.cr.';
+    if (Object.keys(e).length) { this.setState({ fErr:e, variant:'invalid' }); return; }
+    this.setState({ createV:'sending', fErr:{}, variant:'sending' });
+    this.later(() => {
+      const id = 'new' + Date.now();
+      const words = f.razon.trim().split(/\s+/);
+      const o = { id, name:f.razon.trim(), ini:(words[0][0] + (words[1] ? words[1][0] : '')).toUpperCase(), idn:f.tipo + ' ' + f.numero, role:'owner', k:['₡0,00','Sin facturas todavía','₡0,00','Sin cuentas','₡0,00','Sin vencidas','Ninguno','Todo al día'] };
+      this.setState(s => ({ orgs:[o, ...s.orgs], form:{...EMPTY_FORM} }));
+      this.enterApp(id, ['success', 'Organización creada', 'Usted es el propietario. Configure los datos fiscales cuando pueda.']);
+    }, 1000);
+  };
+  acceptInvite = () => {
+    this.setState({ inviteV:'accepting' });
+    this.later(() => {
+      this.setState(s => ({ orgs: s.orgs.some(o => o.id === 'tc') ? s.orgs : [INVITE_ORG, ...s.orgs] }));
+      this.enterApp('tc', ['success', 'Bienvenida a Transportes Cerro Verde S.A.', 'Su rol es Cobrador.']);
+    }, 900);
+  };
+  renderVals() {
+    const S = this.state, mob = S.vp === 'mobile', org = this.org();
+    const set = (o) => () => this.setState(o);
+    const entries = ENTRIES.map(e => ({ n:e.n, l:e.l, bg: S.entry === e.id ? '#E6E9EF' : 'transparent', fg: S.entry === e.id ? '#161B26' : '#C9D1E0', onClick: () => this.go(e.id, e.v[0][0]) }));
+    const cur = ENTRIES.find(e => e.id === S.entry);
+    const variants = cur.v.map(([k, l]) => { const on = S.variant === k; return { l, bg: on ? '#2355C9' : 'transparent', fg: on ? '#fff' : '#C9D1E0', bd: on ? '#2355C9' : '#3A4454', onClick: () => this.go(S.entry, k) }; });
+    const q = S.orgQ.trim().toLowerCase();
+    const matches = S.orgs.filter(o => !q || o.name.toLowerCase().includes(q) || o.idn.toLowerCase().includes(q));
+    const orgRows = matches.map(o => ({ ...o, roleL:ROLE[o.role], pick: () => this.enterApp(o.id) }));
+    const switchRows = matches.map(o => { const a = o.id === S.orgId; return { ...o, bg: a ? '#EEF3FD' : 'transparent', tag: a ? '✓ Activa' : ROLE[o.role], tagFg: a ? '#1F4FB8' : '#5A6272', pick: () => this.switchOrg(o.id) }; });
+    const navRows = [];
+    NAV.forEach(g => {
+      const items = g.items.filter(it => it.r.includes(org.role));
+      if (!items.length) return;
+      if (g.sec && !(S.collapsed && !mob)) navRows.push({ isSec:true, isItem:false, l:g.sec });
+      items.forEach(it => { const a = S.navKey === it.k; navRows.push({ isSec:false, isItem:true, l:it.l, text: S.collapsed && !mob ? it.l.slice(0, 2) : it.l, badge: S.collapsed && !mob ? '' : (it.badge || ''), bg: a ? '#23345A' : 'transparent', fg: a ? '#fff' : '#C9D1E0', fw: a ? 500 : 400, go: () => this.setState({ navKey:it.k, page: it.k === 'inicio' ? 'inicio' : 'pending:' + it.k, mNav:false, dirty: it.k === 'clientes' ? S.dirty : false }) }); });
+    });
+    const allItems = NAV.flatMap(g => g.items);
+    const pend = S.page.startsWith('pending:') ? allItems.find(i => i.k === S.page.slice(8)) : null;
+    const sysKey = S.page.startsWith('sys:') ? S.page.slice(4) : null;
+    let sys = sysKey ? { ...SYS[sysKey] } : {};
+    if (sysKey === '403') sys.b = 'Su rol en ' + org.name + ' es ' + ROLE[org.role] + '. Si necesita esta sección, pida acceso a un administrador o al propietario.';
+    const k = org.k;
+    const kpis = [
+      { l:'Facturado en septiembre', v:k[0], sub:k[1], fg:'#161B26', subFg:'#5A6272' },
+      { l:'Saldo por cobrar', v:k[2], sub:k[3], fg:'#161B26', subFg:'#5A6272' },
+      { l:'Saldo vencido', v:k[4], sub:(k[4].match(/[1-9]/) ? '! ' : '') + k[5], fg: k[4].match(/[1-9]/) ? '#B42323' : '#161B26', subFg: k[4].match(/[1-9]/) ? '#B42323' : '#5A6272' },
+      { l:'Rechazados o en contingencia', v:k[6], sub:k[7], fg: k[6] === 'Ninguno' ? '#161B26' : '#B42323', subFg:'#5A6272' },
+    ];
+    const unread = S.notifs.filter(n => n.unread).length;
+    const notifs = S.notifs.map(n => ({ ...n, action:n.action || '', bg: n.unread ? '#F6F9FF' : '#fff', fw: n.unread ? 600 : 500, ibg:TONE[n.tone][0], ifg:TONE[n.tone][1], read: () => this.setState(s => ({ notifs:s.notifs.map(x => x.id === n.id ? { ...x, unread:false } : x) })) }));
+    const toasts = S.toasts.map(t => ({ ...t, b:t.b || '', i: t.tone === 'success' ? '✓' : t.tone === 'danger' ? '✕' : '●', ic:TONE[t.tone][2], close: () => this.setState(s => ({ toasts:s.toasts.filter(x => x.id !== t.id) })) }));
+    const fe = S.fErr, bd = (x) => x ? '#B42323' : '#C9CFD8';
+    const onF = {}; Object.keys(EMPTY_FORM).forEach(key => { onF[key] = (e) => { const val = e.target.value; this.setState(s => ({ form:{ ...s.form, [key]:val }, fErr:{ ...s.fErr, [key]:'' } })); }; });
+    const invBad = INV_BAD[S.inviteV];
+    const confirmOrg = S.confirm && S.orgs.find(o => o.id === S.confirm);
+    const anyMenu = S.orgMenu || S.notifOpen || S.userOpen || S.mNav;
+    return {
+      entries, variants,
+      vpD:{ bg: mob ? 'transparent' : '#E6E9EF', fg: mob ? '#C9D1E0' : '#161B26' }, vpM:{ bg: mob ? '#E6E9EF' : 'transparent', fg: mob ? '#161B26' : '#C9D1E0' },
+      setDesktop: set({ vp:'desktop', mNav:false }), setMobile: set({ vp:'mobile' }),
+      resetFlow: () => { clearInterval(this._rtI); this.setState({ ...this.initial(), vp:S.vp }); },
+      simNotif: () => {
+        const n = { id:Date.now(), tone:'success', i:'✓', t:'FAC-0000041 aceptada por Hacienda', b:'Ferretería El Roble S.A. · ₡113 000,00', time:'ahora', unread:true };
+        if (S.screen !== 'app') this.enterApp(S.orgId);
+        this.setState(s => ({ notifs:[n, ...s.notifs] }));
+        this.later(() => this.toast('success', n.t, n.b), S.screen !== 'app' ? 800 : 0);
+      },
+      simDirect: () => this.go('s35', '403'),
+      stagePad: mob ? '24px' : '0', frameW: mob ? '390px' : '100%', frameH: mob ? '800px' : '100%', frameR: mob ? '28px' : '0', frameSh: mob ? '0 0 0 10px #161B26, 0 20px 50px rgba(0,0,0,.25)' : 'none',
+      inH: mob ? '44px' : '38px', btnH: mob ? '44px' : '38px', rowH: mob ? '56px' : '44px',
+      sLogin: S.screen === 'login', sOrgs: S.screen === 'orgs', sCreate: S.screen === 'create', sInvite: S.screen === 'invite', sApp: S.screen === 'app',
+      lForm: ['normal','sending','error','expired'].includes(S.loginV), lExpired: S.loginV === 'expired', lError: S.loginV === 'error', lRecover: S.loginV === 'recover', lRecoverSent: S.loginV === 'recover-sent',
+      email:S.email, pass:S.pass, emailErr:S.lErr.email || '', passErr:S.lErr.pass || '', emailBd: bd(S.lErr.email || S.loginV === 'error'), passBd: bd(S.lErr.pass || S.loginV === 'error'),
+      onEmail: e => this.setState({ email:e.target.value, lErr:{ ...S.lErr, email:'' } }), onPass: e => this.setState({ pass:e.target.value, lErr:{ ...S.lErr, pass:'' } }),
+      onLoginKey: e => { if (e.key === 'Enter') this.submitLogin(); },
+      submitLogin: this.submitLogin,
+      loginBtn: S.loginV === 'sending' ? { l:'Ingresando…', bg:'#1B46AA' } : { l:'Ingresar', bg:'#2355C9' },
+      toRecover: set({ loginV:'recover', variant:'recover' }), backToLogin: set({ loginV:'normal', variant:'normal', lErr:{} }), submitRecover: set({ loginV:'recover-sent', variant:'recover-sent' }),
+      oNormal: S.orgsV === 'normal', oLoading: S.orgsV === 'loading', oEmpty: S.orgsV === 'empty', oError: S.orgsV === 'error',
+      orgQ:S.orgQ, onOrgQ: e => this.setState({ orgQ:e.target.value }), orgRows, switchRows, noMatch: matches.length === 0, skel4:[1,2,3,4],
+      toCreate: () => this.go('s3', 'normal'), retryOrgs: () => { this.setState({ orgsV:'loading', variant:'loading' }); this.later(() => this.setState({ orgsV:'normal', variant:'normal' }), 600); },
+      copyRef: () => { try { navigator.clipboard.writeText('ERR-REF'); } catch (e) {} this.toast('success', 'Código copiado', 'Compártalo con soporte.'); },
+      f:S.form, onF, fe:{ razon:fe.razon || '', numero:fe.numero || '', correo:fe.correo || '', razonBd:bd(fe.razon), numeroBd:bd(fe.numero), correoBd:bd(fe.correo) },
+      cServerErr: S.createV === 'server-error', createBtn: S.createV === 'sending' ? { l:'Creando…', bg:'#1B46AA' } : { l:'Crear organización', bg:'#2355C9' },
+      submitCreate: this.submitCreate, cancelCreate: () => this.go('s2', 'normal'),
+      iValid: S.inviteV === 'valid' || S.inviteV === 'accepting', iBad: !!invBad, acceptBtn: S.inviteV === 'accepting' ? { l:'Aceptando…', bg:'#1B46AA' } : { l:'Aceptar e ingresar', bg:'#2355C9' }, acceptInvite: this.acceptInvite,
+      inv: invBad ? { ...invBad, action: invBad.logout ? () => this.go('s1', 'normal') : () => this.go('s2', 'normal') } : {},
+      navRows, isMobile: mob, isDesktop: !mob, sideW: S.collapsed ? '72px' : '232px', expanded: !S.collapsed, collapseL: S.collapsed ? '»' : '«  Contraer menú',
+      toggleCollapse: set({ collapsed:!S.collapsed }),
+      hdrPad: mob ? '0 8px 0 4px' : '0 20px', bellMl: mob ? 'auto' : '0', iconBtn: mob ? '44px' : '38px', bellBg: S.notifOpen ? '#EEF3FD' : 'transparent',
+      org:{ ...org, roleL:ROLE[org.role] }, orgBtnBd: S.orgMenu ? '#2355C9' : '#DDE1E7',
+      toggleOrgMenu: () => this.setState({ orgMenu:!S.orgMenu, notifOpen:false, userOpen:false, orgQ:'' }),
+      toggleNotif: () => this.setState({ notifOpen:!S.notifOpen, orgMenu:false, userOpen:false }),
+      toggleUser: () => this.setState({ userOpen:!S.userOpen, orgMenu:false, notifOpen:false }),
+      toggleMNav: set({ mNav:true }), mNavOpen: S.mNav && mob,
+      searchRef:this.searchRef, hasUnread: unread > 0, unread, rtOff: S.rt === 'off', rtMsg: 'Reconectando en ' + S.rtCount + ' s.',
+      reconnect: () => { clearInterval(this._rtI); this.setState({ rt:'ok' }); this.toast('success', 'Conexión en tiempo real restablecida'); },
+      markAll: () => this.setState(s => ({ notifs:s.notifs.map(n => ({ ...n, unread:false })) })),
+      notifs, noNotifs: S.notifs.length === 0,
+      np: mob ? { top:'0', right:'0', left:'0', bottom:'0', w:'auto', r:'0', maxH:'none' } : { top:'52px', right:'56px', left:'auto', bottom:'auto', w:'400px', r:'6px', maxH:'70%' },
+      om: mob ? { top:'auto', left:'0', right:'0', bottom:'0', w:'auto', r:'14px 14px 0 0' } : { top:'52px', left:'20px', right:'auto', bottom:'auto', w:'360px', r:'6px' },
+      userOpen:S.userOpen, orgMenuOpen:S.orgMenu, notifOpen:S.notifOpen, anyMenu, scrim: mob && (S.orgMenu || S.mNav) ? 'rgba(15,27,51,.5)' : 'transparent',
+      closeMenus:this.closeMenus, stop: e => e.stopPropagation(),
+      openShortcuts: set({ shortcuts:true, userOpen:false }), shortcutsOpen:S.shortcuts,
+      shortcuts: SHORTCUTS.map(s => ({ isSec:!!s.sec, isRow:!s.sec, l:s.sec || s.l, keys:s.keys || [] })),
+      myProfile: () => this.setState({ userOpen:false, page:'pending:perfil', navKey:'' }),
+      logout: () => { clearInterval(this._rtI); this.setState({ ...this.initial(), vp:S.vp }); },
+      mainPad: mob ? '16px' : '24px 28px', mainOpacity: S.switching ? '.55' : '1',
+      pInicio: S.page === 'inicio', pForm: S.page === 'form', pPending: !!pend || S.page === 'pending:perfil', pSys: !!sysKey,
+      pendingTitle: pend ? pend.l : 'Mi perfil',
+      pendingNote: pend ? 'Pantallas ' + pend.n + ' · se diseñan en el módulo ' + pend.m + '. En este paso solo se prueba la estructura y la navegación según el rol.' : 'Pantalla 33 · se diseña en el módulo F.',
+      sys:{ code:sys.code || '', t:sys.t || '', b:sys.b || '', retry:!!sys.retry, ref:sys.ref || '' }, goInicio: set({ page:'inicio', navKey:'inicio' }),
+      kpis, switching:S.switching, notSwitching:!S.switching, canCreate: ['owner','admin','biller'].includes(org.role), newInvoice:this.newInvoice,
+      discardForm: set({ dirty:false, page:'inicio', navKey:'inicio' }), saveForm:this.saveForm,
+      confirmOpen: !!confirmOrg, confirmName: confirmOrg ? confirmOrg.name : '', confirmStay: set({ confirm:null }), confirmGo: () => this.doSwitch(S.confirm),
+      expiredOpen:S.expired, relogin: () => { this.setState({ expired:false }); this.toast('success', 'Sesión renovada', 'Siguió en la misma página.'); },
+      toasts, toastPos: mob ? { right:'12px', left:'12px', bottom:'12px', w:'auto' } : { right:'20px', left:'auto', bottom:'20px', w:'380px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+/* RDL · Portal de la PYME · Tokens v0.1 (dirección 1a Institucional)
+   Nombres estables. Tema claro en :root, oscuro en [data-theme="dark"]. */
+:root {
+  /* Color · superficies */
+  --color-bg-canvas: #f4f5f7;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-raised: #ffffff;
+  --color-bg-subtle: #f8f9fb;
+  --color-bg-nav: #0f1b33;
+  --color-bg-nav-active: #23345a;
+  --color-bg-selected: #eef3fd;
+  /* Color · texto */
+  --color-text-primary: #161b26;
+  --color-text-secondary: #5a6272;
+  --color-text-disabled: #8a93a3;
+  --color-text-on-accent: #ffffff;
+  --color-text-nav: #c9d1e0;
+  /* Color · bordes */
+  --color-border-default: #dde1e7;
+  --color-border-subtle: #ebeef2;
+  --color-border-strong: #c9cfd8;
+  /* Color · acento y foco */
+  --color-accent: #2355c9;
+  --color-accent-hover: #1b46aa;
+  --color-accent-active: #173c94;
+  --color-accent-soft: #e7eefc;
+  --color-focus-ring: #2355c9;
+  /* Color · estados (bg suave / fg texto e icono / border) */
+  --color-success-bg: #e6f4ec;
+  --color-success-fg: #1b6b3a;
+  --color-success-border: #b7dec5;
+  --color-warning-bg: #fdf1dc;
+  --color-warning-fg: #8a5300;
+  --color-warning-border: #f1d29b;
+  --color-danger-bg: #fce8e8;
+  --color-danger-fg: #b42323;
+  --color-danger-border: #f2bdbd;
+  --color-info-bg: #e7eefc;
+  --color-info-fg: #1f4fb8;
+  --color-info-border: #c2d3f7;
+  --color-neutral-bg: #eef0f3;
+  --color-neutral-fg: #4a5160;
+  --color-neutral-border: #d5dae1;
+  --color-danger-solid: #b42323;
+  --color-danger-solid-hover: #971c1c;
+  /* Aging (tramos) */
+  --color-aging-0: #2355c9;
+  --color-aging-1: #7aa2f7;
+  --color-aging-2: #e0a63a;
+  --color-aging-3: #d2691e;
+  --color-aging-4: #b42323;
+
+  /* Tipografía */
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --text-display: 600 32px/40px var(--font-sans);
+  --text-h1: 600 24px/32px var(--font-sans);
+  --text-h2: 600 20px/28px var(--font-sans);
+  --text-h3: 600 16px/24px var(--font-sans);
+  --text-body: 400 14px/20px var(--font-sans);
+  --text-body-sm: 400 13px/18px var(--font-sans);
+  --text-caption: 400 12px/16px var(--font-sans);
+  --text-overline: 600 11px/16px var(--font-sans); /* + uppercase, letter-spacing .08em */
+  --text-amount-lg: 600 28px/36px var(--font-sans); /* + tabular-nums */
+  --text-amount: 500 14px/20px var(--font-sans); /* + tabular-nums */
+  --text-code: 400 13px/20px var(--font-mono);
+
+  /* Espaciado (base 4) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radios, bordes, sombras */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 999px;
+  --border-width: 1px;
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-focus-ring);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 0 0 1px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.1), 0 0 0 1px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.18), 0 0 0 1px rgba(16, 24, 40, 0.06);
+  --scrim: rgba(15, 27, 51, 0.5);
+
+  /* Capas */
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-nav: 200;
+  --z-dropdown: 1000;
+  --z-drawer: 1100;
+  --z-modal: 1200;
+  --z-toast: 1300;
+  --z-tooltip: 1400;
+
+  /* Movimiento */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  /* Controles */
+  --control-h-sm: 32px;
+  --control-h-md: 36px;
+  --control-h-lg: 44px;
+  --row-h-comfortable: 52px;
+  --row-h-compact: 36px;
+  --sidebar-w: 232px;
+  --sidebar-w-collapsed: 72px;
+  --topbar-h: 56px;
+}
+
+/* Puntos de corte (usar en media queries):
+   móvil 0–767 (diseño a 390) · tableta 768–1279 (diseño a 1024)
+   escritorio 1280–1535 (diseño a 1440) · ancho ≥1536 (contenido máx. 1600) */
+
+[data-theme='dark'] {
+  --color-bg-canvas: #0e131c;
+  --color-bg-surface: #151b26;
+  --color-bg-surface-raised: #1c2330;
+  --color-bg-subtle: #1a212d;
+  --color-bg-nav: #0a101b;
+  --color-bg-nav-active: #1c2a48;
+  --color-bg-selected: #1a2a4d;
+  --color-text-primary: #e6e9ef;
+  --color-text-secondary: #a3abba;
+  --color-text-disabled: #5f6878;
+  --color-text-on-accent: #0b1220;
+  --color-border-default: #2a3342;
+  --color-border-subtle: #222a37;
+  --color-border-strong: #3a4454;
+  --color-accent: #7fa3f5;
+  --color-accent-hover: #9dbbff;
+  --color-accent-active: #9dbbff;
+  --color-accent-soft: #16274a;
+  --color-focus-ring: #9dbbff;
+  --color-success-bg: #12301f;
+  --color-success-fg: #7fd6a0;
+  --color-success-border: #1f4a30;
+  --color-warning-bg: #3a2a0c;
+  --color-warning-fg: #f2c170;
+  --color-warning-border: #5a4518;
+  --color-danger-bg: #3d1717;
+  --color-danger-fg: #f59a9a;
+  --color-danger-border: #5a2a2a;
+  --color-info-bg: #16274a;
+  --color-info-fg: #9dbbff;
+  --color-info-border: #26407a;
+  --color-neutral-bg: #232a36;
+  --color-neutral-fg: #b4bcc9;
+  --color-neutral-border: #3a4454;
+  --color-danger-solid: #e05656;
+  --color-danger-solid-hover: #f07070;
+  --focus-ring: 0 0 0 2px #0e131c, 0 0 0 4px var(--color-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

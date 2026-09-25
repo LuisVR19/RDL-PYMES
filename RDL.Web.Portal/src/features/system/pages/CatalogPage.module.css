@@ -1,0 +1,99 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.badgeDomain {
+  width: 100px;
+  font: var(--text-code);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+.facts dt {
+  color: var(--color-text-secondary);
+}
+.facts dd {
+  margin: 0;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.span2 {
+  grid-column: 1 / -1;
+}
+
+.screens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 3 260px;
+  column-gap: var(--space-6);
+  font-size: 13px;
+}
+.screens li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 4px 0;
+  break-inside: avoid;
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+}
+.screens a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.screens a:hover {
+  text-decoration: underline;
+}
+.screenN {
+  display: inline-block;
+  min-width: 22px;
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+}
+.screenModule {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .grid2,
+  .facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tabNote {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}

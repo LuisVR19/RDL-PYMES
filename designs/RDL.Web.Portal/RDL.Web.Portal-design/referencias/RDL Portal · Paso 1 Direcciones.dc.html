@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"><style>body{margin:0;background:#f0eee9;font-family:system-ui,sans-serif}a{color:#2355C9}a:hover{color:#173C94}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Paso 1 · Dos direcciones visuales para el portal RDL</span></div>
+<p style="margin:0 0 24px;max-width:860px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.62);text-wrap:pretty">Pantalla de muestra: <b>Documentos · lista</b> (pantalla 12) a 1440 px, tema claro. Pruebe el interruptor Cómoda / Compacta de cada tabla y haga clic en una fila (o use ↑ ↓) para ver la fila activa. Los datos son ficticios. El sistema de diseño adjunto está vacío, así que las dos direcciones parten del brief. Tema oscuro y tokens completos llegan en el Paso 3.</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Institucional · IBM Plex Sans, azul, barra lateral oscura, cuadrícula marcada</div>
+<div class="dv-card" style="width:1440px;font-family:'IBM Plex Sans',sans-serif;color:#161B26">
+  <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:32px;padding:24px 28px;border-bottom:1px solid #DDE1E7;background:#FAFBFC">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Paleta</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:4px;background:#F4F5F7;border:1px solid #DDE1E7"></div><div style="font-size:11px;color:#5A6272">Fondo<br>#F4F5F7</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:4px;background:#FFFFFF;border:1px solid #DDE1E7"></div><div style="font-size:11px;color:#5A6272">Superficie<br>#FFFFFF</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:4px;background:#161B26"></div><div style="font-size:11px;color:#5A6272">Texto<br>#161B26</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:4px;background:#0F1B33"></div><div style="font-size:11px;color:#5A6272">Navegación<br>#0F1B33</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:4px;background:#2355C9"></div><div style="font-size:11px;color:#5A6272">Acento<br>#2355C9</div></div>
+        <div style="display:flex;gap:3px;align-items:flex-start;padding-top:0">
+          <div style="width:20px;height:36px;border-radius:3px;background:#1B6B3A"></div><div style="width:20px;height:36px;border-radius:3px;background:#8A5300"></div><div style="width:20px;height:36px;border-radius:3px;background:#B42323"></div><div style="width:20px;height:36px;border-radius:3px;background:#1F4FB8"></div><div style="width:20px;height:36px;border-radius:3px;background:#4A5160"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Tipografía</div>
+      <div style="font-size:26px;font-weight:600;line-height:1.15">IBM Plex Sans</div>
+      <div style="font-size:13px;color:#5A6272;line-height:1.5">Títulos 600 · texto 14/400 · etiquetas 12/500. Números de documento en Plex Mono.</div>
+      <div style="font-size:18px;font-weight:500;font-variant-numeric:tabular-nums">₡113 000,00 <span style="color:#5A6272;font-size:14px">· US$1 250,00</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6272">Carácter y densidad</div>
+      <div style="font-size:13px;line-height:1.55;color:#343B48;text-wrap:pretty">Se parece a una herramienta de oficina. Navegación oscura fija, filas separadas por bordes, insignias en píldora de fondo suave. Fila cómoda de 52 px, compacta de 36 px. Radio 6 px.</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:224px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:820px;background:#F4F5F7">
+    <aside style="background:#0F1B33;color:#C9D1E0;display:flex;flex-direction:column;padding:16px 12px;gap:12px;min-height:0;overflow:auto">
+      <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 8px">
+        <div style="font-weight:700;font-size:17px;letter-spacing:.14em;color:#FFFFFF;border:1.5px solid #FFFFFF;padding:2px 6px;border-radius:3px">RDL</div>
+        <div style="font-size:12px;color:#8C97AD">Facturación</div>
+      </div>
+      <nav style="display:flex;flex-direction:column;gap:2px;font-size:14px">
+        <div style="padding:6px 10px;border-radius:6px">Inicio</div>
+        <div style="padding:14px 10px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B879E">Facturación</div>
+        <div style="padding:6px 10px;border-radius:6px">Clientes</div>
+        <div style="padding:6px 10px;border-radius:6px">Productos y servicios</div>
+        <div style="padding:6px 10px;border-radius:6px;background:#23345A;color:#FFFFFF;font-weight:500">Documentos</div>
+        <div style="padding:14px 10px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B879E">Hacienda</div>
+        <div style="padding:6px 10px;border-radius:6px;display:flex;justify-content:space-between">Bandeja <span style="background:#B42323;color:#fff;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px">3</span></div>
+        <div style="padding:6px 10px;border-radius:6px">Configuración fiscal</div>
+        <div style="padding:14px 10px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B879E">Cobranza</div>
+        <div style="padding:6px 10px;border-radius:6px">Cuentas por cobrar</div>
+        <div style="padding:6px 10px;border-radius:6px">Aging</div>
+        <div style="padding:6px 10px;border-radius:6px">Pagos</div>
+        <div style="padding:14px 10px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B879E">Administración</div>
+        <div style="padding:6px 10px;border-radius:6px">Organización</div>
+        <div style="padding:6px 10px;border-radius:6px">Usuarios y roles</div>
+      </nav>
+      <div style="margin-top:auto;padding:8px 10px;font-size:12px;color:#7B879E">Contraer menú  «</div>
+    </aside>
+    <div style="display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden">
+      <header style="height:56px;background:#FFFFFF;border-bottom:1px solid #DDE1E7;display:flex;align-items:center;gap:16px;padding:0 24px">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid #DDE1E7;border-radius:6px;cursor:pointer">
+          <div style="width:28px;height:28px;border-radius:4px;background:#E7EEFC;color:#1F4FB8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">CA</div>
+          <div style="display:flex;flex-direction:column;line-height:1.2"><span style="font-size:13px;font-weight:600">Comercial Los Almendros S.A.</span><span style="font-size:11px;color:#5A6272">Administrador</span></div>
+          <span style="color:#5A6272;font-size:11px;margin-left:6px">▾</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;background:#FDF1DC;color:#8A5300;font-size:12px;font-weight:600">▲ Ambiente de pruebas</div>
+        <div style="flex:1;max-width:420px;margin-left:auto;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid #DDE1E7;border-radius:6px;background:#F8F9FB;color:#5A6272;font-size:13px">
+          <span style="flex:1">Buscar facturas, clientes, CABYS…</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid #C9CFD8;border-radius:3px;padding:0 5px;background:#fff">/</span>
+        </div>
+        <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:#343B48;font-size:16px">🔔︎<span style="position:absolute;top:3px;right:2px;background:#B42323;color:#fff;font-size:10px;font-weight:600;padding:0 5px;border-radius:8px;line-height:15px">2</span></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:#0F1B33;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">MR</div>
+      </header>
+      <main style="padding:22px 28px;display:flex;flex-direction:column;gap:16px;min-height:0;flex:1">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:12px;color:#5A6272">Facturación  /  Documentos</div>
+            <h1 style="margin:0;font-size:24px;font-weight:600;line-height:1.2">Documentos</h1>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button style="height:36px;padding:0 14px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif;color:#161B26;cursor:pointer">Exportar</button>
+            <button style="height:36px;padding:0 14px;border:none;background:#2355C9;border-radius:6px;font:500 14px 'IBM Plex Sans',sans-serif;color:#fff;display:flex;align-items:center;gap:10px;cursor:pointer" style-hover="background:#1B46AA">Nueva factura <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid rgba(255,255,255,.5);border-radius:3px;padding:0 5px">N</span></button>
+          </div>
+        </div>
+        <div style="display:flex;gap:24px;border-bottom:1px solid #DDE1E7;font-size:14px">
+          <div style="padding:8px 0;border-bottom:2px solid #2355C9;color:#161B26;font-weight:600;margin-bottom:-1px">Todos <span style="color:#5A6272;font-weight:400">128</span></div>
+          <div style="padding:8px 0;color:#5A6272">Facturas <span>114</span></div>
+          <div style="padding:8px 0;color:#5A6272">Notas de crédito <span>11</span></div>
+          <div style="padding:8px 0;color:#5A6272">Notas de débito <span>3</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div style="height:32px;padding:0 12px;border:1px solid #C9CFD8;border-radius:6px;background:#fff;font-size:13px;display:flex;align-items:center;gap:6px">Estado: <b style="font-weight:500">Todos</b> ▾</div>
+          <div style="height:32px;padding:0 12px;border:1px solid #2355C9;border-radius:6px;background:#E7EEFC;color:#1F4FB8;font-size:13px;display:flex;align-items:center;gap:6px">Hacienda: <b style="font-weight:600">3 estados</b> ×</div>
+          <div style="height:32px;padding:0 12px;border:1px solid #C9CFD8;border-radius:6px;background:#fff;font-size:13px;display:flex;align-items:center;gap:6px">Cliente ▾</div>
+          <div style="height:32px;padding:0 12px;border:1px solid #C9CFD8;border-radius:6px;background:#fff;font-size:13px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums">01/09/2026 – 24/09/2026 ▾</div>
+          <div style="font-size:13px;color:#2355C9;padding:0 6px">Limpiar filtros</div>
+          <div style="margin-left:auto;display:flex;border:1px solid #C9CFD8;border-radius:6px;overflow:hidden;font-size:13px">
+            <button onClick="{{ setA_c }}" style="height:30px;padding:0 12px;border:none;cursor:pointer;font:500 13px 'IBM Plex Sans',sans-serif;background:{{ segA.cBg }};color:{{ segA.cFg }}">Cómoda</button>
+            <button onClick="{{ setA_k }}" style="height:30px;padding:0 12px;border:none;border-left:1px solid #C9CFD8;cursor:pointer;font:500 13px 'IBM Plex Sans',sans-serif;background:{{ segA.kBg }};color:{{ segA.kFg }}">Compacta</button>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #DDE1E7;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1">
+          <div style="display:grid;grid-template-columns:20px 170px 40px minmax(0,1fr) 88px 110px 176px 130px 124px 20px;gap:12px;align-items:center;padding:10px 14px;background:#F8F9FB;border-bottom:1px solid #DDE1E7;font-size:12px;font-weight:600;color:#5A6272">
+            <div style="width:14px;height:14px;border:1.5px solid #9AA3B2;border-radius:3px"></div>
+            <div>Número ↓</div><div>Tipo</div><div>Cliente</div><div>Fecha</div><div>Estado</div><div>Hacienda</div><div style="text-align:right">Total</div><div style="text-align:right">Saldo</div><div></div>
+          </div>
+          <div style="overflow:auto;flex:1">
+          <sc-for list="{{ rowsA }}" as="r" hint-placeholder-count="10">
+            <div onClick="{{ r.select }}" style="display:grid;grid-template-columns:20px 170px 40px minmax(0,1fr) 88px 110px 176px 130px 124px 20px;gap:12px;align-items:center;padding:{{ padA }};border-bottom:1px solid #EBEEF2;font-size:14px;cursor:pointer;background:{{ r.bgA }};box-shadow:{{ r.ringA }}" style-hover="background:#F6F8FB">
+              <div style="width:14px;height:14px;border:1.5px solid #9AA3B2;border-radius:3px;background:#fff"></div>
+              <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500">{{ r.n }}</span>
+                <sc-if value="{{ r.corr }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;color:#8A5300;background:#FDF1DC;padding:1px 6px;border-radius:10px">▲ Requiere corrección</span></sc-if>
+              </div>
+              <div style="font-size:12px;color:#5A6272;font-weight:500">{{ r.t }}</div>
+              <div style="display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden">
+                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.c }}</span>
+                <sc-if value="{{ showSubA }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:#5A6272">{{ r.id }}</span></sc-if>
+              </div>
+              <div style="font-variant-numeric:tabular-nums;color:#343B48">{{ r.f }}</div>
+              <div><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:{{ r.invA.bg }};color:{{ r.invA.fg }};text-decoration:{{ r.invA.deco }}"><span>{{ r.invA.i }}</span>{{ r.invA.l }}</span></div>
+              <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">
+                <sc-if value="{{ r.hasHac }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:12px;background:{{ r.hacA.bg }};color:{{ r.hacA.fg }}"><span>{{ r.hacA.i }}</span>{{ r.hacA.l }}</span></sc-if>
+                <sc-if value="{{ r.noHac }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#5A6272">Sin documento</span></sc-if>
+                <sc-if value="{{ r.hacDet }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#5A6272;padding-left:4px">{{ r.hacDet }}</span></sc-if>
+              </div>
+              <div style="text-align:right;font-variant-numeric:tabular-nums;font-weight:500">{{ r.totS }}</div>
+              <div style="text-align:right;font-variant-numeric:tabular-nums;color:{{ r.saldoFgA }}">{{ r.saldoS }}</div>
+              <div style="color:#5A6272;text-align:center">⋯</div>
+            </div>
+          </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:10px 14px;border-top:1px solid #DDE1E7;background:#F8F9FB;font-size:13px;color:#343B48">
+            <span>Saldo en esta página: <b style="font-weight:600;font-variant-numeric:tabular-nums">{{ sumCRC }}</b> · <b style="font-weight:600;font-variant-numeric:tabular-nums">{{ sumUSD }}</b></span>
+            <span style="color:#5A6272;font-size:12px">↑ ↓ para moverse · Enter para abrir</span>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button style="height:30px;padding:0 12px;border:1px solid #DDE1E7;background:#fff;border-radius:6px;font:500 13px 'IBM Plex Sans',sans-serif;color:#9AA3B2">‹ Anterior</button>
+              <button style="height:30px;padding:0 12px;border:1px solid #C9CFD8;background:#fff;border-radius:6px;font:500 13px 'IBM Plex Sans',sans-serif;color:#161B26;cursor:pointer">Siguiente ›</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Libro contable · Geist + Geist Mono, verde, papel cálido, reglas finas</div>
+<div class="dv-card" style="width:1440px;font-family:'Geist',sans-serif;color:#1C1B19">
+  <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:32px;padding:24px 28px;border-bottom:1px solid #E4E0D6;background:#FBFAF7">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Paleta</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:3px;background:#F4F2EC;border:1px solid #E4E0D6"></div><div style="font-size:11px;color:#6B675E">Fondo<br>#F4F2EC</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:3px;background:#FFFFFF;border:1px solid #E4E0D6"></div><div style="font-size:11px;color:#6B675E">Superficie<br>#FFFFFF</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:3px;background:#1C1B19"></div><div style="font-size:11px;color:#6B675E">Tinta<br>#1C1B19</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:3px;background:#6B675E"></div><div style="font-size:11px;color:#6B675E">Secundario<br>#6B675E</div></div>
+        <div style="display:flex;flex-direction:column;gap:4px;width:76px"><div style="height:36px;border-radius:3px;background:#1E6B50"></div><div style="font-size:11px;color:#6B675E">Acento<br>#1E6B50</div></div>
+        <div style="display:flex;gap:3px;align-items:flex-start">
+          <div style="width:20px;height:36px;border-radius:2px;background:#24613A"></div><div style="width:20px;height:36px;border-radius:2px;background:#7F5410"></div><div style="width:20px;height:36px;border-radius:2px;background:#A3321F"></div><div style="width:20px;height:36px;border-radius:2px;background:#2D5475"></div><div style="width:20px;height:36px;border-radius:2px;background:#55524B"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Tipografía</div>
+      <div style="font-size:26px;font-weight:600;line-height:1.15;letter-spacing:-.01em">Geist <span style="font-family:'Geist Mono',monospace;font-weight:400;font-size:20px">/ Geist Mono</span></div>
+      <div style="font-size:13px;color:#6B675E;line-height:1.5">Texto en Geist 14/400. Todos los montos, fechas y números de documento en Geist Mono.</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:17px;font-weight:500">₡113 000,00 <span style="color:#6B675E;font-size:14px">· US$1 250,00</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Carácter y densidad</div>
+      <div style="font-size:13px;line-height:1.55;color:#3A3833;text-wrap:pretty">Se parece a un libro de cuentas. Todo en tonos claros, con el menú sobre el mismo papel. Reglas finas y encabezados en versalitas. Insignias rectangulares. Fila cómoda de 48 px, compacta de 32 px. Radio 4 px.</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:820px;background:#F4F2EC">
+    <aside style="display:flex;flex-direction:column;padding:16px 14px;gap:12px;border-right:1px solid #E4E0D6;min-height:0;overflow:auto">
+      <div style="display:flex;align-items:baseline;gap:8px;padding:4px 8px">
+        <div style="font-weight:700;font-size:20px;letter-spacing:-.02em">RDL<span style="color:#1E6B50">.</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;padding:10px;background:#FFFFFF;border:1px solid #E4E0D6;border-radius:4px;cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">Comercial Los Almendros S.A.</span><span style="font-size:10px;color:#6B675E">⇅</span></div>
+        <span style="font-size:12px;color:#6B675E">Administrador · Jurídica 3-101-900001</span>
+      </div>
+      <nav style="display:flex;flex-direction:column;gap:1px;font-size:14px;color:#3A3833">
+        <div style="padding:5px 10px;border-radius:4px">Inicio</div>
+        <div style="padding:14px 10px 4px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Facturación</div>
+        <div style="padding:5px 10px;border-radius:4px">Clientes</div>
+        <div style="padding:5px 10px;border-radius:4px">Productos y servicios</div>
+        <div style="padding:5px 10px;border-radius:4px;background:#FFFFFF;border:1px solid #E4E0D6;color:#1C1B19;font-weight:600">Documentos</div>
+        <div style="padding:14px 10px 4px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Hacienda</div>
+        <div style="padding:5px 10px;border-radius:4px;display:flex;justify-content:space-between">Bandeja <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A3321F;font-weight:500">3</span></div>
+        <div style="padding:5px 10px;border-radius:4px">Configuración fiscal</div>
+        <div style="padding:14px 10px 4px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Cobranza</div>
+        <div style="padding:5px 10px;border-radius:4px">Cuentas por cobrar</div>
+        <div style="padding:5px 10px;border-radius:4px">Aging</div>
+        <div style="padding:5px 10px;border-radius:4px">Pagos</div>
+        <div style="padding:14px 10px 4px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6B675E">Administración</div>
+        <div style="padding:5px 10px;border-radius:4px">Organización</div>
+        <div style="padding:5px 10px;border-radius:4px">Usuarios y roles</div>
+      </nav>
+      <div style="margin-top:auto;display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid #E4E0D6">
+        <div style="width:28px;height:28px;border-radius:50%;background:#1C1B19;color:#F4F2EC;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">MR</div>
+        <div style="display:flex;flex-direction:column;line-height:1.25"><span style="font-size:13px;font-weight:500">María Rojas</span><span style="font-size:11px;color:#6B675E">Mi perfil</span></div>
+      </div>
+    </aside>
+    <div style="display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden">
+      <div style="background:#7F5410;color:#FFFFFF;font-size:12px;font-weight:500;padding:5px 24px;display:flex;gap:8px;letter-spacing:.02em">▲ Ambiente de pruebas: los documentos no tienen validez fiscal.</div>
+      <header style="height:56px;display:flex;align-items:center;gap:12px;padding:0 28px;border-bottom:1px solid #E4E0D6">
+        <div style="font-size:13px;color:#6B675E">Facturación  <span style="color:#B5B0A5">/</span>  <span style="color:#1C1B19">Documentos</span></div>
+        <div style="flex:1;max-width:440px;margin-left:auto;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid #DAD5C9;border-radius:4px;background:#FFFFFF;color:#6B675E;font-size:13px">
+          <span style="flex:1">Buscar facturas, clientes, CABYS…</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;border:1px solid #DAD5C9;border-radius:3px;padding:0 5px">/</span>
+        </div>
+        <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #DAD5C9;border-radius:4px;background:#fff;font-size:15px">🔔︎<span style="position:absolute;top:-5px;right:-5px;background:#A3321F;color:#fff;font-family:'Geist Mono',monospace;font-size:10px;padding:0 5px;border-radius:3px;line-height:16px">2</span></div>
+      </header>
+      <main style="padding:22px 28px;display:flex;flex-direction:column;gap:14px;min-height:0;flex:1">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px">
+          <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.1">Documentos <span style="font-family:'Geist Mono',monospace;font-size:16px;color:#6B675E;font-weight:400">128</span></h1>
+          <div style="display:flex;gap:8px">
+            <button style="height:36px;padding:0 14px;border:1px solid #DAD5C9;background:#fff;border-radius:4px;font:500 14px 'Geist',sans-serif;color:#1C1B19;cursor:pointer">Exportar</button>
+            <button style="height:36px;padding:0 14px;border:none;background:#1E6B50;border-radius:4px;font:500 14px 'Geist',sans-serif;color:#fff;display:flex;align-items:center;gap:10px;cursor:pointer" style-hover="background:#175640">Nueva factura <span style="font-family:'Geist Mono',monospace;font-size:11px;background:rgba(255,255,255,.18);border-radius:3px;padding:0 5px">N</span></button>
+          </div>
+        </div>
+        <div style="display:flex;gap:1px;background:#E4E0D6;border:1px solid #E4E0D6;border-radius:4px;overflow:hidden">
+          <div style="flex:1;background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#6B675E">Saldo pendiente en la vista</span><span style="font-family:'Geist Mono',monospace;font-size:15px;font-weight:500">{{ sumCRC }} · {{ sumUSD }}</span></div>
+          <div style="flex:1;background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#6B675E">Rechazados o con error</span><span style="font-size:15px;font-weight:500;color:#A3321F">✕ 2 documentos · <span style="text-decoration:underline">ver bandeja</span></span></div>
+          <div style="flex:1;background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#6B675E">En contingencia</span><span style="font-size:15px;font-weight:500;color:#7F5410">▲ 1 documento</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px">
+          <div style="display:flex;border:1px solid #DAD5C9;border-radius:4px;overflow:hidden;background:#fff">
+            <div style="padding:6px 12px;background:#1C1B19;color:#F4F2EC;font-weight:500">Todos</div>
+            <div style="padding:6px 12px;border-left:1px solid #DAD5C9">Facturas</div>
+            <div style="padding:6px 12px;border-left:1px solid #DAD5C9">Notas de crédito</div>
+            <div style="padding:6px 12px;border-left:1px solid #DAD5C9">Notas de débito</div>
+          </div>
+          <div style="width:1px;height:22px;background:#DAD5C9;margin:0 6px"></div>
+          <div style="padding:6px 10px;border:1px dashed #B5B0A5;border-radius:4px;color:#3A3833">+ Estado</div>
+          <div style="padding:6px 10px;border:1px solid #1E6B50;border-radius:4px;background:#E4EFE6;color:#175640;font-weight:500">Hacienda es Rechazada, En contingencia, Con error  ×</div>
+          <div style="padding:6px 10px;border:1px dashed #B5B0A5;border-radius:4px;color:#3A3833">+ Cliente</div>
+          <div style="padding:6px 10px;border:1px solid #DAD5C9;border-radius:4px;background:#fff;font-family:'Geist Mono',monospace;font-size:12px">01/09/2026 – 24/09/2026</div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px;color:#6B675E">Densidad
+            <div style="display:flex;border:1px solid #DAD5C9;border-radius:4px;overflow:hidden">
+              <button onClick="{{ setB_c }}" style="height:28px;padding:0 10px;border:none;cursor:pointer;font:500 12px 'Geist',sans-serif;background:{{ segB.cBg }};color:{{ segB.cFg }}">Cómoda</button>
+              <button onClick="{{ setB_k }}" style="height:28px;padding:0 10px;border:none;border-left:1px solid #DAD5C9;cursor:pointer;font:500 12px 'Geist',sans-serif;background:{{ segB.kBg }};color:{{ segB.kFg }}">Compacta</button>
+            </div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #E4E0D6;border-radius:4px;display:flex;flex-direction:column;min-height:0;flex:1;overflow:hidden">
+          <div style="display:grid;grid-template-columns:18px 150px 36px minmax(0,1fr) 92px 112px 180px 136px 130px 18px;gap:12px;align-items:center;padding:9px 16px;border-bottom:1px solid #1C1B19;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#6B675E">
+            <div style="width:13px;height:13px;border:1.5px solid #9C978B;border-radius:2px"></div>
+            <div>Número ↓</div><div>Tipo</div><div>Cliente</div><div>Fecha</div><div>Estado</div><div>Hacienda</div><div style="text-align:right">Total</div><div style="text-align:right">Saldo</div><div></div>
+          </div>
+          <div style="overflow:auto;flex:1">
+          <sc-for list="{{ rowsB }}" as="r" hint-placeholder-count="10">
+            <div onClick="{{ r.selectB }}" style="display:grid;grid-template-columns:18px 150px 36px minmax(0,1fr) 92px 112px 180px 136px 130px 18px;gap:12px;align-items:center;padding:{{ padB }};border-bottom:1px solid #EFECE5;font-size:14px;cursor:pointer;background:{{ r.bgB }};box-shadow:{{ r.ringB }}" style-hover="background:#FAF8F3">
+              <div style="width:13px;height:13px;border:1.5px solid #9C978B;border-radius:2px;background:#fff"></div>
+              <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start">
+                <span style="font-family:'Geist Mono',monospace;font-size:13px">{{ r.n }}</span>
+                <sc-if value="{{ r.corr }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:500;color:#7F5410;border:1px solid #E3C99A;background:#F6EBD3;padding:0 5px;border-radius:2px">▲ Requiere corrección</span></sc-if>
+              </div>
+              <div style="font-family:'Geist Mono',monospace;font-size:12px;color:#6B675E">{{ r.t }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;min-width:0;flex-wrap:wrap">
+                <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">{{ r.c }}</span>
+                <sc-if value="{{ showSubB }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:#6B675E">{{ r.id }}</span></sc-if>
+              </div>
+              <div style="font-family:'Geist Mono',monospace;font-size:13px;color:#3A3833">{{ r.f }}</div>
+              <div><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:1px 7px;border-radius:3px;border:1px solid {{ r.invB.bd }};background:{{ r.invB.bg }};color:{{ r.invB.fg }};text-decoration:{{ r.invB.deco }}"><span>{{ r.invB.i }}</span>{{ r.invB.l }}</span></div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <sc-if value="{{ r.hasHac }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:1px 7px;border-radius:3px;border:1px solid {{ r.hacB.bd }};background:{{ r.hacB.bg }};color:{{ r.hacB.fg }}"><span>{{ r.hacB.i }}</span>{{ r.hacB.l }}</span></sc-if>
+                <sc-if value="{{ r.noHac }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#6B675E">Sin documento</span></sc-if>
+                <sc-if value="{{ r.hacDet }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#6B675E">· {{ r.hacDet }}</span></sc-if>
+              </div>
+              <div style="text-align:right;font-family:'Geist Mono',monospace;font-size:13px;font-weight:500">{{ r.totS }}</div>
+              <div style="text-align:right;font-family:'Geist Mono',monospace;font-size:13px;color:{{ r.saldoFgB }}">{{ r.saldoS }}</div>
+              <div style="color:#6B675E;text-align:center">⋯</div>
+            </div>
+          </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:10px 16px;border-top:1px solid #E4E0D6;font-size:12px;color:#6B675E">
+            <span>12 documentos en esta página</span>
+            <span><span style="font-family:'Geist Mono',monospace;border:1px solid #DAD5C9;border-radius:3px;padding:0 4px">↑</span> <span style="font-family:'Geist Mono',monospace;border:1px solid #DAD5C9;border-radius:3px;padding:0 4px">↓</span> moverse · <span style="font-family:'Geist Mono',monospace;border:1px solid #DAD5C9;border-radius:3px;padding:0 4px">Enter</span> abrir</span>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button style="height:30px;padding:0 12px;border:1px solid #E4E0D6;background:#fff;border-radius:4px;font:500 13px 'Geist',sans-serif;color:#B5B0A5">← Anterior</button>
+              <button style="height:30px;padding:0 12px;border:1px solid #DAD5C9;background:#fff;border-radius:4px;font:500 13px 'Geist',sans-serif;color:#1C1B19;cursor:pointer">Siguiente →</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Siguiente: "<a class="dv-oid" href="#1a">1a</a>, pero con los montos en mono de <a class="dv-oid" href="#1b">1b</a>" · "<a class="dv-oid" href="#1b">1b</a> con la barra lateral oscura" · "apruebo <a class="dv-oid" href="#1b">1b</a>, pasemos al sistema de diseño"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ROWS = [
+  {n:'FAC-0000041',t:'FE',c:'Ferretería El Roble S.A.',id:'Jurídica 3-101-900412',f:'24/09/2026',tot:113000,cur:'CRC',inv:'draft',hac:null,saldo:null},
+  {n:'FAC-0000040',t:'FE',c:'Café Monteazul S.A.',id:'Jurídica 3-101-900288',f:'24/09/2026',tot:452500,cur:'CRC',inv:'issued',hac:'processing',hacDet:'Enviado',saldo:452500},
+  {n:'FAC-0000039',t:'FE',c:'Hotel Brisas del Pacífico S.A.',id:'Jurídica 3-101-900731',f:'23/09/2026',tot:1250,cur:'USD',inv:'issued',hac:'accepted',saldo:1250},
+  {n:'NC-0000006',t:'NC',c:'Distribuidora Maravilla Ltda.',id:'Jurídica 3-102-900154',f:'23/09/2026',tot:-18500,cur:'CRC',inv:'issued',hac:'accepted',saldo:null},
+  {n:'FAC-0000038',t:'FE',c:'Laura Jiménez Solís',id:'Física 1-0900-0342',f:'22/09/2026',tot:86400,cur:'CRC',inv:'issued',hac:'rejected',saldo:86400,corr:true},
+  {n:'FAC-0000037',t:'FE',c:'Transportes Cerro Verde S.A.',id:'Jurídica 3-101-900563',f:'22/09/2026',tot:327800,cur:'CRC',inv:'issued',hac:'contingency',saldo:327800},
+  {n:'FAC-0000036',t:'FE',c:'Clínica Dental Sonrisa Plena',id:'Jurídica 3-101-900877',f:'21/09/2026',tot:64000,cur:'CRC',inv:'issued',hac:'unavailable',saldo:64000},
+  {n:'FAC-0000035',t:'FE',c:'Martín Ochoa Reyes',id:'DIMEX 155800901234',f:'19/09/2026',tot:39550,cur:'CRC',inv:'issued',hac:'accepted',saldo:0},
+  {n:'FAC-0000034',t:'FE',c:'Soluciones Ibis S.R.L.',id:'Jurídica 3-102-900219',f:'18/09/2026',tot:113000,cur:'CRC',inv:'issued',hac:'accepted',saldo:63000},
+  {n:'ND-0000002',t:'ND',c:'Café Monteazul S.A.',id:'Jurídica 3-101-900288',f:'17/09/2026',tot:12000,cur:'CRC',inv:'issued',hac:'error',saldo:12000},
+  {n:'FAC-0000033',t:'FE',c:'Distribuidora Maravilla Ltda.',id:'Jurídica 3-102-900154',f:'15/09/2026',tot:245000,cur:'CRC',inv:'cancelled',hac:'accepted',saldo:null},
+  {n:'FAC-0000032',t:'FE',c:'Hotel Brisas del Pacífico S.A.',id:'Jurídica 3-101-900731',f:'12/09/2026',tot:3480,cur:'USD',inv:'issued',hac:'accepted',saldo:1480},
+];
+const TONES_A = {success:['#E6F4EC','#1B6B3A'],warning:['#FDF1DC','#8A5300'],danger:['#FCE8E8','#B42323'],info:['#E7EEFC','#1F4FB8'],neutral:['#EEF0F3','#4A5160']};
+const TONES_B = {success:['#E4EFE6','#24613A','#BFD8C4'],warning:['#F6EBD3','#7F5410','#E3C99A'],danger:['#F6E3DF','#A3321F','#E6B9AF'],info:['#E3EAF0','#2D5475','#BCCBD8'],neutral:['#ECE9E2','#55524B','#D6D1C6']};
+const INV = {draft:{l:'Borrador',t:'neutral',i:'○'},issued:{l:'Emitida',t:'info',i:'●'},cancelled:{l:'Anulada',t:'neutral',i:'⊘',deco:'line-through'}};
+const HAC = {processing:{l:'En proceso',t:'info',i:'◷'},accepted:{l:'Aceptada',t:'success',i:'✓'},rejected:{l:'Rechazada',t:'danger',i:'✕'},contingency:{l:'En contingencia',t:'warning',i:'▲'},error:{l:'Con error',t:'danger',i:'!'},unavailable:{l:'Estado no disponible',t:'neutral',i:'?'}};
+function fmt(v, cur) {
+  if (v == null) return '—';
+  const [i, d] = Math.abs(v).toFixed(2).split('.');
+  return (v < 0 ? '−' : '') + (cur === 'USD' ? 'US$' : '₡') + i.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0') + ',' + d;
+}
+function badgeA(m) { if (!m) return {}; const [bg, fg] = TONES_A[m.t]; return {l:m.l,i:m.i,bg,fg,deco:m.deco||'none'}; }
+function badgeB(m) { if (!m) return {}; const [bg, fg, bd] = TONES_B[m.t]; return {l:m.l,i:m.i,bg,fg,bd,deco:m.deco||'none'}; }
+
+class Component extends DCLogic {
+  state = { dA: 'comfortable', dB: 'comfortable', actA: 1, actB: 1 };
+  componentDidMount() {
+    this._k = (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      const d = e.key === 'ArrowDown' ? 1 : -1;
+      const clamp = (v) => Math.max(0, Math.min(ROWS.length - 1, v + d));
+      e.preventDefault();
+      this.setState(s => ({ actA: clamp(s.actA), actB: clamp(s.actB) }));
+    };
+    window.addEventListener('keydown', this._k);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._k); }
+  renderVals() {
+    const { dA, dB, actA, actB } = this.state;
+    const seg = (d, on, onFg, off, offFg) => d === 'comfortable'
+      ? {cBg:on,cFg:onFg,kBg:off,kFg:offFg} : {cBg:off,cFg:offFg,kBg:on,kFg:onFg};
+    let crc = 0, usd = 0;
+    ROWS.forEach(r => { if (r.saldo) { if (r.cur === 'USD') usd += r.saldo; else crc += r.saldo; } });
+    const rows = ROWS.map((r, idx) => ({
+      ...r,
+      totS: fmt(r.tot, r.cur),
+      saldoS: fmt(r.saldo, r.cur),
+      saldoFgA: r.saldo ? '#161B26' : '#5A6272',
+      saldoFgB: r.saldo ? '#1C1B19' : '#6B675E',
+      corr: !!r.corr,
+      hasHac: !!r.hac, noHac: !r.hac,
+      hacDet: r.hacDet || '',
+      invA: badgeA(INV[r.inv]), hacA: badgeA(HAC[r.hac]),
+      invB: badgeB(INV[r.inv]), hacB: badgeB(HAC[r.hac]),
+      bgA: idx === actA ? '#EEF3FD' : 'transparent',
+      ringA: idx === actA ? 'inset 0 0 0 2px #2355C9' : 'none',
+      bgB: idx === actB ? '#EEF4F0' : 'transparent',
+      ringB: idx === actB ? 'inset 3px 0 0 #1E6B50' : 'none',
+      select: () => this.setState({ actA: idx }),
+      selectB: () => this.setState({ actB: idx }),
+    }));
+    return {
+      rowsA: rows, rowsB: rows,
+      padA: dA === 'compact' ? '7px 14px' : '12px 14px',
+      padB: dB === 'compact' ? '6px 16px' : '13px 16px',
+      showSubA: dA !== 'compact', showSubB: dB !== 'compact',
+      segA: seg(dA, '#2355C9', '#FFFFFF', '#FFFFFF', '#343B48'),
+      segB: seg(dB, '#1C1B19', '#F4F2EC', '#FFFFFF', '#3A3833'),
+      setA_c: () => this.setState({ dA: 'comfortable' }), setA_k: () => this.setState({ dA: 'compact' }),
+      setB_c: () => this.setState({ dB: 'comfortable' }), setB_k: () => this.setState({ dB: 'compact' }),
+      sumCRC: fmt(crc, 'CRC'), sumUSD: fmt(usd, 'USD'),
+    };
+  }
+}
+</script>
+</body>
+</html>

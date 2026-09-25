@@ -1,0 +1,126 @@
+/* Estilos base del portal. Todo valor sale de los tokens: nada de colores ni tamaños sueltos. */
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import './tokens/tokens.css';
+@import './tokens/tokens-app.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  background: var(--color-bg-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-accent);
+}
+a:hover {
+  color: var(--color-accent-active);
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
+
+/* Utilidades de tipografía (los mismos nombres que la escala de tokens). */
+.text-display {
+  font: var(--text-display);
+}
+.text-h1 {
+  font: var(--text-h1);
+}
+.text-h2 {
+  font: var(--text-h2);
+}
+.text-h3 {
+  font: var(--text-h3);
+}
+.text-body-sm {
+  font: var(--text-body-sm);
+}
+.text-caption {
+  font: var(--text-caption);
+}
+.text-overline {
+  font: var(--text-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.code {
+  font: var(--text-code);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

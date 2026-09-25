@@ -1,0 +1,75 @@
+/* Aspecto deliberadamente distinto al producto (morado, esquina inferior izquierda) para no confundirlo. */
+.fab {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 12px;
+  z-index: 1500;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px dashed #7c3aed;
+  background: #f5f3ff;
+  color: #6d28d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+.fab:hover {
+  opacity: 1;
+}
+
+.bar {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1500;
+  width: 260px;
+  padding: 12px;
+  border: 2px dashed #7c3aed;
+  border-radius: 8px;
+  background: #f5f3ff;
+  color: #2e1065;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.note {
+  flex: 1;
+  color: #6d28d9;
+}
+.close {
+  border: none;
+  background: none;
+  color: #6d28d9;
+  padding: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.field select {
+  height: 28px;
+  border: 1px solid #c4b5fd;
+  border-radius: 4px;
+  background: #fff;
+  color: #2e1065;
+  font-size: 12px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

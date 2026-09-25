@@ -1,0 +1,122 @@
+/* Prototipo: contenedor de superficie con borde y radio 6; encabezado 12/600 sobre bg-subtle; filas 14 px con
+   borde sutil; cómoda 52 px, compacta 36 px. */
+.wrap {
+  background: var(--color-bg-surface);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--color-bg-subtle);
+  border-bottom: var(--border-width) solid var(--color-border-default);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0 14px;
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.comfortable td {
+  height: var(--row-h-comfortable);
+}
+.compact td {
+  height: var(--row-h-compact);
+  font-size: 13px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.right {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover td,
+.clickable:focus-visible td {
+  background: var(--color-bg-row-hover);
+}
+.clickable:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+.rowDanger td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-danger-fg);
+}
+
+.chevron {
+  color: var(--color-text-secondary);
+  padding-right: var(--space-3) !important;
+  padding-left: 0 !important;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 14px;
+  border-top: var(--border-width) solid var(--color-border-subtle);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.pager {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.pageBtn {
+  height: 30px;
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+.pageBtn:disabled {
+  border-color: var(--color-border-default);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .hideMobile {
+    display: none;
+  }
+  .pageBtn {
+    height: var(--control-h-lg);
+  }
+}

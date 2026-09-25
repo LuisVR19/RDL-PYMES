@@ -1,0 +1,85 @@
+/* Prototipo: fondo #161B26 en ambos temas, radio 6, sombra, 14 px; ícono en el color del tono (versión clara). */
+.region {
+  position: fixed;
+  z-index: var(--z-toast);
+  right: var(--space-6);
+  bottom: var(--space-6);
+  width: min(380px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toast {
+  background: #161b26;
+  color: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.25);
+  padding: var(--space-3) 14px;
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  animation: rise var(--duration-base) var(--ease-standard);
+}
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.title {
+  font-weight: 500;
+}
+.body {
+  font-size: 12px;
+  color: #a3abba;
+}
+.action {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #9dbbff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.close {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: #a3abba;
+  padding: 2px;
+}
+
+.success {
+  color: #7fd6a0;
+}
+.danger {
+  color: #f59a9a;
+}
+.info {
+  color: #9dbbff;
+}
+.warning {
+  color: #f2c170;
+}
+
+@media (max-width: 767px) {
+  .region {
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: var(--space-4);
+    width: auto;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

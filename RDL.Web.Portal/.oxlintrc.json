@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc", "jsx-a11y", "import", "unicorn"],
+  "categories": { "correctness": "error", "suspicious": "warn" },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/react-in-jsx-scope": "off",
+    "no-restricted-globals": ["error", "parseFloat"],
+    "unicorn/no-null": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "no-shadow": "off",
+    "import/no-unassigned-import": ["warn", { "allow": ["**/*.css", "@testing-library/jest-dom/vitest"] }]
+  },
+  "ignorePatterns": ["dist", "design", "e2e/.results"]
+}

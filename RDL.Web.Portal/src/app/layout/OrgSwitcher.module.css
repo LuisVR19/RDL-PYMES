@@ -1,0 +1,228 @@
+/* Prototipo: botón máx. 320 px, padding 5px 10px, iniciales 28 px; menú con sombra media, padding 6. */
+.trigger {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  text-align: left;
+}
+.trigger:hover {
+  border-color: var(--color-border-strong);
+}
+.trigger[data-state='open'] {
+  border-color: var(--color-accent);
+}
+
+.initials {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-info-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+.initialsMobile {
+  width: 30px;
+  height: 30px;
+}
+
+.names {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+  flex: 1;
+}
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.role {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.caret {
+  color: var(--color-text-secondary);
+  margin-left: 4px;
+  flex: none;
+}
+
+/* Fila móvil bajo la barra: min-height 52, padding 6px 16px. */
+.mobileRow {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 16px;
+  border: none;
+  border-bottom: var(--border-width) solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  text-align: left;
+}
+.nameMobile {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.roleMobile {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.menu {
+  z-index: var(--z-dropdown);
+  width: 340px;
+  background: var(--color-bg-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+.menuMobile {
+  width: 100vw;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.menuTitle {
+  padding: 10px 10px 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.search {
+  height: var(--control-h-md);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  margin: 4px 4px 6px;
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+}
+.menuMobile .search {
+  height: var(--control-h-lg);
+}
+
+.list {
+  overflow: auto;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  width: 100%;
+  padding: 8px 10px;
+  min-height: 40px;
+  border: none;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  text-align: left;
+  color: var(--color-text-primary);
+}
+.menuMobile .row {
+  min-height: 48px;
+}
+.row:hover {
+  background: var(--color-bg-row-hover);
+}
+.rowActive,
+.rowActive:hover {
+  background: var(--color-bg-selected);
+}
+
+.rowInitials {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-info-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex: none;
+}
+.rowName {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.tagActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-info-fg);
+  white-space: nowrap;
+}
+
+.noMatch {
+  padding: 12px 10px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.sep {
+  height: 1px;
+  background: var(--color-border-subtle);
+  margin: 4px 0;
+}
+
+.all {
+  padding: 10px;
+  color: var(--color-accent);
+  font-weight: 500;
+  font-size: 13px;
+  background: none;
+  border: none;
+  text-align: left;
+  border-radius: var(--radius-sm);
+}
+.all:hover {
+  text-decoration: underline;
+}

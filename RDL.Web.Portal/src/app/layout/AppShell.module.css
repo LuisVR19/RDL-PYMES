@@ -1,0 +1,197 @@
+.shell {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  background: var(--color-bg-canvas);
+}
+
+.skip {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: var(--z-toast, 1400);
+  padding: 8px 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.skip:focus {
+  top: 8px;
+}
+
+.sidebarSlot {
+  display: flex;
+}
+
+.column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Prototipo: 56 px, fondo blanco, borde inferior, gap 12, padding 0 20. */
+.topbar {
+  height: var(--topbar-h);
+  flex: none;
+  background: var(--color-bg-surface);
+  border-bottom: var(--border-width) solid var(--color-border-default);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  z-index: var(--z-sticky);
+}
+
+.desktopOnly {
+  display: contents;
+}
+.mobileOnly {
+  display: none;
+}
+.hamburger,
+.mobileBrand {
+  display: none;
+}
+
+/* Prototipo: flex 1, máx 420, alto 34, fondo sutil, atajo «/» en mono 11. */
+.search {
+  flex: 1;
+  max-width: 420px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+}
+.search:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--focus-ring);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  outline: none;
+  box-shadow: none;
+}
+.search input::-webkit-search-cancel-button {
+  display: none;
+}
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: 3px;
+  padding: 0 5px;
+  background: var(--color-bg-surface);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Prototipo: fondo ámbar, borde #F1D29B, texto #6E4200 13 px. */
+.rtBanner {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 20px;
+  background: var(--color-warning-bg);
+  border-bottom: var(--border-width) solid var(--color-warning-border);
+  color: var(--color-warning-fg);
+  font-size: 13px;
+}
+.rtText {
+  flex: 1;
+  min-width: 200px;
+}
+.rtRetry {
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px 28px;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+.main:focus {
+  outline: none;
+}
+.switching {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.content {
+  max-width: var(--content-max-w);
+  margin: 0 auto;
+}
+
+/* Tableta: el menú lateral entra contraído por espacio. */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .search {
+    max-width: 280px;
+  }
+}
+
+/* Móvil (< 768): hamburguesa, sin menú lateral ni búsqueda en la barra; fila de organización debajo. */
+@media (max-width: 767px) {
+  .sidebarSlot,
+  .desktopOnly,
+  .search {
+    display: none;
+  }
+  .mobileOnly {
+    display: block;
+  }
+  .hamburger {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-primary);
+    border-radius: var(--radius-md);
+  }
+  .mobileBrand {
+    display: flex;
+  }
+  .topbar {
+    padding: 0 8px 0 4px;
+    gap: 4px;
+  }
+  .actions {
+    margin-left: auto;
+    gap: 0;
+  }
+  .rtBanner {
+    padding: 8px 16px;
+  }
+  .main {
+    padding: 16px;
+  }
+}

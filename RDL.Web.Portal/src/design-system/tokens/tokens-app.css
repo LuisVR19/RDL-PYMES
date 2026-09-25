@@ -1,0 +1,17 @@
+/* Valores que el prototipo usa y tokens.css no nombra. Se agregan aquí para no tocar el archivo del diseño
+   (design/tokens.css es la fuente; src/design-system/tokens/tokens.css es su copia exacta). */
+:root {
+  --color-bg-nav-hover: #1b2a4a;
+  --color-text-nav-muted: #8c97ad;
+  --color-text-nav-section: #7b879e;
+  --color-brand-bar: #7aa2f7;
+  --color-icon: #343b48;
+  --color-text-strong: #343b48;
+  --color-bg-row-hover: #f6f8fb;
+  --content-max-w: 1600px;
+}
+[data-theme='dark'] {
+  --color-icon: #c9d1e0;
+  --color-text-strong: #c9d1e0;
+  --color-bg-row-hover: #1a212d;
+}
