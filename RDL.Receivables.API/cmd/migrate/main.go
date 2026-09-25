@@ -1,0 +1,166 @@
+// Command migrate aplica las migraciones goose del schema receivables.
+//
+// Uso: migrate <up|up-by-one|status|down|mark-baseline>
+// (MIGRATE_DATABASE_URL o DB_POOLER_HOST con el login receivables_migrate, modo sesión, puerto 5432).
+// Se niega a correr si la sesión no es receivables_migrator: así ningún objeto queda a nombre de otro rol.
+package main
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
+	"github.com/pressly/goose/v3/database"
+
+	"rdl/receivables-api/internal/platform/config"
+	"rdl/receivables-api/migrations"
+)
+
+const (
+	expectedRole = "receivables_migrator"
+	historyTable = "receivables.goose_db_version"
+	loginRole    = "receivables_migrate"
+)
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, "migrate:", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
+	if len(os.Args) != 2 {
+		return errors.New("uso: migrate <up|up-by-one|status|down|mark-baseline>")
+	}
+	if err := config.LoadDotEnv(".env"); err != nil {
+		return err
+	}
+	url := os.Getenv("MIGRATE_DATABASE_URL")
+	if url == "" {
+		// Modo sesión (5432): el `set role receivables_migrator` que fija ALTER ROLE debe durar toda la conexión.
+		var err error
+		url, err = config.PoolerURL(os.Getenv("SUPABASE_URL"), os.Getenv("DB_POOLER_HOST"), loginRole, config.PoolerSessionPort)
+		if err != nil {
+			return err
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	connCfg, err := pgx.ParseConfig(url)
+	if err != nil {
+		return errors.New("MIGRATE_DATABASE_URL inválida")
+	}
+	// MIGRATE_DB_PASSWORD evita tener que codificar caracteres especiales dentro de la URL.
+	if pw := os.Getenv("MIGRATE_DB_PASSWORD"); pw != "" {
+		connCfg.Password = pw
+	}
+	db := stdlib.OpenDB(*connCfg)
+	defer func() { _ = db.Close() }()
+	// Una sola conexión: el `set role` que ALTER ROLE fija al conectar debe valer para todo el proceso.
+	db.SetMaxOpenConns(1)
+
+	var role string
+	if err := db.QueryRowContext(ctx, "select current_user").Scan(&role); err != nil {
+		return fmt.Errorf("conectando: %w", err)
+	}
+	if role != expectedRole {
+		return fmt.Errorf("la sesión corre como %q; se esperaba %q (revise ALTER ROLE ... SET role)", role, expectedRole)
+	}
+
+	store, err := database.NewStore(database.DialectPostgres, historyTable)
+	if err != nil {
+		return err
+	}
+	if os.Args[1] == "mark-baseline" {
+		return markBaseline(ctx, db, store)
+	}
+	provider, err := goose.NewProvider("", db, migrations.FS, goose.WithStore(store))
+	if err != nil {
+		return err
+	}
+
+	switch os.Args[1] {
+	case "up":
+		results, err := provider.Up(ctx)
+		for _, r := range results {
+			fmt.Println(r)
+		}
+		return err
+	case "up-by-one":
+		// Expand → migrate → contract: aplica solo la siguiente migración pendiente.
+		r, err := provider.UpByOne(ctx)
+		if r != nil {
+			fmt.Println(r)
+		}
+		return err
+	case "down":
+		r, err := provider.Down(ctx)
+		if r != nil {
+			fmt.Println(r)
+		}
+		return err
+	case "status":
+		statuses, err := provider.Status(ctx)
+		if err != nil {
+			return err
+		}
+		for _, s := range statuses {
+			applied := "pendiente"
+			if s.State == goose.StateApplied {
+				applied = "aplicada " + s.AppliedAt.UTC().Format(time.RFC3339)
+			}
+			fmt.Printf("%05d  %-45s %s\n", s.Source.Version, s.Source.Path, applied)
+		}
+		return nil
+	default:
+		return fmt.Errorf("comando desconocido %q", os.Args[1])
+	}
+}
+
+// markBaseline registra la baseline (00001) como aplicada sin ejecutarla. Se usa una sola vez en una base donde
+// database-platform ya creó el schema (dev): la baseline es idempotente, pero así el historial dice la verdad
+// (no se ejecutó nada). En una base vacía se usa `up`.
+func markBaseline(ctx context.Context, db *sql.DB, store database.Store) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var exists bool
+	if err := tx.QueryRowContext(ctx, "select to_regclass($1) is not null", historyTable).Scan(&exists); err != nil {
+		return err
+	}
+	if !exists {
+		if err := store.CreateVersionTable(ctx, tx); err != nil {
+			return err
+		}
+		// Versión 0: la fila que goose espera como punto de partida del historial.
+		if err := store.Insert(ctx, tx, database.InsertRequest{Version: 0}); err != nil {
+			return err
+		}
+	}
+	if _, err := store.GetMigration(ctx, tx, migrations.BaselineVersion); err == nil {
+		fmt.Println("la baseline ya estaba registrada")
+		return nil
+	} else if !errors.Is(err, database.ErrVersionNotFound) {
+		return err
+	}
+	if err := store.Insert(ctx, tx, database.InsertRequest{Version: migrations.BaselineVersion}); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	fmt.Printf("baseline %05d registrada como aplicada\n", migrations.BaselineVersion)
+	return nil
+}
