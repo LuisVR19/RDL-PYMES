@@ -1,7 +1,8 @@
 # Estado del proyecto · Receivables API
 
 **Última actualización:** 2026-09-25
-**Punto de corte:** incremento 2 terminado y probado contra dev (incluido el `GRANT` sobre `core`); sigue el incremento 3.
+**Punto de corte:** los 10 incrementos del plan terminados y probados contra dev. Nada está commiteado todavía. Queda la
+lista de TODOs del final para revisar en equipo.
 
 ## Decisiones aprobadas (2026-09-24)
 
@@ -20,72 +21,106 @@ aplica `database-platform` · R10 el endpoint interno admite además `biller` ·
 |---|---|---|
 | 1 | Esqueleto, config, health, OTel, logins y baseline | ✅ |
 | 2 | JWT, TenantContext, `GET /v1/receivables` | ✅ |
-| 3 | Dominio de saldos, agregados, migraciones 00003/00004 | pendiente (siguiente) |
-| 4–10 | Ver `docs/PLAN.md` §6 | pendiente |
+| 3 | Dominio de saldos, agregados, migraciones 00003/00004 | ✅ (00003/00004 aplicadas en dev) |
+| 4 | Consumidor: inbox, dead letter, reintentos, `cmd/consumer`, `cmd/replay`, `InvoiceIssued` | ✅ |
+| 5 | `GET /internal/v1/receivables/by-invoice/{invoiceId}` | ✅ |
+| 6 | Pagos y aplicaciones, `PaymentReceived`, `ReceivableSettled`, idempotencia, concurrencia | ✅ |
+| 7 | Reverso de aplicación y anulación de pago | ✅ |
+| 8 | `CreditNoteIssued`, `DebitNoteIssued`, `InvoiceCancelled` (R2 a R4) | ✅ |
+| 9 | Aging, detalle de la cuenta, seguimientos y promesas | ✅ |
+| 10 | Suite de aislamiento, E2E, autorrevisión, documentación, TODOs | ✅ |
 
-## Incremento 1: qué hay
+## Qué hay
 
-- `cmd/api`: `/healthz`, `/readyz` (base + JWKS), Problem Details para rutas desconocidas, `X-Correlation-Id`,
-  OTel, logs JSON y apagado ordenado.
-- `cmd/migrate`: `up`, `up-by-one`, `down`, `status` y `mark-baseline`. Verifica que la sesión sea
-  `receivables_migrator`.
-- `migrations/00001_baseline.sql`: el schema completo e idempotente (tablas, índices, funciones, triggers, vista, RLS,
-  políticas y grants de `receivables_app`). `00002_list_indexes.sql`: los 4 índices de ADR 0001 §4.7.
-- Dockerfile distroless no root (contexto: el monorepo), Makefile, `.golangci.yml`, `bitbucket-pipelines.yml`,
-  `.env.example`, CLAUDE.md, README y ADR 0003.
-- Verificación: `go build`, `go vet`, `go test ./...` (4 paquetes con tests) y `golangci-lint --build-tags=integration`
-  con 0 issues. `make test-isolation` todavía no aplica (la suite llega en el incremento 10).
+- **Dominio** (`internal/domain`): `receivable` (saldo y estado derivados con la misma fórmula que la base, R1),
+  `payment`, `settlement` (reglas entre los dos: cliente, moneda, disponible, saldo, reversiones de R2/R3), `aging`
+  (R6), `collection` (R8), `amount` (forma de `numeric(18,5)`, sin redondeo), `civil` (fecha de negocio), `permission`.
+  La cuenta tiene id propio, distinto del de la factura (antes lo compartía y la PK global habría chocado entre
+  organizaciones).
+- **Casos de uso** (`internal/app`): un struct por caso. Comandos idempotentes por `Idempotency-Key` (24 h, en
+  `integration.idempotency_keys`), con audit event y outbox en la misma transacción; bloqueo en orden estable (pagos
+  y después cuentas, por id, ADR 0006); después de escribir se compara lo que dejaron los triggers con el agregado.
+- **Consumidor** (ADR 0005): `HandleEvent` + `ProcessEvent` (inbox, reintentos 6× con backoff de 1 s a 32 s, dead letter
+  en otra transacción), `cmd/consumer` (health en 8084, métricas OTel), `cmd/replay`. Consume `InvoiceIssued`,
+  `CreditNoteIssued`, `DebitNoteIssued` e `InvoiceCancelled`; una nota que llega antes que su factura se reintenta.
+- **HTTP**: todos los endpoints de `api/openapi.yaml` (un test lo compara con el router), Problem Details con los tipos
+  de contratos más `customer-mismatch`, 405 por método (se cambió el router copiado de Platform para que
+  `/v1/receivables/aging` no choque con `/v1/receivables/{id}`).
+- **Postgres**: ledger de agregados, lecturas, outbox (DTOs de contratos validados contra el schema antes de
+  insertar), idempotencia, cobranza, inbox, dead letters y auditoría. Los ids de un `any(...)` viajan como `text[]`:
+  con `QueryExecModeExec` (Supavisor) pgx no codifica un `[]uuid.UUID` sin tipo.
+- **Migraciones**: 00001 baseline (marcada), 00002 índices, 00003 guard con `pg_trigger_depth() > 1`, 00004
+  `recalculate_receivable` según R1. Las cuatro aplicadas en dev.
+- **ADRs**: 0001 brechas, 0002 propuesta a database-platform, 0003 reutilización de Platform, 0004 decimal, 0005
+  consumo de eventos, 0006 bloqueo y concurrencia, 0007 tramos del aging, 0008 suites contra dev.
 
-## Verificación contra dev (2026-09-24)
+## Verificación (2026-09-25)
 
-- Logins `receivables_api` y `receivables_migrate` creados (migración `0010_receivables_login_roles` en
-  `supabase_migrations`), con contraseña SCRAM asignada por el usuario. `.env` en esta carpeta (ignorado por git).
-- `migrate mark-baseline` registró 00001 sin ejecutarla; `migrate up-by-one` aplicó 00002. Historial en
-  `receivables.goose_db_version`; tabla e índices a nombre de `receivables_migrator`.
-- `go run ./cmd/api`: `/healthz` 200, `/readyz` 200 (`database: ok`, `jwks: ok`), ruta desconocida 404 en Problem Details
-  con `correlationId`.
+- `go build`, `go vet` (también con `-tags=integration`), `golangci-lint --build-tags=integration` (sin issues propios;
+  ver CRLF abajo) y `go test ./...`: dominio 82–100 % (aging, amount, civil, collection y permission al 100 %),
+  casos de uso 84 %, eventos 86 %, HTTP 67 %.
+- Tests de propiedades con `rapid` de las 5 invariantes, con reenvíos de eventos y verificación de que toda operación
+  válida se acepta; tests de transiciones generados desde `receivable.yaml` y `payment.yaml`.
+- Contra dev con el login `receivables_api`:
+  - `make test-isolation` (6 criterios + bypass del guard): verde. Organizaciones de prueba de Platform
+    `f404f95e-…` (A) y `add6ee45-…` (B), en el `.env` local.
+  - `make test-e2e`: verde (factura → pago que la cancela con `PaymentReceived` y `ReceivableSettled` en el outbox con
+    el mismo `correlationId` → repetición idempotente → anulación con el saldo de vuelta; aplicaciones y reverso con
+    los problem types del contrato; dos aplicaciones simultáneas del 60 % → exactamente una entra; notas, anulación de
+    factura y reprocesos; aging, seguimiento y promesa).
+  - `make test-integration`: el guard rechaza el `UPDATE` directo de saldo y estado con el GUC fijado.
+  - `cmd/api` y `cmd/consumer` levantados: `/readyz` 200 (base, JWKS); endpoints sin token → 401.
+- Binarios estáticos para Linux (`api`, `consumer`, `replay`, `migrate`) compilan. **La imagen Docker no se construyó**:
+  Docker Desktop no estaba corriendo en esta máquina.
 
-## Incremento 2: qué hay
+## Datos que quedaron en dev
 
-- `pkg/tenancy` e `internal/adapters/auth` copiados de Platform (ADR 0003): JWKS con caché, solo ES256/RS256/EdDSA,
-  `TenantContext` inmutable, revalidación de la membresía en `core` con caché de 30 s (solo resultados positivos).
-- `internal/adapters/postgres`: `TxManager.WithinTenantTx` (`set_config(..., true)`), `MembershipResolver` y
-  repositorios sobre sqlc (`queries/`, `sqlc.yaml`, `sqlc/external.sql` con las columnas de `core` que se leen).
-- `internal/domain/permission`: la matriz completa de `docs/PLAN.md` §4, con un test que la fija.
-  `internal/domain/civil`: fecha de negocio ("hoy" en la zona de la organización). `internal/domain/receivable`: por
-  ahora solo `Status`.
-- `GET /v1/receivables`: filtros `status`, `customerId` y `overdue` (vencida = `open`/`partially_paid` con `due_on`
-  anterior al día de negocio de la organización), `limit` 1–100 y `cursor` opaco sobre `(created_at, id)` descendente.
-  Montos como string decimal con `trim_scale` (la conversión a `shopspring/decimal` llega con el agregado).
-  Todo `/v1` exige JWT + TenantContext: 401 `unauthenticated`; 403 `no-active-organization`, `membership-inactive` o
-  `forbidden`; 422 `validation`; 405 en Problem Details.
-- Tests: tenancy, verificador JWT, matriz, fecha civil, caso de uso con fakes y handler HTTP (incluido que un
-  `organization_id` en la query no cambia el tenant). `golangci-lint` con 0 issues.
+La app no puede borrar (sin `DELETE` en cuentas, pagos ni aplicaciones), así que quedaron datos ficticios:
+- organización de los ejemplos de contratos (`304b6c9e-…`, no existe en `core`): 3 cuentas de `cmd/replay` y 20 dead
+  letters de los ejemplos inválidos;
+- organizaciones de prueba A y B: las cuentas, pagos, seguimientos y promesas que crean las suites en cada corrida.
+Si molestan, las limpia `database-platform`.
 
-## Verificación contra dev (2026-09-25)
+## TODOs para revisar en equipo
 
-- `/readyz` 200; `/v1/receivables` sin token o con token inválido → 401 en Problem Details.
-- Con los adapters reales y el login `receivables_api` (programa temporal, ya borrado), usando usuarios de la suite de
-  aislamiento de Platform: la membresía de un owner se resuelve con sus roles; un miembro de otra organización y un
-  sujeto desconocido → `ErrNoMembership`; listado vacío con y sin filtros (el filtro `overdue` lee
-  `core.organizations.timezone`); `biller` → `ErrForbidden`. **Con esto queda validado el `GRANT` sobre `core`.**
-- Falta probar con un JWT real de Supabase (hay que iniciar sesión en Auth con el hook de `org_id`). El verificador
-  está cubierto por tests con un JWKS propio.
+**Transporte (P2)**
+- `TODO(P2)`: transporte de eventos. El consumidor usa `events.NoSource`; el adapter real implementa `events.Source`
+  (ack solo si `handle` devuelve nil). Tampoco hay publicador del outbox: los eventos quedan en
+  `integration.outbox_messages` sin `published_at`.
+- `TODO(P2)`: el pipeline asume el repo solo, pero el build necesita `../RDL.Contracts` (replace) y los tests leen sus
+  ejemplos: hace falta el monorepo o el tag de contratos.
 
-## Lectura de `core` (ADR 0002 §2)
+**Repo de contratos (PRs, no se resuelven aquí)**
+- Crear el tag `v0.1.0` y quitar el `replace`.
+- `customer-mismatch` (422) en `problems/receivables.yaml` (R11); ya se usa.
+- `openapi/receivables.yaml`: incorporar lo que completa `api/openapi.yaml` (promesas de pago, campos de FollowUp,
+  Payment con aplicaciones, detalle de la cuenta con aplicaciones y ajustes).
+- `state-machines/receivable.yaml`: faltan `paid → open` (revertir la única aplicación, R1), `paid → cancelled` (R2) y
+  `paid → partially_paid` por `CreditNoteIssued` (R3). Están permitidas en `pendingInContract` y en
+  `TestTransitionsPendingInContract`.
+- Sin evento de pago anulado (R7): el BFF se entera por la API.
+- Factura de total 0 (exonerada por completo): `original_amount > 0` en la base; hoy va a dead letter.
+- Factura anulada después de acreditarla por completo: no hay saldo que anular (la base no admite un ajuste de 0); hoy
+  va a dead letter.
+- Nota de débito con vencimiento propio (R4): se conserva el de la factura y el de la nota queda en el audit.
 
-Aplicada en dev el 2026-09-24 por pedido explícito del usuario (migración `0011_receivables_core_read` en
-`supabase_migrations`, fuera del flujo normal de `database-platform`, que debe incorporarla a su repo). Validada en la
-práctica el 2026-09-25 (incremento 2).
+**database-platform**
+- Incorporar a su repo las migraciones 0010 y 0011 aplicadas desde aquí, y las revocaciones de R9 (ADR 0002 §3).
+- Catálogos `fiscal.payment_methods` y `fiscal.sale_conditions` vacíos: `paymentMethodCode` solo se valida por formato.
 
-## Pendientes y TODOs
+**Decisiones de producto**
+- Tipo de cambio: se guarda el que manda el cliente (1 por defecto). Aplicaciones entre monedas: fuera de V1.
+- El `customerId` de un pago no se valida contra un maestro de clientes (Receivables no lo tiene); una aplicación exige
+  el mismo cliente que la cuenta.
+- `settled_at` se llena cuando el saldo llega a 0, también en `cancelled` (comportamiento de la base, sin cambio).
+- Aging con `asOf` pasado: reclasifica los saldos actuales, no reconstruye el histórico.
+- Seguimientos y promesas se listan sin paginación (las 200 más recientes).
+- Dead letters: se resuelven a mano (`resolved_at`) y se reenvían con `cmd/replay`; no hay herramienta en V1.
 
-- `TODO(P2)`: transporte de eventos.
-- `tests/isolation` (incremento 10): agregar el caso cruzado de `GET /v1/receivables` (cuentas de la organización B
-  invisibles para A, también con `organization_id` en la query).
-- `RDL.Contracts`: tag `v0.1.0` sin crear (el `replace` hacia `../RDL.Contracts` se agrega en el incremento 3); PR con
-  `customer-mismatch` (R11) y con el OpenAPI de Receivables completo.
-- `database-platform`: incorporar a su repo las migraciones 0010 y 0011 aplicadas desde aquí, y las revocaciones de R9 (ADR 0002 §3).
-- La baseline se revisó a mano contra el catálogo de dev; no hay una base local para ejecutarla desde cero.
-  Se prueba cuando la suite de integración tenga una base (incremento 10).
-- Dockerfile: agregar `consumer` y `replay` en el incremento 4. No se construyó la imagen en esta máquina.
+**Pendiente de verificar**
+- Construir la imagen Docker (`make docker`) con Docker Desktop encendido.
+- Probar con un JWT real de Supabase (hook de `org_id`): el verificador está cubierto con un JWKS propio y las suites
+  simulan solo la firma.
+- La baseline 00001 nunca se ejecutó desde cero (no hay base local).
+- CRLF: con `core.autocrlf=true` los `.go` quedan con CRLF en Windows y `golangci-lint` (gofmt) los marca aunque en el
+  índice estén en LF. Propuesta: `.gitattributes` con `*.go text eol=lf`.

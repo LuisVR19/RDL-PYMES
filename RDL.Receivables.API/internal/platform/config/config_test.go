@@ -30,6 +30,9 @@ func TestLoadDerivesAuthFromSupabaseURL(t *testing.T) {
 	if cfg.Auth.MembershipCacheTTL != 30*time.Second {
 		t.Errorf("ttl = %v", cfg.Auth.MembershipCacheTTL)
 	}
+	if cfg.Consumer.HTTPAddr != ":8084" || cfg.Consumer.MessageTimeout != 2*time.Minute {
+		t.Errorf("consumer = %+v", cfg.Consumer)
+	}
 }
 
 func TestLoadReportsAllMissingVariables(t *testing.T) {
@@ -57,16 +60,17 @@ func TestLoadRejectsMembershipCacheAboveOneMinute(t *testing.T) {
 
 func TestLoadRejectsInvalidValues(t *testing.T) {
 	_, err := load(env(map[string]string{
-		"SUPABASE_URL":      "no-es-url",
-		"DATABASE_URL":      "postgres://x",
-		"LOG_LEVEL":         "verbose",
-		"DB_MAX_CONNS":      "diez",
-		"HTTP_READ_TIMEOUT": "rápido",
+		"SUPABASE_URL":             "no-es-url",
+		"DATABASE_URL":             "postgres://x",
+		"LOG_LEVEL":                "verbose",
+		"DB_MAX_CONNS":             "diez",
+		"HTTP_READ_TIMEOUT":        "rápido",
+		"CONSUMER_MESSAGE_TIMEOUT": "5s",
 	}))
 	if err == nil {
 		t.Fatal("se esperaba error")
 	}
-	for _, key := range []string{"SUPABASE_URL", "LOG_LEVEL", "DB_MAX_CONNS", "HTTP_READ_TIMEOUT"} {
+	for _, key := range []string{"SUPABASE_URL", "LOG_LEVEL", "DB_MAX_CONNS", "HTTP_READ_TIMEOUT", "CONSUMER_MESSAGE_TIMEOUT"} {
 		if !strings.Contains(err.Error(), key) {
 			t.Errorf("el error no menciona %s: %v", key, err)
 		}

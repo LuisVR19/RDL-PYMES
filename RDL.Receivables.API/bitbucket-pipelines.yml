@@ -16,12 +16,13 @@ definitions:
           - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin"
           - golangci-lint run --build-tags=integration ./...
     - step: &isolation
-        name: aislamiento contra dev
+        name: integración, aislamiento y E2E contra dev
         trigger: manual
         caches: [gomod]
         script:
-          # TEST_DATABASE_URL: variable segura del repositorio (login receivables_api, nunca producción).
-          - go test -count=1 -tags=integration ./tests/isolation/...
+          # TEST_DATABASE_URL (+ TEST_DB_PASSWORD): variables seguras del repositorio (login receivables_api, nunca
+          # producción). ISOLATION_ORG_A/B: dos organizaciones de prueba de dev con owner activo (ADR 0008).
+          - go test -count=1 -tags=integration ./tests/...
 
 pipelines:
   pull-requests:

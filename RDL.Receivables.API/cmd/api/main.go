@@ -61,7 +61,10 @@ func run() error {
 		return err
 	}
 	memberships := tenancy.NewCachedResolver(postgres.NewMembershipResolver(pool), cfg.Auth.MembershipCacheTTL)
-	txm := postgres.NewTxManager(pool)
+	txm, err := wiring.TxManager(pool)
+	if err != nil {
+		return err
+	}
 
 	httpClient := &http.Client{Timeout: 5 * time.Second}
 	checks := health.New(log, 3*time.Second,

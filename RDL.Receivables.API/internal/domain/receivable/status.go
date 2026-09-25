@@ -1,4 +1,4 @@
-// Package receivable es el agregado cuenta por cobrar (el agregado completo llega en el incremento 3).
+// Package receivable es el agregado cuenta por cobrar: saldo, estado derivado, ajustes y aplicaciones.
 package receivable
 
 // Status sigue RDL.Contracts/state-machines/receivable.yaml.

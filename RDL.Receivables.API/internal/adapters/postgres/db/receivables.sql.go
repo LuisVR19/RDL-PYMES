@@ -13,6 +13,331 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const agingByDueDate = `-- name: AgingByDueDate :many
+select currency_code::text as currency_code, due_on, sum(balance_amount)::text as balance
+from receivables.receivables
+where organization_id = $1
+  and status in ('open', 'partially_paid')
+  and ($2::text is null or currency_code = $2::text)
+group by currency_code, due_on
+order by currency_code, due_on
+`
+
+type AgingByDueDateParams struct {
+	OrganizationID uuid.UUID
+	Currency       pgtype.Text
+}
+
+type AgingByDueDateRow struct {
+	CurrencyCode string
+	DueOn        pgtype.Date
+	Balance      string
+}
+
+// Aging: saldo cobrable agrupado por moneda y vencimiento; el tramo lo decide internal/domain/aging con asOf
+// (fecha de negocio de la organización). No usa la vista receivable_aging, que calcula con CURRENT_DATE en UTC.
+func (q *Queries) AgingByDueDate(ctx context.Context, arg AgingByDueDateParams) ([]AgingByDueDateRow, error) {
+	rows, err := q.db.Query(ctx, agingByDueDate, arg.OrganizationID, arg.Currency)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AgingByDueDateRow{}
+	for rows.Next() {
+		var i AgingByDueDateRow
+		if err := rows.Scan(&i.CurrencyCode, &i.DueOn, &i.Balance); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findReceivableByInvoice = `-- name: FindReceivableByInvoice :one
+select id, customer_id, currency_code::text as currency_code, original_amount::text as original_amount
+from receivables.receivables
+where organization_id = $1 and source_invoice_id = $2
+`
+
+type FindReceivableByInvoiceParams struct {
+	OrganizationID  uuid.UUID
+	SourceInvoiceID uuid.UUID
+}
+
+type FindReceivableByInvoiceRow struct {
+	ID             uuid.UUID
+	CustomerID     uuid.UUID
+	CurrencyCode   string
+	OriginalAmount string
+}
+
+func (q *Queries) FindReceivableByInvoice(ctx context.Context, arg FindReceivableByInvoiceParams) (FindReceivableByInvoiceRow, error) {
+	row := q.db.QueryRow(ctx, findReceivableByInvoice, arg.OrganizationID, arg.SourceInvoiceID)
+	var i FindReceivableByInvoiceRow
+	err := row.Scan(
+		&i.ID,
+		&i.CustomerID,
+		&i.CurrencyCode,
+		&i.OriginalAmount,
+	)
+	return i, err
+}
+
+const getReceivable = `-- name: GetReceivable :one
+select id, source_invoice_id, customer_id, customer_legal_name, document_number,
+       currency_code::text as currency_code,
+       trim_scale(original_amount)::text as original_amount,
+       trim_scale(balance_amount)::text as balance_amount,
+       issued_on, due_on, status, settled_at, created_at
+from receivables.receivables
+where organization_id = $1 and id = $2
+`
+
+type GetReceivableParams struct {
+	OrganizationID uuid.UUID
+	ID             uuid.UUID
+}
+
+type GetReceivableRow struct {
+	ID                uuid.UUID
+	SourceInvoiceID   uuid.UUID
+	CustomerID        uuid.UUID
+	CustomerLegalName string
+	DocumentNumber    string
+	CurrencyCode      string
+	OriginalAmount    string
+	BalanceAmount     string
+	IssuedOn          pgtype.Date
+	DueOn             pgtype.Date
+	Status            string
+	SettledAt         pgtype.Timestamptz
+	CreatedAt         time.Time
+}
+
+func (q *Queries) GetReceivable(ctx context.Context, arg GetReceivableParams) (GetReceivableRow, error) {
+	row := q.db.QueryRow(ctx, getReceivable, arg.OrganizationID, arg.ID)
+	var i GetReceivableRow
+	err := row.Scan(
+		&i.ID,
+		&i.SourceInvoiceID,
+		&i.CustomerID,
+		&i.CustomerLegalName,
+		&i.DocumentNumber,
+		&i.CurrencyCode,
+		&i.OriginalAmount,
+		&i.BalanceAmount,
+		&i.IssuedOn,
+		&i.DueOn,
+		&i.Status,
+		&i.SettledAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getReceivableByInvoice = `-- name: GetReceivableByInvoice :one
+select id, source_invoice_id, customer_id, customer_legal_name, document_number,
+       currency_code::text as currency_code,
+       trim_scale(original_amount)::text as original_amount,
+       trim_scale(balance_amount)::text as balance_amount,
+       issued_on, due_on, status, settled_at, created_at
+from receivables.receivables
+where organization_id = $1 and source_invoice_id = $2
+`
+
+type GetReceivableByInvoiceParams struct {
+	OrganizationID  uuid.UUID
+	SourceInvoiceID uuid.UUID
+}
+
+type GetReceivableByInvoiceRow struct {
+	ID                uuid.UUID
+	SourceInvoiceID   uuid.UUID
+	CustomerID        uuid.UUID
+	CustomerLegalName string
+	DocumentNumber    string
+	CurrencyCode      string
+	OriginalAmount    string
+	BalanceAmount     string
+	IssuedOn          pgtype.Date
+	DueOn             pgtype.Date
+	Status            string
+	SettledAt         pgtype.Timestamptz
+	CreatedAt         time.Time
+}
+
+func (q *Queries) GetReceivableByInvoice(ctx context.Context, arg GetReceivableByInvoiceParams) (GetReceivableByInvoiceRow, error) {
+	row := q.db.QueryRow(ctx, getReceivableByInvoice, arg.OrganizationID, arg.SourceInvoiceID)
+	var i GetReceivableByInvoiceRow
+	err := row.Scan(
+		&i.ID,
+		&i.SourceInvoiceID,
+		&i.CustomerID,
+		&i.CustomerLegalName,
+		&i.DocumentNumber,
+		&i.CurrencyCode,
+		&i.OriginalAmount,
+		&i.BalanceAmount,
+		&i.IssuedOn,
+		&i.DueOn,
+		&i.Status,
+		&i.SettledAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const insertReceivable = `-- name: InsertReceivable :exec
+insert into receivables.receivables (
+  id, organization_id, source_invoice_id, source_event_id, customer_id, customer_identification_number,
+  customer_legal_name, document_number, currency_code, original_amount, balance_amount, issued_on, due_on,
+  sale_condition_code
+) values (
+  $1, $2, $3, $4,
+  $5, $6, $7,
+  $8, $9::text, $10::text::numeric,
+  $10::text::numeric, $11, $12, $13
+)
+`
+
+type InsertReceivableParams struct {
+	ID                           uuid.UUID
+	OrganizationID               uuid.UUID
+	SourceInvoiceID              uuid.UUID
+	SourceEventID                uuid.UUID
+	CustomerID                   uuid.UUID
+	CustomerIdentificationNumber string
+	CustomerLegalName            string
+	DocumentNumber               string
+	CurrencyCode                 string
+	OriginalAmount               string
+	IssuedOn                     pgtype.Date
+	DueOn                        pgtype.Date
+	SaleConditionCode            string
+}
+
+// balance_amount y status no se envían: receivables_guard fija saldo = original y status = open en el alta.
+// original_amount viaja como texto y se convierte en la base: nunca pasa por float.
+func (q *Queries) InsertReceivable(ctx context.Context, arg InsertReceivableParams) error {
+	_, err := q.db.Exec(ctx, insertReceivable,
+		arg.ID,
+		arg.OrganizationID,
+		arg.SourceInvoiceID,
+		arg.SourceEventID,
+		arg.CustomerID,
+		arg.CustomerIdentificationNumber,
+		arg.CustomerLegalName,
+		arg.DocumentNumber,
+		arg.CurrencyCode,
+		arg.OriginalAmount,
+		arg.IssuedOn,
+		arg.DueOn,
+		arg.SaleConditionCode,
+	)
+	return err
+}
+
+const listAdjustmentViews = `-- name: ListAdjustmentViews :many
+select id, adjustment_type, trim_scale(amount)::text as amount, source_document_id, reason, created_at
+from receivables.receivable_adjustments
+where organization_id = $1 and receivable_id = $2
+order by created_at, id
+`
+
+type ListAdjustmentViewsParams struct {
+	OrganizationID uuid.UUID
+	ReceivableID   uuid.UUID
+}
+
+type ListAdjustmentViewsRow struct {
+	ID               uuid.UUID
+	AdjustmentType   string
+	Amount           string
+	SourceDocumentID uuid.NullUUID
+	Reason           string
+	CreatedAt        time.Time
+}
+
+func (q *Queries) ListAdjustmentViews(ctx context.Context, arg ListAdjustmentViewsParams) ([]ListAdjustmentViewsRow, error) {
+	rows, err := q.db.Query(ctx, listAdjustmentViews, arg.OrganizationID, arg.ReceivableID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdjustmentViewsRow{}
+	for rows.Next() {
+		var i ListAdjustmentViewsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AdjustmentType,
+			&i.Amount,
+			&i.SourceDocumentID,
+			&i.Reason,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listApplicationViewsForReceivable = `-- name: ListApplicationViewsForReceivable :many
+select id, payment_id, receivable_id, trim_scale(amount)::text as amount, applied_at, reversed_at, reversal_reason
+from receivables.payment_applications
+where organization_id = $1 and receivable_id = $2
+order by applied_at, id
+`
+
+type ListApplicationViewsForReceivableParams struct {
+	OrganizationID uuid.UUID
+	ReceivableID   uuid.UUID
+}
+
+type ListApplicationViewsForReceivableRow struct {
+	ID             uuid.UUID
+	PaymentID      uuid.UUID
+	ReceivableID   uuid.UUID
+	Amount         string
+	AppliedAt      time.Time
+	ReversedAt     pgtype.Timestamptz
+	ReversalReason pgtype.Text
+}
+
+func (q *Queries) ListApplicationViewsForReceivable(ctx context.Context, arg ListApplicationViewsForReceivableParams) ([]ListApplicationViewsForReceivableRow, error) {
+	rows, err := q.db.Query(ctx, listApplicationViewsForReceivable, arg.OrganizationID, arg.ReceivableID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListApplicationViewsForReceivableRow{}
+	for rows.Next() {
+		var i ListApplicationViewsForReceivableRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PaymentID,
+			&i.ReceivableID,
+			&i.Amount,
+			&i.AppliedAt,
+			&i.ReversedAt,
+			&i.ReversalReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listReceivables = `-- name: ListReceivables :many
 
 select id, source_invoice_id, customer_id, customer_legal_name, document_number,

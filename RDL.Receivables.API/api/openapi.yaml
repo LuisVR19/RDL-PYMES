@@ -1,0 +1,424 @@
+# Receivables API: el contrato que implementa este repo. Parte del esqueleto de RDL.Contracts/openapi/receivables.yaml
+# (mismas rutas, operationId y schemas) y lo completa con lo que el esqueleto deja para "su repo". Los componentes
+# comunes (Money, Uuid, Problem, paginación, Idempotency-Key) se referencian desde contratos, no se copian.
+#
+# Diferencias con el esqueleto de contratos, a subir por PR (TODO(contratos), docs/ESTADO.md):
+#   - promesas de pago (GET/POST /v1/receivables/{id}/promises, POST /v1/payment-promises/{id}/status), R8;
+#   - FollowUp con nextActionOn, performedAt y receivableId; Payment con applications y voidedAt;
+#   - Receivable detallado con applications y adjustments;
+#   - problem type customer-mismatch (R11).
+openapi: 3.1.0
+info:
+  title: Receivables API
+  version: 1.0.0
+  description: >
+    Cuentas por cobrar, pagos, aplicaciones, vencimientos y cobranza. Consume InvoiceIssued, CreditNoteIssued,
+    DebitNoteIssued e InvoiceCancelled; produce PaymentReceived y ReceivableSettled. Todo /v1 e /internal/v1 exige un
+    JWT de Supabase con org_id y una membresía activa (el tenant sale solo del token). Montos: string decimal, nunca
+    number. Fechas de negocio (receivedOn, dueOn, asOf...) en la zona de la organización.
+servers:
+  - url: http://localhost:8083
+security:
+  - bearerAuth: []
+tags:
+  - { name: receivables, description: Cuentas por cobrar }
+  - { name: payments, description: Pagos y aplicaciones }
+  - { name: collection, description: Seguimientos y promesas de pago }
+  - { name: internal, description: Para el BFF (mismo JWT del usuario, R10) }
+
+paths:
+  /v1/receivables:
+    get:
+      tags: [receivables]
+      operationId: listReceivables
+      summary: Cuentas por cobrar con saldo, de la más nueva a la más vieja. owner, admin, collector, accountant, read_only.
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ReceivableStatus' } }
+        - { name: customerId, in: query, schema: { $ref: '#/components/schemas/Uuid' } }
+        - name: overdue
+          in: query
+          description: Vencida = open o partially_paid con dueOn anterior al día de negocio de la organización.
+          schema: { type: boolean }
+      responses:
+        '200': { description: Página, content: { application/json: { schema: { $ref: '#/components/schemas/ReceivablePage' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /v1/receivables/aging:
+    get:
+      tags: [receivables]
+      operationId: getAging
+      summary: >
+        Saldo cobrable por moneda y tramo (R6: current, 1_30, 31_60, 61_90, 90_plus; vencer hoy no es atraso). Cada
+        moneda presente trae sus cinco tramos. Sin conversión entre monedas. Los saldos son los actuales.
+      parameters:
+        - name: asOf
+          in: query
+          description: Fecha de negocio del corte; por defecto, hoy en la zona de la organización.
+          schema: { $ref: '#/components/schemas/BusinessDate' }
+        - { name: currency, in: query, schema: { $ref: '#/components/schemas/CurrencyCode' } }
+      responses:
+        '200':
+          description: Aging
+          headers:
+            X-Aging-As-Of: { description: Fecha de corte usada, schema: { $ref: '#/components/schemas/BusinessDate' } }
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [bucket, currency, balance]
+                  properties:
+                    bucket: { type: string, enum: [current, 1_30, 31_60, 61_90, 90_plus] }
+                    currency: { $ref: '#/components/schemas/CurrencyCode' }
+                    balance: { $ref: '#/components/schemas/Money' }
+  /v1/receivables/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [receivables]
+      operationId: getReceivable
+      summary: Detalle con aplicaciones (vigentes y revertidas) y ajustes.
+      responses:
+        '200': { description: Cuenta, content: { application/json: { schema: { $ref: '#/components/schemas/ReceivableDetail' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/receivables/{id}/follow-ups:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [collection]
+      operationId: listFollowUps
+      summary: Gestiones de cobro de la cuenta (las 200 más recientes).
+      responses:
+        '200': { description: Seguimientos, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/FollowUp' } } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [collection]
+      operationId: createFollowUp
+      summary: Registra una gestión de cobro. owner, admin, collector.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/FollowUpInput' } } } }
+      responses:
+        '201': { description: Registrada, content: { application/json: { schema: { $ref: '#/components/schemas/FollowUp' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /v1/receivables/{id}/promises:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [collection]
+      operationId: listPromises
+      summary: Promesas de pago de la cuenta.
+      responses:
+        '200': { description: Promesas, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PaymentPromise' } } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [collection]
+      operationId: createPromise
+      summary: >
+        Registra una promesa (pending). La cuenta debe estar open o partially_paid (409), el monto no supera el saldo y
+        la fecha no es anterior a hoy en la zona de la organización (422). owner, admin, collector.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentPromiseInput' } } } }
+      responses:
+        '201': { description: Registrada, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentPromise' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /v1/payment-promises/{id}/status:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [collection]
+      operationId: closePromise
+      summary: 'pending → kept | broken | cancelled (R8, finales). owner, admin, collector.'
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: false, required: [status], properties: { status: { type: string, enum: [kept, broken, cancelled] } } }
+      responses:
+        '200': { description: Cerrada, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentPromise' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/payments:
+    get:
+      tags: [payments]
+      operationId: listPayments
+      summary: Pagos registrados, del más nuevo al más viejo, con sus aplicaciones.
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - { name: customerId, in: query, schema: { $ref: '#/components/schemas/Uuid' } }
+      responses:
+        '200': { description: Página, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentPage' } } } }
+    post:
+      tags: [payments]
+      operationId: createPayment
+      summary: >
+        Registra un pago (posted) y, opcionalmente, sus aplicaciones. Emite PaymentReceived y, si alguna cuenta llega a
+        cero, ReceivableSettled, en la misma transacción. receivedOn no puede ser posterior a hoy en la zona de la
+        organización. owner, admin, collector.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentInput' } } } }
+      responses:
+        '201': { description: Registrado (o repetición idempotente), content: { application/json: { schema: { $ref: '#/components/schemas/Payment' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /v1/payments/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      tags: [payments]
+      operationId: getPayment
+      summary: Detalle con aplicaciones.
+      responses:
+        '200': { description: Pago, content: { application/json: { schema: { $ref: '#/components/schemas/Payment' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/payments/{id}/void:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [payments]
+      operationId: voidPayment
+      summary: posted → voided con motivo; revierte las aplicaciones vigentes. Sin evento (R7). owner, admin.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ReasonInput' } } } }
+      responses:
+        '200': { description: Anulado, content: { application/json: { schema: { $ref: '#/components/schemas/Payment' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/payment-applications:
+    post:
+      tags: [payments]
+      operationId: applyPayment
+      summary: >
+        Aplica (parte de) un pago ya registrado a una cuenta. La suma aplicada nunca supera el pago; mismo cliente y
+        misma moneda. Si la cuenta llega a cero, ReceivableSettled. owner, admin, collector.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [paymentId, receivableId, amount]
+              properties:
+                paymentId: { $ref: '#/components/schemas/Uuid' }
+                receivableId: { $ref: '#/components/schemas/Uuid' }
+                amount: { $ref: '#/components/schemas/Money' }
+      responses:
+        '201': { description: Aplicado, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentApplication' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /v1/payment-applications/{id}/reverse:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [payments]
+      operationId: reversePaymentApplication
+      summary: Revierte una aplicación con motivo; el saldo vuelve exactamente a lo de antes. Nunca se borra. owner, admin.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ReasonInput' } } } }
+      responses:
+        '200': { description: Revertida, content: { application/json: { schema: { $ref: '#/components/schemas/PaymentApplication' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /internal/v1/receivables/by-invoice/{invoiceId}:
+    parameters:
+      - { name: invoiceId, in: path, required: true, schema: { $ref: '#/components/schemas/Uuid' } }
+    get:
+      tags: [internal]
+      operationId: getBalanceByInvoice
+      summary: Saldo de la cuenta de una factura (RDL.Contracts/openapi/bff-internal.yaml). Roles de lectura y biller (R10).
+      responses:
+        '200':
+          description: Saldo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [receivableId, status, currency, balanceAmount, dueOn]
+                properties:
+                  receivableId: { $ref: '#/components/schemas/Uuid' }
+                  status: { $ref: '#/components/schemas/ReceivableStatus' }
+                  currency: { $ref: '#/components/schemas/CurrencyCode' }
+                  balanceAmount: { $ref: '#/components/schemas/Money' }
+                  dueOn: { $ref: '#/components/schemas/BusinessDate' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/securitySchemes/bearerAuth' }
+  parameters:
+    IdempotencyKey: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/parameters/IdempotencyKey' }
+    Limit: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/parameters/Limit' }
+    Cursor: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/parameters/Cursor' }
+    Id: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/parameters/Id' }
+  responses:
+    BadRequest: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/responses/BadRequest' }
+    Unauthorized: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/responses/Unauthorized' }
+    Forbidden: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/responses/Forbidden' }
+    NotFound: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/responses/NotFound' }
+    Conflict: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/responses/Conflict' }
+    UnprocessableEntity: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/responses/UnprocessableEntity' }
+  schemas:
+    Uuid: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/Uuid' }
+    Money: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/Money' }
+    ExchangeRate: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/ExchangeRate' }
+    CurrencyCode: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/CurrencyCode' }
+    BusinessDate: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/BusinessDate' }
+    UtcDateTime: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/UtcDateTime' }
+    FiscalCode: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/FiscalCode' }
+    PageInfo: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/PageInfo' }
+
+    ReceivableStatus: { type: string, enum: [open, partially_paid, paid, cancelled], description: state-machines/receivable.yaml }
+    Receivable:
+      type: object
+      required: [id, sourceInvoiceId, customerId, documentNumber, currency, originalAmount, balanceAmount, issuedOn, dueOn, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        sourceInvoiceId: { $ref: '#/components/schemas/Uuid' }
+        customerId: { $ref: '#/components/schemas/Uuid' }
+        customerLegalName: { type: string }
+        documentNumber: { type: string }
+        currency: { $ref: '#/components/schemas/CurrencyCode' }
+        originalAmount: { $ref: '#/components/schemas/Money' }
+        balanceAmount: { $ref: '#/components/schemas/Money' }
+        issuedOn: { $ref: '#/components/schemas/BusinessDate' }
+        dueOn: { $ref: '#/components/schemas/BusinessDate' }
+        status: { $ref: '#/components/schemas/ReceivableStatus' }
+        settledAt: { $ref: '#/components/schemas/UtcDateTime' }
+    ReceivableDetail:
+      allOf:
+        - $ref: '#/components/schemas/Receivable'
+        - type: object
+          required: [applications, adjustments]
+          properties:
+            applications: { type: array, items: { $ref: '#/components/schemas/PaymentApplication' } }
+            adjustments:
+              type: array
+              items:
+                type: object
+                required: [id, adjustmentType, amount, reason, createdAt]
+                properties:
+                  id: { $ref: '#/components/schemas/Uuid' }
+                  adjustmentType: { type: string, enum: [credit_note, debit_note, cancellation, write_off] }
+                  amount: { $ref: '#/components/schemas/Money' }
+                  sourceDocumentId: { $ref: '#/components/schemas/Uuid' }
+                  reason: { type: string }
+                  createdAt: { $ref: '#/components/schemas/UtcDateTime' }
+    ReceivablePage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          required: [items]
+          properties: { items: { type: array, items: { $ref: '#/components/schemas/Receivable' } } }
+    PaymentInput:
+      type: object
+      additionalProperties: false
+      required: [customerId, receivedOn, amount, currency, paymentMethodCode]
+      properties:
+        customerId: { $ref: '#/components/schemas/Uuid' }
+        receivedOn: { $ref: '#/components/schemas/BusinessDate' }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/CurrencyCode' }
+        exchangeRate: { $ref: '#/components/schemas/ExchangeRate' }
+        paymentMethodCode: { $ref: '#/components/schemas/FiscalCode' }
+        reference: { type: string, maxLength: 100 }
+        notes: { type: string, maxLength: 1000 }
+        applications:
+          type: array
+          maxItems: 100
+          description: Cada cuenta una sola vez.
+          items:
+            type: object
+            additionalProperties: false
+            required: [receivableId, amount]
+            properties:
+              receivableId: { $ref: '#/components/schemas/Uuid' }
+              amount: { $ref: '#/components/schemas/Money' }
+    Payment:
+      type: object
+      required: [id, customerId, receivedOn, amount, currency, exchangeRate, paymentMethodCode, status, createdAt, applications]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        customerId: { $ref: '#/components/schemas/Uuid' }
+        receivedOn: { $ref: '#/components/schemas/BusinessDate' }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { $ref: '#/components/schemas/CurrencyCode' }
+        exchangeRate: { $ref: '#/components/schemas/ExchangeRate' }
+        paymentMethodCode: { $ref: '#/components/schemas/FiscalCode' }
+        reference: { type: string }
+        notes: { type: string }
+        status: { type: string, enum: [posted, voided], description: state-machines/payment.yaml }
+        voidReason: { type: string }
+        voidedAt: { $ref: '#/components/schemas/UtcDateTime' }
+        createdAt: { $ref: '#/components/schemas/UtcDateTime' }
+        applications: { type: array, items: { $ref: '#/components/schemas/PaymentApplication' } }
+    PaymentPage:
+      allOf:
+        - $ref: '#/components/schemas/PageInfo'
+        - type: object
+          required: [items]
+          properties: { items: { type: array, items: { $ref: '#/components/schemas/Payment' } } }
+    PaymentApplication:
+      type: object
+      required: [id, paymentId, receivableId, amount, appliedAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        paymentId: { $ref: '#/components/schemas/Uuid' }
+        receivableId: { $ref: '#/components/schemas/Uuid' }
+        amount: { $ref: '#/components/schemas/Money' }
+        appliedAt: { $ref: '#/components/schemas/UtcDateTime' }
+        reversedAt: { $ref: '#/components/schemas/UtcDateTime' }
+        reversalReason: { type: string }
+    ReasonInput:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties: { reason: { type: string, minLength: 1, maxLength: 500 } }
+    FollowUpInput:
+      type: object
+      additionalProperties: false
+      required: [followupType, notes]
+      properties:
+        followupType: { type: string, enum: [call, email, visit, message, note] }
+        notes: { type: string, minLength: 1, maxLength: 2000 }
+        nextActionOn: { $ref: '#/components/schemas/BusinessDate' }
+    FollowUp:
+      type: object
+      required: [id, receivableId, followupType, notes, performedAt, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        receivableId: { $ref: '#/components/schemas/Uuid' }
+        followupType: { type: string, enum: [call, email, visit, message, note] }
+        notes: { type: string }
+        nextActionOn: { $ref: '#/components/schemas/BusinessDate' }
+        performedAt: { $ref: '#/components/schemas/UtcDateTime' }
+        performedByUserId: { $ref: '#/components/schemas/Uuid' }
+        createdAt: { $ref: '#/components/schemas/UtcDateTime' }
+    PaymentPromiseInput:
+      type: object
+      additionalProperties: false
+      required: [promisedAmount, promisedOn]
+      properties:
+        promisedAmount: { $ref: '#/components/schemas/Money' }
+        promisedOn: { $ref: '#/components/schemas/BusinessDate' }
+        followupId: { $ref: '#/components/schemas/Uuid' }
+    PaymentPromise:
+      type: object
+      required: [id, receivableId, promisedAmount, promisedOn, status, createdAt, updatedAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        receivableId: { $ref: '#/components/schemas/Uuid' }
+        followupId: { $ref: '#/components/schemas/Uuid' }
+        promisedAmount: { $ref: '#/components/schemas/Money' }
+        promisedOn: { $ref: '#/components/schemas/BusinessDate' }
+        status: { type: string, enum: [pending, kept, broken, cancelled] }
+        createdAt: { $ref: '#/components/schemas/UtcDateTime' }
+        updatedAt: { $ref: '#/components/schemas/UtcDateTime' }

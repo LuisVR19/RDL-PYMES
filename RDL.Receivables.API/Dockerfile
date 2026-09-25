@@ -8,12 +8,14 @@ COPY RDL.Receivables.API/go.mod RDL.Receivables.API/go.sum RDL.Receivables.API/
 WORKDIR /src/RDL.Receivables.API
 RUN go mod download
 COPY RDL.Receivables.API/ .
-# TODO(incremento 4): agregar ./cmd/consumer y ./cmd/replay cuando existan.
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/api ./cmd/api \
+ && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/consumer ./cmd/consumer \
+ && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/replay ./cmd/replay \
  && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/migrate ./cmd/migrate
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/ /usr/local/bin/
 USER nonroot:nonroot
-EXPOSE 8083
+# La misma imagen sirve para la API (por defecto) y el consumidor: ENTRYPOINT ["/usr/local/bin/consumer"], puerto 8084.
+EXPOSE 8083 8084
 ENTRYPOINT ["/usr/local/bin/api"]

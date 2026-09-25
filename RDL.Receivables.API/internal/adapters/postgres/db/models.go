@@ -5,11 +5,28 @@
 package db
 
 import (
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AuditAuditEvent struct {
+	ID             uuid.UUID
+	OrganizationID uuid.NullUUID
+	OccurredAt     time.Time
+	Service        string
+	ActorType      string
+	ActorUserID    uuid.NullUUID
+	Action         string
+	EntityType     string
+	EntityID       uuid.NullUUID
+	CorrelationID  uuid.UUID
+	IpAddress      *netip.Addr
+	UserAgent      pgtype.Text
+	Payload        []byte
+}
 
 type CoreOrganization struct {
 	ID       uuid.UUID
@@ -34,6 +51,58 @@ type CoreUser struct {
 	ID              uuid.UUID
 	ExternalSubject string
 	Status          string
+}
+
+type IntegrationDeadLetter struct {
+	ID               uuid.UUID
+	ConsumerService  string
+	EventID          uuid.UUID
+	EventType        string
+	OrganizationID   uuid.NullUUID
+	Payload          []byte
+	ErrorMessage     string
+	Attempts         int32
+	FailedAt         time.Time
+	ResolvedAt       pgtype.Timestamptz
+	ResolvedByUserID uuid.NullUUID
+	ResolutionNotes  pgtype.Text
+}
+
+type IntegrationIdempotencyKey struct {
+	Service        string
+	OrganizationID uuid.UUID
+	IdempotencyKey string
+	RequestHash    string
+	ResponseStatus pgtype.Int4
+	ResponseBody   []byte
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
+}
+
+type IntegrationInboxMessage struct {
+	ConsumerService string
+	EventID         uuid.UUID
+	EventType       string
+	OrganizationID  uuid.UUID
+	ReceivedAt      time.Time
+	ProcessedAt     pgtype.Timestamptz
+}
+
+type IntegrationOutboxMessage struct {
+	ID              uuid.UUID
+	SourceService   string
+	OrganizationID  uuid.UUID
+	EventType       string
+	EventVersion    int32
+	AggregateType   string
+	AggregateID     uuid.UUID
+	CorrelationID   uuid.UUID
+	Payload         []byte
+	OccurredAt      time.Time
+	PublishedAt     pgtype.Timestamptz
+	PublishAttempts int32
+	NextAttemptAt   pgtype.Timestamptz
+	LastError       pgtype.Text
 }
 
 type ReceivablesCollectionFollowup struct {

@@ -1,0 +1,36 @@
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw action: "issueInvoice"
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw customer: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xc0, 0x1}
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw currency: "CRC"
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw original: 1
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw originalScale: 0
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw action: "debitNote"
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw receivable: uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw debit: 1
+# 2026/09/25 14:59:38.392112 [TestInvariants] [rapid] draw debitScale: 0
+# 2026/09/25 14:59:38.392112 [TestInvariants] cuenta 00000000-0000-0000-0000-000000000001: estado partially_paid con saldo 2, se esperaba open
+# 
+v0.4.8#11323834312309866324
+0x1084210842108
+0x6b74f03291620
+0x4
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1084210842108
+0x38e38e38e38e4
+0x3
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0

@@ -3,23 +3,43 @@
 
 GO ?= go
 
-.PHONY: run build test test-isolation lint migrate-up migrate-status migrate-mark-baseline sqlc docker
+.PHONY: run consumer run-consumer replay build test test-integration test-isolation test-e2e lint migrate-up migrate-status migrate-mark-baseline sqlc docker
 
 run:
 	$(GO) run ./cmd/api
 
+# Consumidor de eventos. Hasta P2 no tiene transporte (TODO(P2)): los eventos entran con make replay.
+consumer run-consumer:
+	$(GO) run ./cmd/consumer
+
+# Reproduce eventos desde un archivo, por el mismo procesamiento que el consumidor. Solo dev y local.
+#   make replay FILE=../RDL.Contracts/examples/events/invoice-issued.v1.json [SET=invalid]
+replay:
+	$(GO) run ./cmd/replay -file $(FILE) -set $(or $(SET),valid)
+
 build:
 	$(GO) build ./...
 	$(GO) build -o bin/api ./cmd/api
+	$(GO) build -o bin/consumer ./cmd/consumer
+	$(GO) build -o bin/replay ./cmd/replay
 	$(GO) build -o bin/migrate ./cmd/migrate
 
 test:
 	$(GO) vet ./...
 	$(GO) test -race -count=1 ./...
 
-# Suite de aislamiento entre tenants (incremento 10). Usa TEST_DATABASE_URL o el .env (login receivables_api).
+# Integración contra dev con el login receivables_api. Cada test hace rollback: no deja datos.
+test-integration:
+	$(GO) test -count=1 -tags=integration ./tests/integration/...
+
+# Suite de aislamiento entre tenants (6 criterios, ADR 0008). Usa TEST_DATABASE_URL o el .env (login receivables_api)
+# e ISOLATION_ORG_A/B (dos organizaciones de prueba de dev). Deja cuentas y pagos de prueba en esas organizaciones.
 test-isolation:
 	$(GO) test -count=1 -tags=integration ./tests/isolation/...
+
+# De punta a punta contra dev: factura, pago, ReceivableSettled, anulación, notas, aging y cobranza.
+test-e2e:
+	$(GO) test -count=1 -tags=integration ./tests/e2e/...
 
 lint:
 	golangci-lint run --build-tags=integration ./...

@@ -11,7 +11,9 @@ import (
 	"rdl/receivables-api/pkg/tenancy"
 )
 
+// fakeTx embebe Tx: los repositorios que el listado no usa fallan si se llaman.
 type fakeTx struct {
+	Tx
 	tz        string
 	tzCalls   int
 	items     []ReceivableView
@@ -113,4 +115,16 @@ func TestListReceivablesWithoutOverdueSkipsTimezone(t *testing.T) {
 	if f.tzCalls != 0 || !f.gotQuery.Today.IsZero() {
 		t.Fatal("sin filtro overdue no hace falta la zona horaria")
 	}
+}
+
+func (f *fakeTx) Get(context.Context, uuid.UUID, uuid.UUID) (ReceivableDetail, error) {
+	panic("no usado por el listado")
+}
+
+func (f *fakeTx) GetByInvoice(context.Context, uuid.UUID, uuid.UUID) (ReceivableView, error) {
+	panic("no usado por el listado")
+}
+
+func (f *fakeTx) AgingByDueDate(context.Context, uuid.UUID, string) ([]AgingRow, error) {
+	panic("no usado por el listado")
 }

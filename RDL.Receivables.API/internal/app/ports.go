@@ -22,6 +22,12 @@ type TxManager interface {
 type Tx interface {
 	Organizations() OrganizationReader
 	Receivables() ReceivableReader
+	Payments() PaymentReader
+	Ledger() Ledger
+	Collection() CollectionStore
+	Idempotency() IdempotencyStore
+	Audit() AuditRecorder
+	Outbox() Outbox
 }
 
 // OrganizationReader lee de core lo que Receivables necesita de la organización activa (solo lectura, ADR 0002 §2).
@@ -32,6 +38,11 @@ type OrganizationReader interface {
 
 type ReceivableReader interface {
 	List(ctx context.Context, organizationID uuid.UUID, q ReceivableQuery) ([]ReceivableView, error)
+	// Get y GetByInvoice devuelven ErrNotFound si la cuenta no existe en la organización (o es de otra).
+	Get(ctx context.Context, organizationID, id uuid.UUID) (ReceivableDetail, error)
+	GetByInvoice(ctx context.Context, organizationID, invoiceID uuid.UUID) (ReceivableView, error)
+	// AgingByDueDate suma el saldo cobrable por moneda y vencimiento; el tramo lo decide internal/domain/aging.
+	AgingByDueDate(ctx context.Context, organizationID uuid.UUID, currency string) ([]AgingRow, error)
 }
 
 // ReceivableQuery pide una página de cuentas. After es el último elemento de la página anterior.
@@ -46,7 +57,7 @@ type ReceivableQuery struct {
 }
 
 // ReceivableView es la cuenta tal como la lista la API. Los montos son el string decimal del contrato
-// (RDL.Contracts ADR 0002); la aritmética con decimal llega con el agregado (incremento 3).
+// (RDL.Contracts ADR 0002): la API no calcula con ellos, solo los muestra.
 type ReceivableView struct {
 	ID                uuid.UUID
 	SourceInvoiceID   uuid.UUID

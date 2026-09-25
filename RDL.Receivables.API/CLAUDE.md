@@ -30,7 +30,9 @@ Consume `InvoiceIssued`, `CreditNoteIssued`, `DebitNoteIssued` e `InvoiceCancell
 - La matriz de permisos vive solo en `internal/domain/permission`.
 - Migraciones: goose en `migrations/`, historial en `receivables.goose_db_version`, patrón expand → migrate → contract.
   Mostrar el SQL antes de aplicarlo; solo dev y local.
-- Endpoints nuevos: registrarlos en `internal/wiring` y agregar su caso cruzado en `tests/isolation`.
+- Endpoints nuevos: registrarlos en `internal/wiring`, documentarlos en `api/openapi.yaml` (un test compara el
+  router con el OpenAPI) y agregar su caso cruzado en `tests/isolation`. Eventos nuevos: `events.NewDecoder` y
+  `wiring.EventProcessor`.
 - No debilites un test de aislamiento ni desactives RLS para que algo pase: reporta y propone la migración.
 - Nunca uses la service_role key, producción, ni datos reales. No se inventa un broker (transporte: `TODO(P2)`).
 - Las decisiones abiertas del repo de contratos no se resuelven aquí: `TODO` y a `docs/ESTADO.md`.

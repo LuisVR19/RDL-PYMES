@@ -21,6 +21,7 @@ type Config struct {
 	Auth        Auth
 	Log         Log
 	OTel        OTel
+	Consumer    Consumer
 }
 
 type HTTP struct {
@@ -50,6 +51,14 @@ type Auth struct {
 
 type Log struct {
 	Level string
+}
+
+// Consumer es la configuración de cmd/consumer (y de cmd/replay, que usa el mismo procesador).
+type Consumer struct {
+	// HTTPAddr sirve /healthz y /readyz del consumidor (no expone la API).
+	HTTPAddr string
+	// MessageTimeout es el tiempo máximo de un mensaje con todos sus reintentos (6 intentos, hasta ~63 s de espera).
+	MessageTimeout time.Duration
 }
 
 type OTel struct {
@@ -94,6 +103,10 @@ func load(getenv func(string) string) (Config, error) {
 		},
 		Log:  Log{Level: r.optional("LOG_LEVEL", "info")},
 		OTel: OTel{Endpoint: r.optional("OTEL_EXPORTER_OTLP_ENDPOINT", "")},
+		Consumer: Consumer{
+			HTTPAddr:       r.optional("CONSUMER_HTTP_ADDR", ":8084"),
+			MessageTimeout: r.duration("CONSUMER_MESSAGE_TIMEOUT", 2*time.Minute),
+		},
 	}
 
 	r.validURL("SUPABASE_URL", supabaseURL)
@@ -110,6 +123,9 @@ func load(getenv func(string) string) (Config, error) {
 	}
 	if cfg.Auth.MembershipCacheTTL <= 0 || cfg.Auth.MembershipCacheTTL > 60*time.Second {
 		r.fail("AUTH_MEMBERSHIP_CACHE_TTL debe estar entre 1s y 60s: una membresía revocada no puede seguir válida más de un minuto")
+	}
+	if cfg.Consumer.MessageTimeout < 30*time.Second {
+		r.fail("CONSUMER_MESSAGE_TIMEOUT debe ser de al menos 30s: los reintentos esperan hasta ~63s en total")
 	}
 	switch cfg.Log.Level {
 	case "debug", "info", "warn", "error":
