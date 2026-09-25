@@ -2,33 +2,54 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 
 	"rdl/receivables-api/internal/adapters/http/problem"
 	"rdl/receivables-api/internal/platform/health"
 	"rdl/receivables-api/pkg/correlation"
 	"rdl/receivables-api/pkg/requestinfo"
+	"rdl/receivables-api/pkg/tenancy"
 )
 
 type Deps struct {
-	Log    *slog.Logger
-	Health *health.Handler
+	Log         *slog.Logger
+	Health      *health.Handler
+	Verifier    tenancy.TokenVerifier
+	Memberships tenancy.MembershipResolver
+	Receivables *ReceivableHandlers
 }
 
 // NewRouter arma el mux con el router estándar de Go 1.22+, igual que Platform.
 //
 //	/healthz, /readyz    públicas
-//	/v1/...              (incremento 2) JWT válido + TenantContext
+//	/v1/...              JWT válido + TenantContext (org_id del token + membresía activa revalidada en core)
+//
+// Todo /v1 opera dentro de una organización, así que el TenantContext se exige para todo el prefijo.
 func NewRouter(d Deps) http.Handler {
+	errs := errorResponder{log: d.Log}
+	tenancyFail := tenancyErrorWriter(d.Log)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", d.Health.Live)
 	mux.HandleFunc("GET /readyz", d.Health.Ready)
 	mux.HandleFunc("/", notFound)
+
+	v1 := newRoutes()
+	if d.Receivables != nil {
+		d.Receivables.register(v1, errs.write)
+	}
+	if d.Verifier != nil && d.Memberships != nil {
+		protected := tenancy.RequireOrganization(d.Memberships, tenancyFail)(v1.mux)
+		mux.Handle("/v1/", tenancy.Authenticate(d.Verifier, tenancyFail)(protected))
+	}
 
 	var h http.Handler = mux
 	h = accessLog(d.Log, h)
@@ -39,6 +60,47 @@ func NewRouter(d Deps) http.Handler {
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) { problem.Write(w, r, problem.NotFound) }
+
+// routes envuelve un ServeMux para que cada ruta con método tenga su 405 en Problem Details (el mux estándar
+// lo respondería en texto plano) y para anotar el patrón en trazas y logs aunque el mux esté anidado.
+// Origen: RDL.Platform.API, copiado sin cambios de comportamiento.
+type routes struct {
+	mux   *http.ServeMux
+	paths map[string]bool
+}
+
+func newRoutes() *routes {
+	rt := &routes{mux: http.NewServeMux(), paths: map[string]bool{}}
+	rt.mux.HandleFunc("/", notFound)
+	return rt
+}
+
+func (rt *routes) handle(pattern string, h http.HandlerFunc) {
+	rt.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		setRoute(r.Context(), pattern)
+		h(w, r)
+	})
+	_, path, hasMethod := strings.Cut(pattern, " ")
+	if !hasMethod || rt.paths[path] {
+		return
+	}
+	rt.paths[path] = true
+	rt.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		problem.Write(w, r, problem.MethodNotAllowed)
+	})
+}
+
+type routeKey struct{}
+
+type routeHolder struct{ pattern string }
+
+func setRoute(ctx context.Context, pattern string) {
+	if h, ok := ctx.Value(routeKey{}).(*routeHolder); ok {
+		h.pattern = pattern
+	}
+	// Nombre de ruta y no URL: evita alta cardinalidad en las trazas.
+	trace.SpanFromContext(ctx).SetName(pattern)
+}
 
 func recoverer(log *slog.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -68,14 +130,15 @@ func (s *statusRecorder) WriteHeader(code int) {
 func accessLog(log *slog.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+		route := &routeHolder{}
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
-		next.ServeHTTP(rec, r)
+		next.ServeHTTP(rec, r.WithContext(context.WithValue(r.Context(), routeKey{}, route)))
 		if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
 			return
 		}
 		log.InfoContext(r.Context(), "http request",
 			slog.String("method", r.Method),
-			slog.String("path", r.URL.Path),
+			slog.String("route", route.pattern),
 			slog.Int("status", rec.status),
 			slog.Duration("duration", time.Since(start)),
 		)
