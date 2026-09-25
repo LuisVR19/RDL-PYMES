@@ -56,6 +56,11 @@ export const STATUS = {
     posted: { label: 'Registrado', tone: 'success', icon: Check },
     voided: { label: 'Anulado', tone: 'neutral', icon: CircleSlash },
   },
+  // Clientes y productos (prototipo «07» y «10»): activo o dado de baja.
+  record: {
+    active: { label: 'Activo', tone: 'success', icon: Check },
+    inactive: { label: 'Inactivo', tone: 'neutral', icon: Circle },
+  },
   membership: {
     active: { label: 'Activo', tone: 'success', icon: Check },
     suspended: { label: 'Suspendido', tone: 'neutral', icon: Pause },

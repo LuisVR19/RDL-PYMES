@@ -16,9 +16,8 @@ type SummarySource string
 const (
 	// SummaryInternal es la ruta del contrato: GET /internal/v1/invoices/{id}/summary.
 	SummaryInternal SummarySource = "internal"
-	// SummaryPublic la deriva del detalle público. TEMPORAL: Billing todavía no implementa la interna
-	// (hoy es un esqueleto en el contrato). Trae la factura completa con sus líneas, así que pesa más.
-	// TODO(billing): cambiar el valor por defecto a "internal" en cuanto Billing exponga la ruta interna.
+	// SummaryPublic la deriva del detalle público. Respaldo para una Billing anterior a la ruta interna:
+	// trae la factura completa con sus líneas, así que pesa más.
 	SummaryPublic SummarySource = "public"
 )
 
@@ -58,7 +57,7 @@ func (b *BillingReader) InvoiceSummary(ctx context.Context, invoiceID string) (v
 	id := url.PathEscape(invoiceID)
 	if b.Source == SummaryPublic {
 		var dto invoiceDTO
-		if err := b.Client.getJSON(ctx, "/v1/invoices/"+id, &dto); err != nil {
+		if err := b.Client.getJSON(ctx, "/v1/invoices/"+id, nil, &dto); err != nil {
 			return view.InvoiceSummary{}, err
 		}
 		return view.InvoiceSummary{
@@ -75,7 +74,7 @@ func (b *BillingReader) InvoiceSummary(ctx context.Context, invoiceID string) (v
 	}
 
 	var dto invoiceSummaryDTO
-	if err := b.Client.getJSON(ctx, "/internal/v1/invoices/"+id+"/summary", &dto); err != nil {
+	if err := b.Client.getJSON(ctx, "/internal/v1/invoices/"+id+"/summary", nil, &dto); err != nil {
 		return view.InvoiceSummary{}, err
 	}
 	return view.InvoiceSummary{
@@ -105,7 +104,7 @@ type fiscalStatusDTO struct {
 func (f *FiscalReader) FiscalStatusBySource(ctx context.Context, sourceDocumentID string) (view.FiscalStatus, error) {
 	var dto fiscalStatusDTO
 	path := "/internal/v1/electronic-documents/by-source/" + url.PathEscape(sourceDocumentID)
-	if err := f.Client.getJSON(ctx, path, &dto); err != nil {
+	if err := f.Client.getJSON(ctx, path, nil, &dto); err != nil {
 		return view.FiscalStatus{}, err
 	}
 	return view.FiscalStatus{
@@ -132,7 +131,7 @@ type balanceDTO struct {
 func (r *ReceivablesReader) BalanceByInvoice(ctx context.Context, invoiceID string) (view.Balance, error) {
 	var dto balanceDTO
 	path := "/internal/v1/receivables/by-invoice/" + url.PathEscape(invoiceID)
-	if err := r.Client.getJSON(ctx, path, &dto); err != nil {
+	if err := r.Client.getJSON(ctx, path, nil, &dto); err != nil {
 		return view.Balance{}, err
 	}
 	return view.Balance{
@@ -142,4 +141,98 @@ func (r *ReceivablesReader) BalanceByInvoice(ctx context.Context, invoiceID stri
 		BalanceAmount: dto.BalanceAmount,
 		DueOn:         dto.DueOn,
 	}, nil
+}
+
+// --- Listado de documentos (pantalla 12) ---
+
+// invoicePageDTO es la parte de GET /v1/invoices de Billing que usa el listado. Las líneas se ignoran a
+// propósito: la tabla no las muestra y el gateway no las reinterpreta.
+type invoicePageDTO struct {
+	Items []struct {
+		ID                 string `json:"id"`
+		DocumentType       string `json:"documentType"`
+		Number             string `json:"number"`
+		Status             string `json:"status"`
+		RequiresCorrection bool   `json:"requiresCorrection"`
+		CustomerID         string `json:"customerId"`
+		CustomerSnapshot   struct {
+			LegalName string `json:"legalName"`
+		} `json:"customerSnapshot"`
+		IssuedAt  string `json:"issuedAt"`
+		DueDate   string `json:"dueDate"`
+		Currency  string `json:"currency"`
+		Total     string `json:"total"`
+		CreatedAt string `json:"createdAt"`
+	} `json:"items"`
+	NextCursor string `json:"nextCursor"`
+}
+
+func (b *BillingReader) ListInvoices(ctx context.Context, query map[string][]string) (view.InvoiceRows, error) {
+	var dto invoicePageDTO
+	if err := b.Client.getJSON(ctx, "/v1/invoices", url.Values(query), &dto); err != nil {
+		return view.InvoiceRows{}, err
+	}
+	rows := view.InvoiceRows{Rows: make([]view.InvoiceRow, 0, len(dto.Items)), NextCursor: dto.NextCursor}
+	for _, it := range dto.Items {
+		rows.Rows = append(rows.Rows, view.InvoiceRow{
+			ID: it.ID, DocumentType: it.DocumentType, Number: it.Number, Status: it.Status,
+			RequiresCorrection: it.RequiresCorrection, CustomerID: it.CustomerID,
+			CustomerLegalName: it.CustomerSnapshot.LegalName, IssuedAt: it.IssuedAt, DueDate: it.DueDate,
+			Currency: it.Currency, Total: it.Total, CreatedAt: it.CreatedAt,
+		})
+	}
+	return rows, nil
+}
+
+// idBatchDTO es IdBatch de bff-internal.yaml.
+type idBatchDTO struct {
+	IDs []string `json:"ids"`
+}
+
+// FiscalStatusesBySource: POST /internal/v1/electronic-documents/by-source (getFiscalStatusesBySource).
+// TODO(P5): confirmar contra RDL.EInvoice.API cuando exista; la ruta está propuesta, sin publicar, en contratos.
+func (f *FiscalReader) FiscalStatusesBySource(ctx context.Context, ids []string) (map[string]view.FiscalStatus, error) {
+	var dto struct {
+		Items []struct {
+			SourceDocumentID string `json:"sourceDocumentId"`
+			fiscalStatusDTO
+		} `json:"items"`
+	}
+	if err := f.Client.postReadJSON(ctx, "/internal/v1/electronic-documents/by-source", idBatchDTO{IDs: ids}, &dto); err != nil {
+		return nil, err
+	}
+	out := make(map[string]view.FiscalStatus, len(dto.Items))
+	for _, it := range dto.Items {
+		out[it.SourceDocumentID] = view.FiscalStatus{
+			ElectronicDocumentID:  it.ElectronicDocumentID,
+			Status:                it.Status,
+			HaciendaStatusMessage: it.HaciendaStatusMessage,
+		}
+	}
+	return out, nil
+}
+
+// BalancesByInvoice: POST /internal/v1/receivables/by-invoice (getBalancesByInvoice).
+// TODO(P6): confirmar contra RDL.Receivables.API cuando exista; la ruta está propuesta, sin publicar, en contratos.
+func (r *ReceivablesReader) BalancesByInvoice(ctx context.Context, ids []string) (map[string]view.Balance, error) {
+	var dto struct {
+		Items []struct {
+			InvoiceID string `json:"invoiceId"`
+			balanceDTO
+		} `json:"items"`
+	}
+	if err := r.Client.postReadJSON(ctx, "/internal/v1/receivables/by-invoice", idBatchDTO{IDs: ids}, &dto); err != nil {
+		return nil, err
+	}
+	out := make(map[string]view.Balance, len(dto.Items))
+	for _, it := range dto.Items {
+		out[it.InvoiceID] = view.Balance{
+			ReceivableID:  it.ReceivableID,
+			Status:        it.Status,
+			Currency:      it.Currency,
+			BalanceAmount: it.BalanceAmount,
+			DueOn:         it.DueOn,
+		}
+	}
+	return out, nil
 }

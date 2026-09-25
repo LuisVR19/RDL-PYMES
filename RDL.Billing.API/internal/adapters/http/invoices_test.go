@@ -108,6 +108,10 @@ func newInvoiceRouter(f *fakeInvoiceCommands) http.Handler {
 			f.called, f.gotID = "history", id
 			return f.history, f.err
 		}),
+		Summary: getInvoiceFn(func(_ context.Context, _ tenancy.Context, id uuid.UUID) (invoice.Invoice, error) {
+			f.called, f.gotID = "summary", id
+			return f.result, f.err
+		}),
 	}})
 }
 
@@ -214,6 +218,8 @@ func TestInvoiceErrorsHTTP(t *testing.T) {
 		"cliente inactivo":     {http.MethodPatch, "/v1/invoices/" + id, `{"customerId":"` + id + `"}`, app.ErrCustomerInactive, http.StatusUnprocessableEntity, "customer-inactive"},
 		"de otra organización": {http.MethodGet, "/v1/invoices/" + id, "", app.ErrNotFound, http.StatusNotFound, "not-found"},
 		"historial ajeno":      {http.MethodGet, "/v1/invoices/" + id + "/history", "", app.ErrNotFound, http.StatusNotFound, "not-found"},
+		"resumen ajeno":        {http.MethodGet, "/internal/v1/invoices/" + id + "/summary", "", app.ErrNotFound, http.StatusNotFound, "not-found"},
+		"resumen sin permiso":  {http.MethodGet, "/internal/v1/invoices/" + id + "/summary", "", app.ErrForbidden, http.StatusForbidden, "forbidden"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			f := &fakeInvoiceCommands{err: tc.err}
@@ -222,6 +228,66 @@ func TestInvoiceErrorsHTTP(t *testing.T) {
 				t.Fatalf("status=%d type=%s", rec.Code, p.Type)
 			}
 		})
+	}
+}
+
+// La forma exacta de getInvoiceSummary en openapi/bff-internal.yaml: sin líneas, montos como string, número
+// null y sin customerLegalName en borrador.
+func TestInvoiceSummaryHTTP(t *testing.T) {
+	draft := sampleDraft()
+	issued := sampleDraft()
+	issued.Status, issued.Number = invoice.StatusIssued, "00100001010000000001"
+	issued.Customer = invoice.CustomerSnapshot{IdentificationTypeCode: "02", IdentificationNumber: "3101123456", LegalName: "Cliente S.A."}
+
+	for name, tc := range map[string]struct {
+		inv  invoice.Invoice
+		want map[string]any
+	}{
+		"borrador": {draft, map[string]any{"id": draft.ID.String(), "documentType": "invoice", "number": nil, "status": "draft",
+			"requiresCorrection": false, "currency": "CRC", "total": "1.12999"}},
+		"emitida": {issued, map[string]any{"id": issued.ID.String(), "documentType": "invoice", "number": "00100001010000000001",
+			"status": "issued", "requiresCorrection": false, "customerLegalName": "Cliente S.A.", "currency": "CRC", "total": "1.12999"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := &fakeInvoiceCommands{result: tc.inv}
+			rec := do(newInvoiceRouter(f), http.MethodGet, "/internal/v1/invoices/"+tc.inv.ID.String()+"/summary", "tok-a")
+			if rec.Code != http.StatusOK || f.called != "summary" || f.gotID != tc.inv.ID {
+				t.Fatalf("status=%d called=%s cuerpo=%s", rec.Code, f.called, rec.Body)
+			}
+			var out map[string]any
+			if err := json.NewDecoder(rec.Body).Decode(&out); err != nil {
+				t.Fatal(err)
+			}
+			if len(out) != len(tc.want) {
+				t.Fatalf("campos = %v, se esperaba %v", out, tc.want)
+			}
+			for k, v := range tc.want {
+				if out[k] != v {
+					t.Fatalf("%s = %v, se esperaba %v (%v)", k, out[k], v, out)
+				}
+			}
+		})
+	}
+}
+
+// La ruta interna pasa por la misma cadena que /v1: sin token no llega al caso de uso, y un id inválido es 404.
+func TestInvoiceSummaryRequiresTheSameAuthentication(t *testing.T) {
+	f := &fakeInvoiceCommands{result: sampleDraft()}
+	h := newInvoiceRouter(f)
+	if rec := do(h, http.MethodGet, "/internal/v1/invoices/"+uuid.NewString()+"/summary", ""); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("sin token: status=%d", rec.Code)
+	}
+	if rec := do(h, http.MethodGet, "/internal/v1/invoices/"+uuid.NewString()+"/summary", "tok-no-org"); rec.Code != http.StatusForbidden {
+		t.Fatalf("sin organización: status=%d", rec.Code)
+	}
+	if rec := do(h, http.MethodPost, "/internal/v1/invoices/"+uuid.NewString()+"/summary", "tok-a"); rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("POST: status=%d", rec.Code)
+	}
+	if rec := do(h, http.MethodGet, "/internal/v1/invoices/no-es-uuid/summary", "tok-a"); rec.Code != http.StatusNotFound {
+		t.Fatalf("id inválido: status=%d", rec.Code)
+	}
+	if f.called != "" {
+		t.Fatalf("llegó al caso de uso: %s", f.called)
 	}
 }
 

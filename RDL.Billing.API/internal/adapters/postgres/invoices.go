@@ -139,6 +139,17 @@ func (r invoices) Get(ctx context.Context, org, id uuid.UUID) (invoice.Invoice, 
 	return r.one(ctx, row, err)
 }
 
+func (r invoices) GetHeader(ctx context.Context, org, id uuid.UUID) (invoice.Invoice, error) {
+	row, err := r.q.GetInvoice(ctx, db.GetInvoiceParams{OrganizationID: org, ID: id})
+	if isNoRows(err) {
+		return invoice.Invoice{}, app.ErrNotFound
+	}
+	if err != nil {
+		return invoice.Invoice{}, fmt.Errorf("leyendo documento: %w", err)
+	}
+	return toInvoice(row)
+}
+
 func (r invoices) GetForUpdate(ctx context.Context, org, id uuid.UUID) (invoice.Invoice, error) {
 	row, err := r.q.GetInvoiceForUpdate(ctx, db.GetInvoiceForUpdateParams{OrganizationID: org, ID: id})
 	return r.one(ctx, db.GetInvoiceRow(row), err)

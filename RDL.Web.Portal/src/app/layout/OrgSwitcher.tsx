@@ -32,7 +32,12 @@ export function OrgSwitcher({ variant }: { variant: 'desktop' | 'mobile' }) {
 
   if (!activeOrg || !role) return null
 
-  const done = (org: Organization) => {
+  // Se confirma cuando el cambio terminó de verdad (token nuevo incluido), no al elegir.
+  const onDone = (org: Organization, from: Organization) => (ok: boolean) => {
+    if (!ok) {
+      toast({ tone: 'danger', title: t('org.switch.failed', { org: from.legalName }) })
+      return
+    }
     navigate('/')
     toast({
       tone: 'info',
@@ -45,14 +50,12 @@ export function OrgSwitcher({ variant }: { variant: 'desktop' | 'mobile' }) {
     setOpen(false)
     setQuery('')
     if (org.id === activeOrg.id) return
-    if (switchOrganization(org.id)) done(org)
-    else setPending(org)
+    if (!switchOrganization(org.id, { onDone: onDone(org, activeOrg) })) setPending(org)
   }
 
   const confirmDiscard = () => {
     if (!pending) return
-    switchOrganization(pending.id, { force: true })
-    done(pending)
+    switchOrganization(pending.id, { force: true, onDone: onDone(pending, activeOrg) })
     setPending(null)
   }
 
@@ -85,7 +88,13 @@ export function OrgSwitcher({ variant }: { variant: 'desktop' | 'mobile' }) {
               <span className={styles.names}>
                 <span className={styles.nameMobile}>{activeOrg.legalName}</span>
                 <span className={styles.roleMobile}>
-                  {roleLabel} · <EnvBadge environment={activeOrg.environment} inline />
+                  {roleLabel}
+                  {activeOrg.environment && (
+                    <>
+                      {' · '}
+                      <EnvBadge environment={activeOrg.environment} inline />
+                    </>
+                  )}
                 </span>
               </span>
               <span className={styles.change}>

@@ -1,7 +1,13 @@
 # Rutas INTERNAS que el BFF compone (arquitectura 2.2, planning P7): cada API expone un resumen de lo suyo y el BFF
 # arma la vista transversal (total de Billing + estado de Hacienda + saldo de Receivables) sin dependencias entre
 # dominios. El BFF reenvía el JWT del usuario (la organización sale del token) y el X-Correlation-Id.
-# Cada ruta vive en la API indicada en `servers` de la operación. ESQUELETO: los campos se completan con P7.
+# Cada ruta vive en la API indicada en `servers` de la operación. El resumen de Billing está implementado; las de
+# fiscal y Receivables son esqueleto hasta P5 y P6.
+#
+# Rutas por lote (POST .../by-source y .../by-invoice): los listados del BFF enriquecen una página entera con una
+# sola llamada por API, sin N+1. Son LECTURAS: POST solo porque la lista de ids no cabe cómoda en una query; sin
+# Idempotency-Key y sin efectos. Un id que no existe o es de otra organización simplemente no viene en `items`
+# (no se distingue, igual que el 404 de las rutas de a uno).
 openapi: 3.1.0
 info:
   title: Rutas internas para el BFF
@@ -55,14 +61,41 @@ paths:
           description: Estado fiscal
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/FiscalStatus' }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+  /internal/v1/electronic-documents/by-source:
+    servers: [{ url: http://fiscal-api:8082 }]
+    post:
+      tags: [fiscal]
+      operationId: getFiscalStatusesBySource
+      summary: Estado fiscal de varias facturas o notas a la vez (listados del BFF, sin N+1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IdBatch' }
+      responses:
+        '200':
+          description: Estados de los documentos que existen en la organización activa, en cualquier orden.
+          content:
+            application/json:
               schema:
                 type: object
-                required: [electronicDocumentId, status]
+                required: [items]
+                additionalProperties: false
                 properties:
-                  electronicDocumentId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
-                  status: { type: string, enum: [processing, signed, sent, accepted, rejected, contingency, error] }
-                  haciendaStatusMessage: { type: string }
-        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+                  items:
+                    type: array
+                    maxItems: 100
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/FiscalStatus'
+                      required: [sourceDocumentId]
+                      properties:
+                        sourceDocumentId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+                      unevaluatedProperties: false
+        '400': { $ref: 'components/common.yaml#/components/responses/BadRequest' }
+        '422': { $ref: 'components/common.yaml#/components/responses/UnprocessableEntity' }
   /internal/v1/receivables/by-invoice/{invoiceId}:
     servers: [{ url: http://receivables-api:8083 }]
     parameters:
@@ -76,17 +109,73 @@ paths:
           description: Saldo
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/Balance' }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+  /internal/v1/receivables/by-invoice:
+    servers: [{ url: http://receivables-api:8083 }]
+    post:
+      tags: [receivables]
+      operationId: getBalancesByInvoice
+      summary: Saldo de varias facturas a la vez (listados del BFF, sin N+1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IdBatch' }
+      responses:
+        '200':
+          description: Saldos de las facturas que tienen cuenta por cobrar en la organización activa, en cualquier orden.
+          content:
+            application/json:
               schema:
                 type: object
-                required: [receivableId, status, currency, balanceAmount, dueOn]
+                required: [items]
+                additionalProperties: false
                 properties:
-                  receivableId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
-                  status: { type: string, enum: [open, partially_paid, paid, cancelled] }
-                  currency: { $ref: 'components/common.yaml#/components/schemas/CurrencyCode' }
-                  balanceAmount: { $ref: 'components/common.yaml#/components/schemas/Money' }
-                  dueOn: { $ref: 'components/common.yaml#/components/schemas/BusinessDate' }
-        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
+                  items:
+                    type: array
+                    maxItems: 100
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Balance'
+                      required: [invoiceId]
+                      properties:
+                        invoiceId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+                      unevaluatedProperties: false
+        '400': { $ref: 'components/common.yaml#/components/responses/BadRequest' }
+        '422': { $ref: 'components/common.yaml#/components/responses/UnprocessableEntity' }
 
 components:
   securitySchemes:
     bearerAuth: { $ref: 'components/common.yaml#/components/securitySchemes/bearerAuth' }
+  schemas:
+    IdBatch:
+      type: object
+      description: Hasta 100 ids distintos por llamada (el `limit` máximo de una página, convenciones §9).
+      required: [ids]
+      additionalProperties: false
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+          items: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+    FiscalStatus:
+      type: object
+      x-rdl-base: true
+      required: [electronicDocumentId, status]
+      properties:
+        electronicDocumentId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        status: { type: string, enum: [processing, signed, sent, accepted, rejected, contingency, error] }
+        haciendaStatusMessage: { type: string }
+    Balance:
+      type: object
+      x-rdl-base: true
+      required: [receivableId, status, currency, balanceAmount, dueOn]
+      properties:
+        receivableId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        status: { type: string, enum: [open, partially_paid, paid, cancelled] }
+        currency: { $ref: 'components/common.yaml#/components/schemas/CurrencyCode' }
+        balanceAmount: { $ref: 'components/common.yaml#/components/schemas/Money' }
+        dueOn: { $ref: 'components/common.yaml#/components/schemas/BusinessDate' }

@@ -1,0 +1,206 @@
+/* design/referencias «09 Cliente · ficha». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.partial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  font: var(--text-body-sm);
+  color: var(--color-warning-fg);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+}
+
+.partialText {
+  flex: 1;
+  min-width: 220px;
+}
+
+.partialRetry {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-3);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 14px var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.kpiLabel {
+  font: var(--text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.kpiValue,
+.kpiValueAlert,
+.kpiValueMuted {
+  font: var(--text-h2);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+.kpiValueAlert {
+  color: var(--color-danger-fg);
+}
+
+.kpiValueMuted {
+  color: var(--color-text-secondary);
+}
+
+.kpiValue :global(span),
+.kpiValueAlert :global(span) {
+  align-items: flex-start;
+}
+
+.kpiSub {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.kpiSubAlert {
+  font: var(--text-caption);
+  color: var(--color-danger-fg);
+}
+
+.rows {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.row {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+li:last-child > .row {
+  border-bottom: none;
+}
+
+button.row {
+  cursor: pointer;
+}
+
+button.row:hover {
+  background: var(--color-bg-row-hover);
+}
+
+.rowMain {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowTitle {
+  font: var(--text-code);
+  font-weight: 500;
+}
+
+.rowSub {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.rowAmounts {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowAmount {
+  font-weight: 500;
+}
+
+.empty {
+  margin: var(--space-4) 0 0;
+  padding: 28px var(--space-4);
+  text-align: center;
+  font: var(--text-body);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.data {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) 20px;
+  display: grid;
+  gap: 10px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.dataRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.dataRow dt {
+  color: var(--color-text-secondary);
+}
+
+.dataRow dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .dataRow {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .row {
+    min-height: 56px;
+  }
+}

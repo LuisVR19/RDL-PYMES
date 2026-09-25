@@ -6,10 +6,16 @@
 export const ROLES = ['owner', 'admin', 'biller', 'collector', 'accountant', 'read_only'] as const
 export type Role = (typeof ROLES)[number]
 
+/** Un rol que llega de la API y el portal conoce (los de `core.roles`). */
+export function isRole(value: string): value is Role {
+  return (ROLES as readonly string[]).includes(value)
+}
+
 export type Capability =
   | 'home.view'
   | 'billing.view'
-  | 'billing.edit' // clientes, productos, borradores, emitir, notas, anular
+  | 'billing.edit' // clientes, productos, borradores, emitir, notas
+  | 'billing.void' // anular una factura emitida (contrato: owner, admin)
   | 'fiscal.inbox' // bandeja y documento electrónico
   | 'fiscal.config.view'
   | 'fiscal.config.edit'
@@ -24,6 +30,7 @@ const MATRIX: Record<Capability, readonly Role[]> = {
   'home.view': ROLES,
   'billing.view': ['owner', 'admin', 'biller', 'accountant', 'read_only'],
   'billing.edit': ['owner', 'admin', 'biller'],
+  'billing.void': ['owner', 'admin'],
   'fiscal.inbox': ['owner', 'admin', 'biller', 'accountant', 'read_only'],
   'fiscal.config.view': ['owner', 'admin', 'accountant'],
   'fiscal.config.edit': ['owner', 'admin'],

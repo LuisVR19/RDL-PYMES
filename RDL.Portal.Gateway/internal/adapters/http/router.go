@@ -23,6 +23,7 @@ type Deps struct {
 	Verifier Verifier
 	Proxy    *Proxy
 	Overview *OverviewHandler
+	Invoices *InvoiceListHandler
 	Budget   time.Duration
 	CORS     []string
 	// Service es el nombre del span raíz.
@@ -124,8 +125,11 @@ func handlerFor(route routes.Route, d Deps) (http.HandlerFunc, error) {
 // tabla y su caso aquí: si falta uno de los dos, el gateway no arranca en lugar de servir una ruta a medias.
 func composedHandler(route routes.Route, d Deps) (http.HandlerFunc, error) {
 	key := route.Method + " " + route.Path
-	if key == "GET /portal/v1/invoices/{id}/overview" && d.Overview != nil {
+	switch {
+	case key == "GET /portal/v1/invoices/{id}/overview" && d.Overview != nil:
 		return d.Overview.Get, nil
+	case key == "GET /portal/v1/invoices" && d.Invoices != nil:
+		return d.Invoices.List, nil
 	}
 	return nil, fmt.Errorf("la composición %s está declarada en la tabla pero no tiene caso de uso", key)
 }

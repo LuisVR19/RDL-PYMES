@@ -25,9 +25,18 @@ func respondJSON(body string) func(http.ResponseWriter, *http.Request, int) {
 	}
 }
 
+// billingInvoice es el 200 de getInvoiceSummary (openapi/bff-internal.yaml), lo que Billing responde en
+// GET /internal/v1/invoices/{id}/summary.
 func billingInvoice() string {
 	return `{"id":"` + invoiceID + `","documentType":"invoice","number":"FE00100034","status":"issued",
-	         "requiresCorrection":false,"currency":"CRC","total":"113000.00",
+	         "requiresCorrection":false,"customerLegalName":"Comercial Los Almendros S.A.",
+	         "currency":"CRC","total":"113000.00"}`
+}
+
+// billingInvoicePublic es la parte que usa la vista del detalle público GET /v1/invoices/{id}.
+func billingInvoicePublic() string {
+	return `{"id":"` + invoiceID + `","documentType":"invoice","number":"FE00100034","status":"issued",
+	         "requiresCorrection":false,"currency":"CRC","total":"113000.00","lines":[],
 	         "customerSnapshot":{"legalName":"Comercial Los Almendros S.A."}}`
 }
 
@@ -87,6 +96,46 @@ func TestOverviewJoinsTheThreeAPIs(t *testing.T) {
 	}
 	if b, _ := receivable["balance"].(map[string]any); b["balanceAmount"] != "63000.00" {
 		t.Errorf("saldo=%v", receivable["balance"])
+	}
+}
+
+// Por defecto el resumen sale de la ruta interna del contrato, con el token del usuario tal cual.
+func TestOverviewReadsTheContractSummaryFromBilling(t *testing.T) {
+	g := newGateway(t, options{})
+	seedOverview(t, g)
+
+	code, body := getOverview(t, g)
+	if code != http.StatusOK {
+		t.Fatalf("code=%d body=%v", code, body)
+	}
+	got := g.up(t, routes.Billing).last(t)
+	if got.Path != "/internal/v1/invoices/"+invoiceID+"/summary" {
+		t.Errorf("Billing recibió %s", got.Path)
+	}
+	if got.Header.Get("Authorization") != "Bearer "+userToken {
+		t.Errorf("Authorization=%q", got.Header.Get("Authorization"))
+	}
+	if inv, _ := body["invoice"].(map[string]any); inv["customerLegalName"] != "Comercial Los Almendros S.A." {
+		t.Errorf("factura=%v", inv)
+	}
+}
+
+// Respaldo para una Billing anterior a la ruta interna: la misma vista, derivada del detalle público.
+func TestOverviewCanStillDeriveTheSummaryFromThePublicDetail(t *testing.T) {
+	g := newGateway(t, options{summarySource: "public"})
+	seedOverview(t, g)
+	g.up(t, routes.Billing).setResponse(respondJSON(billingInvoicePublic()))
+
+	code, body := getOverview(t, g)
+	if code != http.StatusOK {
+		t.Fatalf("code=%d body=%v", code, body)
+	}
+	if got := g.up(t, routes.Billing).last(t).Path; got != "/v1/invoices/"+invoiceID {
+		t.Errorf("Billing recibió %s", got)
+	}
+	inv, _ := body["invoice"].(map[string]any)
+	if inv["customerLegalName"] != "Comercial Los Almendros S.A." || inv["total"] != "113000.00" {
+		t.Errorf("factura=%v", inv)
 	}
 }
 

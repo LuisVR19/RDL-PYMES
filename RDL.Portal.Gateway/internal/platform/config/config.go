@@ -78,7 +78,8 @@ type OTel struct {
 const (
 	// SummarySourceInternal es la ruta de `openapi/bff-internal.yaml` del repo de contratos.
 	SummarySourceInternal = "internal"
-	// SummarySourcePublic deriva el resumen del detalle público de la factura.
+	// SummarySourcePublic deriva el resumen del detalle público de la factura. Queda como respaldo para apuntar
+	// el gateway a una Billing anterior a la ruta interna; pesa más, porque trae las líneas.
 	SummarySourcePublic = "public"
 )
 
@@ -115,7 +116,7 @@ func load(getenv func(string) string) (Config, error) {
 		Upstreams: Upstreams{
 			Services:             map[routes.Service]Upstream{},
 			Budget:               r.duration("UPSTREAM_BUDGET", 10*time.Second),
-			BillingSummarySource: r.optional("BILLING_SUMMARY_SOURCE", SummarySourcePublic),
+			BillingSummarySource: r.optional("BILLING_SUMMARY_SOURCE", SummarySourceInternal),
 		},
 		CORS: CORS{AllowedOrigins: splitList(r.optional("CORS_ALLOWED_ORIGINS", "http://localhost:5173"))},
 		Log:  Log{Level: r.optional("LOG_LEVEL", "info")},

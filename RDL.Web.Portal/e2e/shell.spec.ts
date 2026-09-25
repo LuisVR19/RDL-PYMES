@@ -62,3 +62,26 @@ test('móvil: menú de hamburguesa navega y se cierra', async ({ page }, info) =
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
   expect(overflow).toBe(false)
 })
+
+test('pantalla 1 · iniciar sesión sin violaciones de accesibilidad, también con errores', async ({ page }) => {
+  await page.goto('/ingresar?volver=%2Fclientes')
+  await expect(page.getByRole('heading', { level: 1, name: 'Iniciar sesión' })).toBeVisible()
+  await expectNoAxeViolations(page)
+  await page.getByRole('button', { name: 'Ingresar' }).click()
+  await expect(page.getByText('Escriba un correo válido.')).toBeVisible()
+  await expectNoAxeViolations(page)
+})
+
+test('la CSP del build está activa y no bloquea nada del portal', async ({ page }) => {
+  const blocked: string[] = []
+  page.on('console', (m) => {
+    if (/Content Security Policy|Content-Security-Policy/i.test(m.text())) blocked.push(m.text())
+  })
+  for (const path of ['/', '/ingresar', '/_catalogo']) {
+    await page.goto(path)
+    await page.waitForLoadState('networkidle')
+  }
+  const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')
+  expect(csp).toContain("script-src 'self'")
+  expect(blocked).toEqual([])
+})

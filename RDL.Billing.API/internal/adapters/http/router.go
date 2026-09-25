@@ -35,6 +35,9 @@ type Deps struct {
 //	/healthz, /readyz   públicas
 //	/v1/...             JWT válido + TenantContext (org_id del token + membresía activa revalidada en core).
 //	                    Billing no tiene rutas sin organización: todas operan sobre la organización activa.
+//	/internal/v1/...    las que compone el Portal Gateway (openapi/bff-internal.yaml). Misma cadena que /v1:
+//	                    el gateway reenvía el token del usuario, no uno de servicio. Que solo se alcancen por la
+//	                    red interna es trabajo del despliegue; el gateway además nunca las expone al portal.
 func NewRouter(d Deps) http.Handler {
 	errs := errorResponder{log: d.Log}
 	tenancyFail := tenancyErrorWriter(d.Log)
@@ -58,7 +61,9 @@ func NewRouter(d Deps) http.Handler {
 		d.Sequences.register(v1, errs.write)
 	}
 	withTenant := tenancy.RequireOrganization(d.Memberships, tenancyFail)(v1.mux)
-	mux.Handle("/v1/", tenancy.Authenticate(d.Verifier, tenancyFail)(withTenant))
+	authenticated := tenancy.Authenticate(d.Verifier, tenancyFail)(withTenant)
+	mux.Handle("/v1/", authenticated)
+	mux.Handle("/internal/v1/", authenticated)
 
 	var h http.Handler = mux
 	h = accessLog(d.Log, h)

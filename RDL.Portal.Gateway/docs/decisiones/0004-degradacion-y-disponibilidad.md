@@ -69,14 +69,12 @@ DTO; el dominio no cambia.
 
 ## Resumen de factura: de dónde sale
 
-`bff-internal.yaml` declara `GET /internal/v1/invoices/{id}/summary` en Billing, pero **Billing no la
-implementa** (es un esqueleto del contrato). Para que la vista funcione hoy, el puerto `InvoiceSummaryReader`
-tiene dos adapters, elegidos por `BILLING_SUMMARY_SOURCE`:
+`bff-internal.yaml` declara `GET /internal/v1/invoices/{id}/summary` en Billing. El puerto
+`InvoiceSummaryReader` tiene dos adapters, elegidos por `BILLING_SUMMARY_SOURCE`:
 
-- `public` (lo de hoy): deriva el resumen de `GET /v1/invoices/{id}`. Trae la factura completa con líneas, así
-  que **pesa más de lo necesario**. `customerLegalName` sale de `customerSnapshot.legalName`, que solo existe
-  desde la emisión: en borrador queda vacío.
-- `internal` (lo definitivo): la ruta del contrato.
+- `internal` (por defecto desde 2026-09-25, cuando Billing implementó la ruta): la ruta del contrato.
+- `public` (respaldo): deriva el resumen de `GET /v1/invoices/{id}`. Trae la factura completa con líneas, así
+  que **pesa más de lo necesario**. Sirve solo para apuntar el gateway a una Billing anterior.
 
-**TODO(billing):** implementar la ruta interna y cambiar el valor por defecto a `internal`. Es la tarea que más
-desbloquea: de ella dependen también los listados enriquecidos del incremento 5.
+En los dos casos `customerLegalName` sale del snapshot del cliente, que existe desde la emisión: en borrador
+viene vacío y la vista lo omite.

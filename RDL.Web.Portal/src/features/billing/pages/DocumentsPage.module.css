@@ -1,0 +1,83 @@
+/* design/referencias «12 Documentos · lista». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filter {
+  width: 150px;
+}
+
+.filterWide {
+  width: 240px;
+}
+
+.density {
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+.number {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.mono {
+  font: var(--text-code);
+  font-weight: 500;
+}
+
+.monoMuted {
+  font: var(--text-code);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.type {
+  font: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.ellipsis {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-strong);
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.muted {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.footer {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  .filter,
+  .filterWide {
+    width: 100%;
+  }
+  .density {
+    margin-left: 0;
+  }
+}

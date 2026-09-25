@@ -1,0 +1,51 @@
+/* design/referencias «35 Sesión vencida»: diálogo de 400 px, separación 14. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.readOnly {
+  min-height: var(--control-h-md);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font: var(--text-body);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow-wrap: anywhere;
+}
+
+.submit {
+  width: 100%;
+}
+
+.other {
+  align-self: center;
+  border: none;
+  background: none;
+  padding: var(--space-1);
+  font: var(--text-body-sm);
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.other:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}

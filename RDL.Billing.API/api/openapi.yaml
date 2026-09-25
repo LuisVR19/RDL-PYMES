@@ -3,7 +3,7 @@
 openapi: 3.1.0
 info:
   title: Billing API
-  version: 0.8.0
+  version: 0.9.0
   description: Operación comercial de cada organización con sus clientes. La organización sale del token (org_id + membresía activa).
 servers:
   - url: http://localhost:8081
@@ -247,6 +247,35 @@ paths:
                     reason: { type: string }
                     changedByUserId: { type: string, format: uuid }
                     changedAt: { type: string, format: date-time }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /internal/v1/invoices/{id}/summary:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [internal]
+      operationId: getInvoiceSummary
+      summary: Resumen para el Portal Gateway (openapi/bff-internal.yaml del contrato). Sin líneas. Todos los roles.
+      description: |
+        Solo la consume el Portal Gateway, con el token del usuario (no uno de servicio): misma tenancy, mismos
+        permisos y mismos errores que GET /v1/invoices/{id}. Que no se alcance desde afuera es tarea del despliegue.
+      responses:
+        '200':
+          description: Resumen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, documentType, status, currency, total]
+                properties:
+                  id: { type: string, format: uuid }
+                  documentType: { type: string, enum: [invoice, credit_note, debit_note] }
+                  number: { type: [string, 'null'], description: null en borrador }
+                  status: { type: string, enum: [draft, issued, cancelled] }
+                  requiresCorrection: { type: boolean }
+                  customerLegalName: { type: string, description: Del snapshot del cliente; se omite en borrador }
+                  currency: { type: string, pattern: '^[A-Z]{3}$' }
+                  total: { type: string, description: Monto decimal como string }
         '404': { $ref: '#/components/responses/Problem' }
 
   /v1/document-sequences:

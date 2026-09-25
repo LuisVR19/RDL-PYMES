@@ -67,26 +67,27 @@ type balanceDTO struct {
 func (h *OverviewHandler) Get(w http.ResponseWriter, r *http.Request) {
 	overview, err := h.Service.InvoiceOverview(r.Context(), r.PathValue("id"))
 	if err != nil {
-		h.writeError(w, r, err)
+		writePrimaryError(w, r, h.Log, err, "no se pudo armar la vista de la factura",
+			slog.String("invoiceId", r.PathValue("id")))
 		return
 	}
 	writeJSON(w, http.StatusOK, toOverviewDTO(overview))
 }
 
-// writeError: si el que falló fue Billing (la fuente principal), el portal recibe el error de Billing tal cual.
-func (h *OverviewHandler) writeError(w http.ResponseWriter, r *http.Request, err error) {
+// writePrimaryError responde cuando falla la fuente PRINCIPAL de una composición (Billing): si mandó Problem
+// Details, el portal recibe el suyo tal cual; si no, uno del gateway que conserva lo que se sepa.
+func writePrimaryError(w http.ResponseWriter, r *http.Request, log *slog.Logger, err error, msg string, attrs ...any) {
 	var status *downstream.StatusError
 	if errors.As(err, &status) && len(status.Problem) > 0 {
 		w.Header().Set("Content-Type", problem.ContentType)
 		w.WriteHeader(status.Status)
 		if _, err := w.Write(status.Problem); err != nil {
-			h.Log.WarnContext(r.Context(), "no se pudo reenviar el problema de la API", slog.Any("error", err))
+			log.WarnContext(r.Context(), "no se pudo reenviar el problema de la API", slog.Any("error", err))
 		}
 		return
 	}
 
-	h.Log.ErrorContext(r.Context(), "no se pudo armar la vista de la factura",
-		slog.String("invoiceId", r.PathValue("id")), slog.Any("error", err))
+	log.ErrorContext(r.Context(), msg, append(attrs, slog.Any("error", err))...)
 
 	switch {
 	case errors.As(err, &status):
@@ -113,18 +114,28 @@ func toOverviewDTO(o view.InvoiceOverview) overviewDTO {
 			Currency:           o.Invoice.Currency,
 			Total:              o.Invoice.Total,
 		},
-		Fiscal:     fiscalPartDTO{Availability: string(o.Fiscal.Availability)},
-		Receivable: balancePartDTO{Availability: string(o.Receivable.Availability)},
+		Fiscal:     toFiscalPartDTO(o.Fiscal),
+		Receivable: toBalancePartDTO(o.Receivable),
 	}
-	if s := o.Fiscal.Status; s != nil {
-		dto.Fiscal.Status = &fiscalStatusDTO{
+	return dto
+}
+
+func toFiscalPartDTO(p view.FiscalPart) fiscalPartDTO {
+	dto := fiscalPartDTO{Availability: string(p.Availability)}
+	if s := p.Status; s != nil {
+		dto.Status = &fiscalStatusDTO{
 			ElectronicDocumentID:  s.ElectronicDocumentID,
 			Status:                s.Status,
 			HaciendaStatusMessage: s.HaciendaStatusMessage,
 		}
 	}
-	if b := o.Receivable.Balance; b != nil {
-		dto.Receivable.Balance = &balanceDTO{
+	return dto
+}
+
+func toBalancePartDTO(p view.BalancePart) balancePartDTO {
+	dto := balancePartDTO{Availability: string(p.Availability)}
+	if b := p.Balance; b != nil {
+		dto.Balance = &balanceDTO{
 			ReceivableID:  b.ReceivableID,
 			Status:        b.Status,
 			Currency:      b.Currency,

@@ -108,8 +108,8 @@ func TestBillingSummarySourceIsValidated(t *testing.T) {
 	wantError(t, env, "BILLING_SUMMARY_SOURCE")
 
 	// Por ahora, el detalle público: Billing todavía no expone la ruta interna del contrato.
-	if got := mustLoad(t, baseEnv()).Upstreams.BillingSummarySource; got != SummarySourcePublic {
-		t.Errorf("source=%q, want %q", got, SummarySourcePublic)
+	if got := mustLoad(t, baseEnv()).Upstreams.BillingSummarySource; got != SummarySourceInternal {
+		t.Errorf("source=%q, want %q", got, SummarySourceInternal)
 	}
 }
 

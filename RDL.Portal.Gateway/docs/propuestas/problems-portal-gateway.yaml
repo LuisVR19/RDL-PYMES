@@ -1,3 +1,7 @@
+# YA PROPUESTO en el repo de contratos: `RDL.Contracts/problems/portal-gateway.yaml` (sin publicar, espera
+# 2 aprobaciones). Aquel manda; este archivo queda solo como historia y se puede borrar al aprobarse.
+# Diferencias con esta versión: se agregó `internal` (el gateway lo usa) y `upstream-error` usa `status: upstream`.
+#
 # PROPUESTA para el repo de contratos: copiar a `problems/portal-gateway.yaml` en un PR aparte
 # (2 aprobaciones + entrada en el CHANGELOG, como pide el CLAUDE.md de RDL.Contracts).
 #

@@ -248,6 +248,12 @@ func (r fakeInvoices) Get(_ context.Context, org, id uuid.UUID) (invoice.Invoice
 	return invoice.Invoice{}, ErrNotFound
 }
 
+func (r fakeInvoices) GetHeader(ctx context.Context, org, id uuid.UUID) (invoice.Invoice, error) {
+	inv, err := r.Get(ctx, org, id)
+	inv.Lines = nil
+	return inv, err
+}
+
 func (r fakeInvoices) GetForUpdate(ctx context.Context, org, id uuid.UUID) (invoice.Invoice, error) {
 	return r.Get(ctx, org, id)
 }

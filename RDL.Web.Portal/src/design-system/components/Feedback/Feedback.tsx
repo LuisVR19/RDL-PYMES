@@ -1,12 +1,14 @@
 import { clsx } from 'clsx'
-import { Check, CircleAlert, Copy, Info, TriangleAlert, type LucideIcon } from 'lucide-react'
+import { Check, CircleAlert, CircleSlash, Copy, Info, TriangleAlert, type LucideIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { t } from '@/shared/i18n/t'
 import type { Tone } from '@/shared/status/status'
 import { Button } from '../Button/Button'
 import styles from './Feedback.module.css'
 
-const TONE_ICON: Record<Exclude<Tone, 'neutral'>, LucideIcon> = {
+const TONE_ICON: Record<Tone, LucideIcon> = {
+  // Neutro: un hecho sin urgencia (prototipo «15»: factura anulada, ⊘ en gris).
+  neutral: CircleSlash,
   success: Check,
   warning: TriangleAlert,
   danger: CircleAlert,
@@ -40,7 +42,7 @@ export function RefCode({ code }: { code: string }) {
 }
 
 export interface InlineAlertProps {
-  tone: Exclude<Tone, 'neutral'>
+  tone: Tone
   title?: ReactNode
   children?: ReactNode
   actions?: ReactNode

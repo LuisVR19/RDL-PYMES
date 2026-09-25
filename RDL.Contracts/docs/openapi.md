@@ -7,7 +7,7 @@
 | [`openapi/billing.yaml`](../openapi/billing.yaml) | Billing | Esqueleto: clientes, productos, facturas y notas, emisión, anulación, numeración |
 | [`openapi/fiscal.yaml`](../openapi/fiscal.yaml) | E-Invoice (`fiscal`) | Esqueleto: perfil fiscal y certificado, establecimientos, documentos electrónicos y archivos, reintento, catálogos |
 | [`openapi/receivables.yaml`](../openapi/receivables.yaml) | Receivables | Esqueleto: cuentas por cobrar, aging, pagos, aplicaciones y reversos, seguimientos |
-| [`openapi/bff-internal.yaml`](../openapi/bff-internal.yaml) | las tres | Rutas internas `/internal/v1/...` que el BFF compone para la vista transversal (arquitectura 2.2) |
+| [`openapi/bff-internal.yaml`](../openapi/bff-internal.yaml) | las tres | Rutas internas `/internal/v1/...` que el BFF compone para la vista transversal (arquitectura 2.2) y, por lote, para los listados sin N+1 |
 
 "Esqueleto" significa recursos, rutas, estados y errores principales; los campos se completan en el repo de cada API
 y vuelven aquí por PR.

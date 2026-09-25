@@ -34,6 +34,9 @@ func TestLintCheck(t *testing.T) {
 		repo["problems/"+svc+".yaml"] = &fstest.MapFile{Data: problemsJSON(svc, codes)}
 	}
 	delete(repo, "problems/receivables.yaml")
+	repo["problems/portal-gateway.yaml"] = &fstest.MapFile{Data: []byte(
+		`{"service":"portal-gateway","problems":[{"code":"unauthenticated","status":401,"title":"t","when":"w"},` +
+			`{"code":"upstream-error","status":"upstream","title":"t","when":"w"}]}`)}
 
 	got, err := NewLintCheck(jsonDocs{}).Run(context.Background(), repo)
 	if err != nil {
@@ -51,6 +54,7 @@ func TestLintCheck(t *testing.T) {
 		"warning openapi-idempotency openapi/platform.yaml",
 		"error problem-common problems/fiscal.yaml",
 		"error problem-registry problems/receivables.yaml",
+		"error problem-common problems/portal-gateway.yaml",
 	} {
 		if !slices.Contains(keys, want) {
 			t.Errorf("falta %q en %v", want, keys)

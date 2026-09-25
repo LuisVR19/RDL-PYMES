@@ -75,6 +75,9 @@ type InvoiceRepository interface {
 	// Get y GetForUpdate devuelven ErrNotFound si no existe o es de otra organización. Traen las líneas.
 	Get(ctx context.Context, organizationID, id uuid.UUID) (invoice.Invoice, error)
 	GetForUpdate(ctx context.Context, organizationID, id uuid.UUID) (invoice.Invoice, error)
+	// GetHeader es Get sin líneas (Lines queda vacío): para el resumen que compone el Portal Gateway, que no las
+	// usa y no tiene por qué pagar su lectura. Mismo ErrNotFound.
+	GetHeader(ctx context.Context, organizationID, id uuid.UUID) (invoice.Invoice, error)
 	// SaveDraft reescribe encabezado, totales y líneas de un borrador. ErrNotDraft si ya no lo es.
 	SaveDraft(ctx context.Context, inv invoice.Invoice) (invoice.Invoice, error)
 	// DeleteDraft borra el borrador y sus líneas. ErrNotDraft si ya no lo es.

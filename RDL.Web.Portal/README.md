@@ -28,6 +28,22 @@ Rutas útiles en desarrollo:
 | `/_catalogo` | Catálogo del sistema de diseño: componentes, variantes y estados. Solo con datos simulados |
 | `/ingresar`, `/organizaciones`… | Pantallas de acceso (fuera del armazón) |
 
+### Contra el Portal Gateway real (`VITE_DATA_SOURCE=gateway`)
+
+Necesita Platform (`:8080`) y el Portal Gateway (`:8090`) corriendo, y un usuario de prueba de Supabase dev (los
+del E2E de Platform). En `.env.local`:
+
+```bash
+VITE_DATA_SOURCE=gateway
+VITE_GATEWAY_URL=http://localhost:8090
+VITE_SUPABASE_URL=https://dzlsnsstuqpxvwegeqcy.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # pública; NUNCA la service_role key
+```
+
+`npm run dev` y abra `http://localhost:5173` (con `localhost`, no `127.0.0.1`: es el origen que admite el CORS del
+gateway). Sin sesión lo manda a la pantalla 1. Hoy se ven datos reales en el armazón (usuario, organizaciones, rol,
+cambio de organización); las pantallas siguen siendo marcadores provisionales hasta sus incrementos.
+
 Con datos simulados aparece un botón morado punteado abajo al centro: la **barra de revisión**. Permite cambiar de
 organización, ver como otro rol, forzar estados de los datos (cargando, vacío, error, datos parciales), la latencia y
 la conexión en tiempo real. **No es parte del producto** y no existe con `VITE_DATA_SOURCE` distinto de `mock`.

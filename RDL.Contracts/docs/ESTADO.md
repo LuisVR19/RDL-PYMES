@@ -1,9 +1,16 @@
 # Estado del proyecto · Contracts
 
-**Última actualización:** 2026-09-24 (v0.2.0)
+**Última actualización:** 2026-09-25 (v0.2.0 + propuesta sin publicar para el Portal Gateway)
 **Punto de corte:** terminados los 9 incrementos del prompt P0. Versiones **v0.1.0** y **v0.2.0** en el `CHANGELOG`; **los tags
 los crea quien publique el repo** (en esta máquina no se usa git). v0.2.0 incorpora las reglas del borrador de los
 Anexos v4.4 de Hacienda (ADR 0007).
+
+## Sin publicar: propuesta para el Portal Gateway (2026-09-25)
+
+Rutas por lote en `bff-internal.yaml`, `problems/portal-gateway.yaml` y la noción de servicio de borde en `lint`.
+Detalle en el `CHANGELOG` («Sin publicar»). **Espera las 2 aprobaciones**; al aprobarse, versión v0.3.0.
+Verificado: cadena de cierre completa en verde y `breaking` contra una copia de v0.2.0 en OK. Las reglas nuevas
+se probaron en negativo sobre una copia (falta `internal` → `problem-common`; `number` en un saldo → `no-number`).
 
 ## Verificación al cierre
 
@@ -81,7 +88,10 @@ Anexos v4.4 de Hacienda (ADR 0007).
     punto 1. Ver `docs/openapi.md`.
 20. **Billing / fiscal / Receivables:** confirmar los problem types propuestos en `problems/*.yaml` y completar los
     esqueletos OpenAPI al implementar.
-21. **BFF:** la vista transversal y su read model se documentan en su repo (P7).
+21. **BFF:** la vista transversal y su read model se documentan en su repo (P7). Sus problem types y las rutas
+    por lote que necesita están en la propuesta sin publicar.
+    **Pregunta abierta:** la regla `closed-object` solo se aplica a los schemas de eventos (ADR 0006); las
+    respuestas de `bff-internal.yaml` quedan abiertas. ¿Se extiende a los OpenAPI?
 
 ### Del propio repo
 

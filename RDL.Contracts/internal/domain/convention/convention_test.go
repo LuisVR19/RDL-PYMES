@@ -105,6 +105,30 @@ func TestOpenAPIRules(t *testing.T) {
 	}
 }
 
+// Un servicio de borde tiene su propio mínimo y es el único que puede conservar el status de otra API.
+func TestProblemRulesForEdgeServices(t *testing.T) {
+	var ps []Problem
+	for _, c := range EdgeProblems["portal-gateway"] {
+		ps = append(ps, Problem{Code: c, Status: 404, Title: "t", When: "w"})
+	}
+	ps = append(ps, Problem{Code: "upstream-error", UpstreamStatus: true, Title: "t", When: "w"})
+	if got := ProblemRules("portal-gateway", ps); len(got) != 0 {
+		t.Fatalf("violaciones: %v", got)
+	}
+	if got := rules(ProblemRules("portal-gateway", ps[1:])); !slices.Contains(got, "problem-common /problems") {
+		t.Errorf("sin unauthenticated debería fallar: %v", got)
+	}
+
+	var domain []Problem
+	for _, c := range CommonProblems {
+		domain = append(domain, Problem{Code: c, Status: 400, Title: "t", When: "w"})
+	}
+	domain = append(domain, Problem{Code: "upstream-error", UpstreamStatus: true, Title: "t", When: "w"})
+	if got := rules(ProblemRules("billing", domain)); !slices.Contains(got, "problem-status /problems/11/status") {
+		t.Errorf("una API de dominio no conserva status ajenos: %v", got)
+	}
+}
+
 func TestProblemRules(t *testing.T) {
 	var ps []Problem
 	for _, c := range CommonProblems {

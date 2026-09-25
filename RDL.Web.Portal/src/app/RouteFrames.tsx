@@ -5,15 +5,14 @@ import { t } from '@/shared/i18n/t'
 import { ROLE_LABEL } from '@/shared/permissions/permissions'
 import { useSession } from '@/shared/session/SessionProvider'
 import { DevToolbar } from './DevToolbar'
-import { SessionGate } from './guards'
 
-/** Raíz de todas las rutas: espera la sesión y, solo con datos simulados, agrega la barra de revisión. */
+/** Raíz de todas las rutas: solo con datos simulados, agrega la barra de revisión. */
 export function RootFrame() {
   return (
-    <SessionGate>
+    <>
       <Outlet />
       {isMockDataSource && <DevToolbar />}
-    </SessionGate>
+    </>
   )
 }
 

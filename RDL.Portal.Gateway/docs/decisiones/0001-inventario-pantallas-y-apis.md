@@ -83,18 +83,21 @@ Inicio (6) y Detalle de factura (15) parcialmente. Los módulos D (4) y E (6) qu
 internas. Propuesta para el repo de contratos (PR aparte, con sus 2 aprobaciones y su entrada en el CHANGELOG):
 
 ```yaml
-POST /internal/v1/electronic-documents/statuses:by-source   # fiscal
-POST /internal/v1/receivables/balances:by-invoice           # receivables
-  body: { ids: [uuid], }   # máximo 100 por llamada
+POST /internal/v1/electronic-documents/by-source   # fiscal · getFiscalStatusesBySource
+POST /internal/v1/receivables/by-invoice           # receivables · getBalancesByInvoice
+  body: { ids: [uuid] }    # 1 a 100 por llamada (IdBatch)
   200:  { items: [ {sourceDocumentId|invoiceId, ...} ] }     # los ids que no existen simplemente no vienen
 ```
+
+**Estado (2026-09-25):** propuesto en el repo de contratos con estos nombres, sin publicar (espera 2
+aprobaciones). El gateway ya los usa en `GET /portal/v1/invoices` (incremento 5).
 
 `POST` y no `GET` porque la lista de ids no cabe cómodamente en una query. Son lecturas: sin `Idempotency-Key`
 y sin efectos.
 
-**Además, para la vista transversal:** Billing tiene declarada `GET /internal/v1/invoices/{id}/summary` en
-`bff-internal.yaml`, pero **no la implementa**. Mientras tanto el gateway deriva el resumen del detalle público
-(`BILLING_SUMMARY_SOURCE=public`). Ver [ADR 0004](0004-degradacion-y-disponibilidad.md).
+**Además, para la vista transversal:** Billing implementa `GET /internal/v1/invoices/{id}/summary` de
+`bff-internal.yaml` desde 2026-09-25, y es la fuente por defecto del resumen. Ver
+[ADR 0004](0004-degradacion-y-disponibilidad.md).
 
 ## 5. Decisiones abiertas
 

@@ -59,6 +59,11 @@
   border-color: var(--color-danger-border);
   color: var(--color-danger-fg);
 }
+.neutral {
+  background: var(--color-neutral-bg);
+  border-color: var(--color-neutral-border);
+  color: var(--color-neutral-fg);
+}
 .info {
   background: var(--color-info-bg);
   border-color: var(--color-info-border);

@@ -6,6 +6,7 @@
 package downstream
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -186,13 +187,38 @@ const maxReadBody = 4 << 20
 
 // getJSON es el camino de las COMPOSICIONES: pide, decodifica y traduce el status a un error de `app`.
 // El paso directo no pasa por aquí: ese copia la respuesta sin mirarla.
-func (c *Client) getJSON(ctx context.Context, path string, dst any) error {
-	resp, err := c.Send(ctx, Request{
+func (c *Client) getJSON(ctx context.Context, path string, query url.Values, dst any) error {
+	return c.readJSON(ctx, Request{
 		Method:    http.MethodGet,
 		Path:      path,
+		Query:     query,
 		Header:    http.Header{"Accept": []string{"application/json"}},
 		Retryable: true,
-	})
+	}, dst)
+}
+
+// postReadJSON es una LECTURA por POST (las rutas por lote de bff-internal.yaml: la lista de ids no cabe en la
+// query). No tiene efectos ni lleva Idempotency-Key, pero NO se reintenta: la regla del repo es «solo GET,
+// un reintento». Si el lote falla, sus partes salen unavailable y el listado se muestra igual.
+// TODO(equipo): ¿se permite un reintento en estas lecturas por POST? Ver docs/ESTADO.md.
+func (c *Client) postReadJSON(ctx context.Context, path string, body, dst any) error {
+	payload, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("%w: armando el cuerpo para %s: %w", app.ErrUnavailable, c.Service, err)
+	}
+	return c.readJSON(ctx, Request{
+		Method: http.MethodPost,
+		Path:   path,
+		Header: http.Header{
+			"Accept":       []string{"application/json"},
+			"Content-Type": []string{"application/json"},
+		},
+		Body: bytes.NewReader(payload),
+	}, dst)
+}
+
+func (c *Client) readJSON(ctx context.Context, r Request, dst any) error {
+	resp, err := c.Send(ctx, r)
 	if err != nil {
 		return err
 	}

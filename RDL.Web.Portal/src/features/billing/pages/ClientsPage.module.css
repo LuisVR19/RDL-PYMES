@@ -1,0 +1,42 @@
+/* design/referencias «07 Clientes · lista». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.legal {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trade {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.tabular {
+  font: var(--text-body-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.ellipsis {
+  display: block;
+  font: var(--text-body-sm);
+  color: var(--color-text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}

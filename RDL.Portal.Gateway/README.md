@@ -82,7 +82,9 @@ El `overview` responderá con el total real de Billing y `"availability":"unavai
 | `make run` | Levanta el gateway |
 | `make build` | Compila y deja `bin/gateway` |
 | `make test` | `go vet` + `go test -race` |
-| `make lint` | golangci-lint |
+| `make test-isolation` | Aislamiento entre organizaciones con tokens y APIs reales (ver abajo) |
+| `make e2e` | Punta a punta contra el gateway corriendo (`scripts/dev/e2e.sh`) |
+| `make lint` | golangci-lint (incluye el tag `integration`) |
 | `make routes` | Imprime la tabla de rutas |
 | `make docker` | Imagen distroless, usuario no root |
 
@@ -91,6 +93,23 @@ Antes de dar algo por terminado:
 ```sh
 go build ./... && go vet ./... && golangci-lint run && go test ./...
 ```
+
+### Aislamiento y e2e contra las APIs reales
+
+Las dos necesitan Platform corriendo en `:8080` y un `.e2e.local` (ignorado por git) con los mismos usuarios de
+prueba del E2E de Platform:
+
+```sh
+E2E_EMAIL=...      E2E_PASSWORD=...     # usuario A
+E2E_EMAIL2=...     E2E_PASSWORD2=...    # usuario B (solo lo usa test-isolation)
+```
+
+- `make test-isolation` arma el router real en proceso, verifica los tokens contra el JWKS de dev y crea **una
+  organización nueva por usuario en cada corrida** para probar que A no ve ni toca nada de B pasando por el
+  gateway. Si Billing no responde en `:8081`, sus casos se saltan. Sin Platform o sin credenciales, se salta
+  entera con aviso.
+- `make e2e` va contra el gateway ya levantado. Si Billing no responde, comprueba la degradación (502
+  `upstream-unavailable`) en vez del dato.
 
 ## Cómo agregar una pantalla
 
@@ -129,8 +148,7 @@ Lo que **no** trae esta versión, con su motivo (detalle en [`docs/ESTADO.md`](d
 
 | Pendiente | Bloqueado por |
 |---|---|
-| Listados enriquecidos sin N+1 (pantalla 12) | Rutas por lote, propuestas al repo de contratos |
-| Vista transversal contra la ruta interna de Billing | Billing no implementa `/internal/v1/invoices/{id}/summary` |
+| Listado enriquecido contra E-Invoice y Receivables reales | P5 y P6; las rutas por lote esperan 2 aprobaciones en contratos |
 | Notificaciones en tiempo real (pantalla 34) | Transporte de eventos sin decidir (P2) |
 | Read model | Decisión de almacenamiento (no hay schema ni rol para este servicio) |
 | Pantalla 32 · Exportar auditoría | Ninguna API expone `audit.audit_events` |

@@ -198,14 +198,25 @@ func isIdempotencyKey(prm any) bool {
 type Problem struct {
 	Code   string
 	Status int
-	Title  string
-	When   string
+	// UpstreamStatus (`status: upstream` en el YAML): el tipo conserva el status que respondió otra API. Solo
+	// lo usa un servicio de borde, que compone APIs ajenas; ninguna API de dominio lo necesita.
+	UpstreamStatus bool
+	Title          string
+	When           string
 }
 
 // CommonProblems son los tipos que toda API expone (convenciones §5-§7).
 var CommonProblems = []string{
 	"unauthenticated", "no-active-organization", "membership-inactive", "forbidden", "not-found",
 	"malformed-request", "validation", "conflict", "idempotency-key-required", "idempotency-key-reused", "internal",
+}
+
+// EdgeProblems son los servicios de borde y el mínimo que cada uno registra. Publican problem types pero no son
+// servicios de la base (no están en ownership.Services ni en los CHECK de audit e integration). El Portal
+// Gateway no revalida membresías ni valida cuerpos: esos errores los da la API dueña y él los reenvía intactos,
+// así que no se le exigen los tipos comunes de una API de dominio.
+var EdgeProblems = map[string][]string{
+	"portal-gateway": {"unauthenticated", "not-found", "method-not-allowed", "internal"},
 }
 
 // ProblemRules valida el registro de un servicio.
@@ -224,14 +235,22 @@ func ProblemRules(service string, problems []Problem) []Violation {
 			add("problem-duplicate", ptr+"/code", "%q repetido", p.Code)
 		}
 		seen[p.Code] = true
-		if p.Status < 400 || p.Status > 599 {
+		_, edge := EdgeProblems[service]
+		switch {
+		case p.UpstreamStatus && !edge:
+			add("problem-status", ptr+"/status", "%s: solo un servicio de borde conserva el status de otra API", p.Code)
+		case !p.UpstreamStatus && (p.Status < 400 || p.Status > 599):
 			add("problem-status", ptr+"/status", "%s: status %d fuera de 4xx/5xx", p.Code, p.Status)
 		}
 		if strings.TrimSpace(p.Title) == "" || strings.TrimSpace(p.When) == "" {
 			add("problem-docs", ptr, "%s necesita title y when", p.Code)
 		}
 	}
-	for _, c := range CommonProblems {
+	required := CommonProblems
+	if edge, ok := EdgeProblems[service]; ok {
+		required = edge
+	}
+	for _, c := range required {
 		if !seen[c] {
 			add("problem-common", "/problems", "%s debe registrar el tipo común %q (urn:rdl:%s:problem:%s)", service, c, service, c)
 		}

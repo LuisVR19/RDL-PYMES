@@ -100,6 +100,12 @@ var ResponseHeaders = []string{
 	"ETag",
 }
 
+// InvoiceListParams son los filtros del listado que viajan a Billing (los de su GET /v1/invoices). Una
+// composición no reenvía la query entera: pasa solo lo declarado aquí, así que una organización nunca viaja.
+var InvoiceListParams = []string{
+	"limit", "cursor", "documentType", "status", "customerId", "requiresCorrection", "issuedFrom", "issuedTo",
+}
+
 // StrippedQueryParams se borran de la query antes de reenviar. El Portal Gateway no agrega una organización,
 // y tampoco deja que el cliente intente colarla: la organización sale del token y la resuelve cada API.
 var StrippedQueryParams = []string{"organizationId", "organization_id", "orgId", "org_id"}
@@ -190,8 +196,8 @@ func billingRoutes() []Route {
 		{Method: "PATCH", Path: "/portal/v1/products/{id}", Kind: Passthrough, Service: s,
 			Upstream: "/v1/products/{id}", Why: "Pantalla 11 · Editar producto"},
 
-		{Method: "GET", Path: "/portal/v1/invoices", Kind: Passthrough, Service: s,
-			Upstream: "/v1/invoices", Why: "Pantalla 12 · Documentos (enriquecido en el incremento 5)"},
+		{Method: "GET", Path: "/portal/v1/invoices", Kind: Composed,
+			Why: "Pantalla 12 · Documentos: página de Billing + estado de Hacienda + saldo, una llamada por API"},
 		{Method: "POST", Path: "/portal/v1/invoices", Kind: Passthrough, Service: s,
 			Upstream: "/v1/invoices", Why: "Pantalla 13 · Nueva factura"},
 		{Method: "GET", Path: "/portal/v1/invoices/{id}", Kind: Passthrough, Service: s,

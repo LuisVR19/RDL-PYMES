@@ -15,6 +15,22 @@ Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 - Sugerencia para contratos (no aplicada): un ejemplo de `InvoiceIssued` que sí necesite redondeo, con un caso de mitad
   exacta; hoy los ejemplos están elegidos para no necesitarlo.
 
+### Ruta interna para el Portal Gateway (2026-09-25)
+- **`GET /internal/v1/invoices/{id}/summary`** (`getInvoiceSummary` de `openapi/bff-internal.yaml` del contrato),
+  implementada tal cual el contrato, sin desviaciones: `id`, `documentType`, `number` (null en borrador),
+  `status`, `requiresCorrection`, `customerLegalName` (del snapshot; se omite en borrador, igual que
+  `customerSnapshot` en el detalle), `currency`, `total`.
+- Misma cadena que `/v1`: token del usuario + membresía revalidada, `InvoicesRead` (todos los roles), ajeno → 404.
+  Que solo se alcance por la red interna es tarea del despliegue (documentado en `router.go` y `api/openapi.yaml`).
+- `InvoiceRepository.GetHeader`: la misma consulta generada `GetInvoice`, **sin cargar líneas**. No hubo que
+  tocar `queries/` ni correr sqlc (que no está instalado en esta máquina).
+- Pruebas: forma exacta de la respuesta (borrador y emitida), autenticación y 405/404 en la ruta interna, todos
+  los roles leen, ajeno → `ErrNotFound`; caso cruzado agregado en `tests/isolation` (criterio 1) y `GetHeader`
+  en la integración de los adapters. **Las dos últimas no corrieron: no hay `.env` de Billing en esta máquina.**
+- `api/openapi.yaml` → 0.9.0 con la ruta.
+- Los `.go` estaban en CRLF por el checkout (`core.autocrlf=true`) y `golangci-lint` los marcaba; se
+  normalizaron a LF (git no ve diferencia).
+
 ### Hecho en el incremento 9
 - Suite de aislamiento `tests/isolation` con los 6 criterios, sobre el router real, la membresía real en core y
   `postgres.SavepointTxManager` (cada prueba en una transacción revertida: no deja datos). Fixtures en

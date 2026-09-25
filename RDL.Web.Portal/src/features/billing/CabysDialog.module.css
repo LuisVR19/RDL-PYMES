@@ -1,0 +1,89 @@
+/* design/referencias «11 Buscador CABYS»: 620 px, filas con código de 150 px y «Elegir» a la derecha. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: var(--space-3);
+}
+
+.illustrative {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 5px 8px;
+  font: var(--text-caption);
+  color: var(--color-warning-fg);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+}
+
+.list {
+  max-height: 340px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: 10px var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: left;
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.row:hover,
+.row:focus-visible {
+  background: var(--color-bg-selected);
+}
+
+.code {
+  font: var(--text-code);
+}
+
+.desc {
+  min-width: 0;
+}
+
+.choose {
+  font: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-accent);
+}
+
+.none,
+.unavailable {
+  margin: 0;
+  padding: var(--space-4);
+  text-align: center;
+  font: var(--text-body);
+  color: var(--color-text-secondary);
+}
+
+.manual {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manual .unavailable {
+  padding: 0;
+  text-align: left;
+}
+
+@media (max-width: 767px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

@@ -286,6 +286,14 @@ func TestInvoicesSQL(t *testing.T) {
 			len(l.Taxes) != 1 || l.Taxes[0].Rate.String() != "13" || l.Taxes[0].TaxableBase.String() != "0.99998" {
 			return fmt.Errorf("leído = %+v / línea %+v", got, l)
 		}
+		// El encabezado para el resumen del gateway: mismos totales, sin tocar las líneas; ajeno → ErrNotFound.
+		head, err := r.Invoices().GetHeader(ctx, org, inv.ID)
+		if err != nil || head.Lines != nil || head.Totals.Total.String() != got.Totals.Total.String() || head.Status != got.Status {
+			return fmt.Errorf("header = %+v, err = %w", head, err)
+		}
+		if _, err := r.Invoices().GetHeader(ctx, uuid.New(), inv.ID); !errors.Is(err, app.ErrNotFound) {
+			return fmt.Errorf("header de otra organización: err = %w", err)
+		}
 
 		// Reemplazar líneas por ninguna deja el borrador en cero.
 		empty, _ := got.ReplaceLines(nil)

@@ -1,7 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { FlaskConical, X } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { setScenario, useScenario, type Scenario } from '@/shared/api/scenario'
+import { expireSession } from '@/shared/auth/expiry'
 import { ROLES, ROLE_LABEL, type Role } from '@/shared/permissions/permissions'
 import { useSession } from '@/shared/session/SessionProvider'
 import styles from './DevToolbar.module.css'
@@ -109,6 +111,18 @@ export function DevToolbar() {
         />
         <span>Sin conexión en tiempo real</span>
       </label>
+      <div className={styles.field}>
+        <span>Acceso</span>
+        <button type="button" onClick={expireSession}>
+          Vencer la sesión (pantalla 35)
+        </button>
+        <span>
+          Invitación: <Link to="/invitacion/valida">válida</Link> ·{' '}
+          <Link to="/invitacion/vencida">vencida</Link> ·{' '}
+          <Link to="/invitacion/no-pendiente">no pendiente</Link> ·{' '}
+          <Link to="/invitacion/ajena">otro correo</Link>
+        </span>
+      </div>
     </aside>
   )
 }

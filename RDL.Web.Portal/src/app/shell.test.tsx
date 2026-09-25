@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '@/test/renderApp'
+import { builtScreenIds } from './router'
 import { SCREENS } from './screens'
 
 describe('armazón y rutas', () => {
@@ -33,7 +34,8 @@ describe('armazón y rutas', () => {
     expect(await screen.findByRole('heading', { name: 'No encontramos esta página' })).toBeInTheDocument()
   })
 
-  it.each(SCREENS.map((s) => [s.path, s]))('%s tiene ruta y marcador provisional', async (_path, s) => {
+  const placeholders = SCREENS.filter((s) => !builtScreenIds.has(s.id))
+  it.each(placeholders.map((s) => [s.path, s]))('%s tiene ruta y marcador provisional', async (_path, s) => {
     renderApp(s.path.replace(/:\w+/g, 'demo'), { orgId: 'fr' }) // propietario: acceso a todo
     expect(
       await screen.findByRole('heading', { level: 2, name: new RegExp(`Pantalla ${s.n} · `) }),

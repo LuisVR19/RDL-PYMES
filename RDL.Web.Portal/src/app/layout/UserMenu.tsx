@@ -2,6 +2,7 @@ import * as Menu from '@radix-ui/react-dropdown-menu'
 import { Moon, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { Kbd } from '@/design-system/components/Surface/Surface'
+import { useAuth } from '@/shared/auth/AuthProvider'
 import { t } from '@/shared/i18n/t'
 import { useSession } from '@/shared/session/SessionProvider'
 import { useTheme } from '@/shared/theme/ThemeProvider'
@@ -24,6 +25,7 @@ export function ThemeToggle() {
 /** Menú de usuario (prototipo): nombre y correo, Mi perfil, Atajos de teclado (?), Cerrar sesión. */
 export function UserMenu({ onShortcuts }: { onShortcuts: () => void }) {
   const { user } = useSession()
+  const { signOut } = useAuth()
   const navigate = useNavigate()
   if (!user) return null
   return (
@@ -46,8 +48,13 @@ export function UserMenu({ onShortcuts }: { onShortcuts: () => void }) {
             {t('user.shortcuts')} <Kbd>?</Kbd>
           </Menu.Item>
           <Menu.Separator className={styles.sep} />
-          {/* En la etapa de cableado cierra la sesión de Supabase Auth; aquí solo vuelve a la pantalla de ingreso. */}
-          <Menu.Item className={styles.item} onSelect={() => navigate('/ingresar')}>
+          {/* Cierra la sesión de Supabase Auth y vacía la caché; con datos simulados, solo la sesión simulada. */}
+          <Menu.Item
+            className={styles.item}
+            onSelect={() => {
+              void signOut().then(() => navigate('/ingresar', { replace: true }))
+            }}
+          >
             {t('user.logout')}
           </Menu.Item>
         </Menu.Content>

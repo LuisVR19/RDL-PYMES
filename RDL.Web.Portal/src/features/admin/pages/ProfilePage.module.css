@@ -1,0 +1,182 @@
+/* design/referencias «33 Mi perfil»: columna de 680 px, tarjetas con radio 6. */
+.page {
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font: var(--text-h1);
+  color: var(--color-text-primary);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.card:has(.list) {
+  gap: 0;
+  padding: 0;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-nav);
+  color: var(--color-text-on-accent);
+  font: var(--text-h3);
+}
+
+.whoText {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font: var(--text-h3);
+  color: var(--color-text-primary);
+}
+
+.email {
+  font: var(--text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.readOnly {
+  min-height: var(--control-h-md);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow-wrap: anywhere;
+}
+
+.help {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.sectionTitle {
+  margin: 0;
+  padding: 14px 18px;
+  font: var(--text-h3);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 18px;
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+li:last-child > .row {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--color-bg-row-hover);
+}
+
+.initials {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-active);
+  font: var(--text-caption);
+  font-weight: 600;
+}
+
+.orgName {
+  flex: 1;
+  min-width: 0;
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag,
+.tagActive {
+  flex: none;
+  font: var(--text-caption);
+  white-space: nowrap;
+}
+
+.tag {
+  color: var(--color-text-secondary);
+}
+
+.tagActive {
+  color: var(--color-accent-active);
+}
+
+/* Cerrar sesión: contorno rojo sobre fondo blanco (prototipo), no el botón de peligro sólido. */
+button.logout {
+  color: var(--color-danger-fg);
+  border-color: var(--color-danger-border);
+}
+
+@media (max-width: 767px) {
+  .row {
+    min-height: 56px;
+  }
+  .logout {
+    width: 100%;
+  }
+}

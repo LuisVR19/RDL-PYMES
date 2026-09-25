@@ -247,6 +247,26 @@ func (uc *GetInvoice) Execute(ctx context.Context, t tenancy.Context, id uuid.UU
 	return inv, err
 }
 
+// GetInvoiceSummary sirve GET /internal/v1/invoices/{id}/summary (openapi/bff-internal.yaml del contrato): el
+// encabezado del documento, sin líneas. Mismo permiso y misma tenancy que el detalle público; lo que cambia es
+// cuánto se lee y cuánto viaja.
+type GetInvoiceSummary struct{ tx TxManager }
+
+func NewGetInvoiceSummary(tx TxManager) *GetInvoiceSummary { return &GetInvoiceSummary{tx: tx} }
+
+func (uc *GetInvoiceSummary) Execute(ctx context.Context, t tenancy.Context, id uuid.UUID) (invoice.Invoice, error) {
+	if err := authorize(t, permission.InvoicesRead); err != nil {
+		return invoice.Invoice{}, err
+	}
+	var inv invoice.Invoice
+	err := uc.tx.WithinTenantTx(ctx, t, func(ctx context.Context, tx Tx) error {
+		var err error
+		inv, err = tx.Invoices().GetHeader(ctx, t.OrganizationID(), id)
+		return err
+	})
+	return inv, err
+}
+
 type GetInvoiceHistory struct{ tx TxManager }
 
 func NewGetInvoiceHistory(tx TxManager) *GetInvoiceHistory { return &GetInvoiceHistory{tx: tx} }

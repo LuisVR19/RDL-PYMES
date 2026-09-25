@@ -104,3 +104,14 @@ export const NOTIFICATIONS: PortalNotification[] = [
     unread: false,
   },
 ]
+
+/** La organización de la invitación simulada del prototipo (pantalla 4). */
+export const INVITED_ORGANIZATION: Organization = {
+  id: 'tc',
+  legalName: 'Transportes Cerro Verde S.A.',
+  initials: 'TC',
+  identification: '3101900555',
+  role: 'collector',
+  environment: 'prod',
+  ...base,
+}

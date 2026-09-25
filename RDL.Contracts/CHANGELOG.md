@@ -4,7 +4,27 @@ Todo cambio de contrato se registra aquí. Formato: [Keep a Changelog](https://k
 
 ## [Sin publicar]
 
-(nada todavía)
+Propuesta para el Portal Gateway (P7). **Pendiente de las 2 aprobaciones**; al aprobarse sale como v0.3.0.
+Todo compatible: `contractsctl breaking` contra v0.2.0 da OK.
+
+### Agregado
+- Rutas internas **por lote** en `openapi/bff-internal.yaml` (ADR 0001 §4 del Portal Gateway), para que un listado
+  enriquezca una página entera con una llamada por API, sin N+1:
+  - `POST /internal/v1/electronic-documents/by-source` (fiscal, `getFiscalStatusesBySource`).
+  - `POST /internal/v1/receivables/by-invoice` (Receivables, `getBalancesByInvoice`).
+  - Cuerpo `IdBatch` (`ids`: 1 a 100 uuid distintos). Responden `{ items }` con los que existen en la organización
+    activa; un id ajeno o inexistente no viene. Son lecturas: POST solo por el tamaño de la lista, sin
+    `Idempotency-Key` (las rutas `/internal/` ya estaban exentas en `lint`).
+- `problems/portal-gateway.yaml`: los problem types propios del gateway, incluido `internal`, que faltaba en la
+  propuesta de su repo.
+- `contractsctl lint` reconoce **servicios de borde** (`convention.EdgeProblems`): publican problem types sin ser
+  servicios de la base, con su propio mínimo obligatorio (`unauthenticated`, `not-found`, `method-not-allowed`,
+  `internal`) y son los únicos que pueden registrar `status: upstream` (el tipo conserva el status de otra API).
+
+### Cambiado
+- Las respuestas de a uno de fiscal y Receivables en `bff-internal.yaml` pasan a los componentes `FiscalStatus` y
+  `Balance`, que reutilizan las rutas por lote. Misma forma que antes.
+- `bff-internal.yaml`: el resumen de Billing deja de ser esqueleto (Billing lo implementa desde 2026-09-25).
 
 ## [0.2.0] - 2026-09-24
 

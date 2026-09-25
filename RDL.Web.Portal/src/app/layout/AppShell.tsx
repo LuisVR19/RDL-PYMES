@@ -2,6 +2,7 @@ import { clsx } from 'clsx'
 import { Menu, Search, TriangleAlert } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router'
+import { SkeletonRows } from '@/design-system/components/Feedback/Feedback'
 import { useToast } from '@/design-system/components/Toast/Toast'
 import { useHotkey } from '@/shared/hotkeys/useHotkey'
 import { t } from '@/shared/i18n/t'
@@ -86,7 +87,7 @@ export function AppShell() {
 
           <div className={styles.desktopOnly}>
             <OrgSwitcher variant="desktop" />
-            {activeOrg && <EnvBadge environment={activeOrg.environment} />}
+            {activeOrg?.environment && <EnvBadge environment={activeOrg.environment} />}
           </div>
 
           <form
@@ -137,7 +138,8 @@ export function AppShell() {
           aria-busy={switching}
         >
           <div className={styles.content}>
-            <Outlet />
+            {/* Durante el cambio de organización no se ve ningún dato: ni de la anterior ni a medias de la nueva. */}
+            {switching ? <SkeletonRows rows={6} columns={4} /> : <Outlet />}
           </div>
         </main>
       </div>

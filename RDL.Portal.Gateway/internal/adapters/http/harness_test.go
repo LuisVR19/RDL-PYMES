@@ -141,6 +141,8 @@ type options struct {
 	verifier     httpadapter.Verifier
 	timeouts     map[routes.Service]time.Duration
 	budget       time.Duration
+	// summarySource vacío = la ruta interna del contrato, como en producción.
+	summarySource string
 }
 
 func newGateway(t *testing.T, opt options) *gateway {
@@ -155,7 +157,7 @@ func newGateway(t *testing.T, opt options) *gateway {
 		Upstreams: config.Upstreams{
 			Services:             map[routes.Service]config.Upstream{},
 			Budget:               orDefault(opt.budget, 5*time.Second),
-			BillingSummarySource: config.SummarySourcePublic,
+			BillingSummarySource: orDefault(opt.summarySource, config.SummarySourceInternal),
 		},
 	}
 	for _, s := range routes.Services() {

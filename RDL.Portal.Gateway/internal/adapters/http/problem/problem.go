@@ -15,8 +15,7 @@ import (
 const ContentType = "application/problem+json"
 
 // TypeBase es el prefijo de los `type` de este servicio.
-// TODO(contracts): `problems/portal-gateway.yaml` está propuesto en docs/propuestas/; falta el PR al repo de
-// contratos (2 aprobaciones + CHANGELOG). Mientras tanto, los códigos de aquí son la propuesta.
+// Registrados en `problems/portal-gateway.yaml` del repo de contratos (sin publicar: espera 2 aprobaciones).
 const TypeBase = "urn:rdl:portal-gateway:problem:"
 
 type Details struct {

@@ -45,6 +45,23 @@ type BalanceReader interface {
 	BalanceByInvoice(ctx context.Context, invoiceID string) (view.Balance, error)
 }
 
+// InvoiceLister lee de Billing una página de documentos: es la fuente PRINCIPAL del listado. Query ya viene
+// filtrada por la lista blanca de la ruta (routes.InvoiceListParams): nunca lleva una organización.
+type InvoiceLister interface {
+	ListInvoices(ctx context.Context, query map[string][]string) (view.InvoiceRows, error)
+}
+
+// FiscalStatusBatchReader y BalanceBatchReader leen de una sola vez lo de toda una página (rutas por lote de
+// `openapi/bff-internal.yaml`): una llamada por API por página, nunca una por fila. Devuelven solo los ids
+// que existen; los demás no vienen.
+type FiscalStatusBatchReader interface {
+	FiscalStatusesBySource(ctx context.Context, sourceDocumentIDs []string) (map[string]view.FiscalStatus, error)
+}
+
+type BalanceBatchReader interface {
+	BalancesByInvoice(ctx context.Context, invoiceIDs []string) (map[string]view.Balance, error)
+}
+
 // availabilityOf traduce el resultado de una parte SECUNDARIA a su disponibilidad. Es la regla de degradación
 // del criterio 2: que una API secundaria falle no puede tumbar la vista entera.
 func availabilityOf(err error) view.Availability {

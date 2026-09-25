@@ -110,12 +110,38 @@ paths:
     patch: { tags: [facturación], operationId: patchProduct, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
   /portal/v1/invoices:
     get:
-      tags: [facturación]
+      tags: [vistas]
       operationId: listInvoices
-      summary: |
-        Paso directo → Billing. **TODO(incremento 5):** enriquecer con el estado fiscal y el saldo, con una
-        sola llamada por API (rutas por lote propuestas en docs/decisiones/0001, §4).
-      responses: { '200': { $ref: '#/components/responses/Upstream' } }
+      summary: Listado de documentos con su estado de Hacienda y su saldo (pantalla 12).
+      description: |
+        Una página de Billing (`GET /v1/invoices`), enriquecida con **una** llamada por API: el estado fiscal
+        (`POST /internal/v1/electronic-documents/by-source`) y el saldo (`POST /internal/v1/receivables/by-invoice`),
+        las rutas por lote de `bff-internal.yaml` del contrato. Nunca una llamada por fila.
+
+        Orden, filtros y cursor son los de Billing. Solo viajan los filtros declarados aquí.
+
+        **Degradación (criterio 2):** si un lote falla o su API no está desplegada, todas las filas salen con esa
+        parte en `availability: "unavailable"` y la tabla se muestra igual. Si falla Billing, se responde su error.
+
+        El gateway **no suma**: el «saldo en esta página» del diseño se calcula en el portal con decimales exactos.
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100 } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: documentType, in: query, schema: { type: string, enum: [invoice, credit_note, debit_note] } }
+        - { name: status, in: query, schema: { type: string, enum: [draft, issued, cancelled] } }
+        - { name: customerId, in: query, schema: { $ref: '#/components/schemas/Uuid' } }
+        - { name: requiresCorrection, in: query, schema: { type: boolean } }
+        - { name: issuedFrom, in: query, schema: { $ref: '#/components/schemas/BusinessDate' } }
+        - { name: issuedTo, in: query, schema: { $ref: '#/components/schemas/BusinessDate' } }
+      responses:
+        '200':
+          description: La página, completa o degradada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvoicePage' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '502': { $ref: '#/components/responses/Problem' }
+        '504': { $ref: '#/components/responses/Problem' }
     post: { tags: [facturación], operationId: createInvoice, summary: 'Crea un borrador. Paso directo → Billing.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
   /portal/v1/invoices/{id}:
     parameters: [{ $ref: '#/components/parameters/Id' }]
@@ -269,6 +295,41 @@ components:
         customerLegalName: { type: string, description: Ausente antes de emitir (el snapshot se toma al emitir). }
         currency: { type: string }
         total: { $ref: '#/components/schemas/Money' }
+
+    InvoicePage:
+      type: object
+      additionalProperties: false
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [invoice, fiscal, receivable]
+            properties:
+              invoice: { $ref: '#/components/schemas/InvoiceRow' }
+              fiscal: { $ref: '#/components/schemas/FiscalPart' }
+              receivable: { $ref: '#/components/schemas/BalancePart' }
+        nextCursor: { type: [string, 'null'], description: Opaco, el de Billing. null = no hay más. }
+
+    InvoiceRow:
+      type: object
+      additionalProperties: false
+      required: [id, documentType, status, requiresCorrection, customerId, currency, total, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        documentType: { type: string, enum: [invoice, credit_note, debit_note] }
+        number: { type: string, description: Ausente mientras es borrador. }
+        status: { type: string, enum: [draft, issued, cancelled] }
+        requiresCorrection: { type: boolean }
+        customerId: { $ref: '#/components/schemas/Uuid' }
+        customerLegalName: { type: string, description: Ausente antes de emitir (el snapshot se toma al emitir). }
+        issuedAt: { type: string, format: date-time, description: Instante UTC. Ausente mientras es borrador. }
+        dueDate: { $ref: '#/components/schemas/BusinessDate' }
+        currency: { type: string }
+        total: { $ref: '#/components/schemas/Money' }
+        createdAt: { type: string, format: date-time }
 
     FiscalPart:
       type: object

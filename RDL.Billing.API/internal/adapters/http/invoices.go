@@ -53,6 +53,8 @@ type InvoiceHandlers struct {
 	Discard      discardInvoice
 	History      invoiceHistory
 	Issue        issueInvoice
+	// Summary sirve la ruta interna que compone el Portal Gateway (openapi/bff-internal.yaml del contrato).
+	Summary getInvoice
 }
 
 // --- requests (InvoiceDraftInput e InvoiceLineInput del contrato) ---
@@ -409,6 +411,21 @@ func (h *InvoiceHandlers) register(rt *routes, fail func(http.ResponseWriter, *h
 		writeJSON(w, http.StatusCreated, toInvoiceResponse(res.Invoice))
 	})
 
+	rt.handle("GET /internal/v1/invoices/{id}/summary", func(w http.ResponseWriter, r *http.Request) {
+		id, err := pathID(r)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		t, _ := tenancy.From(r.Context())
+		inv, err := h.Summary.Execute(r.Context(), t, id)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, toInvoiceSummary(inv))
+	})
+
 	rt.handle("GET /v1/invoices/{id}/history", func(w http.ResponseWriter, r *http.Request) {
 		id, err := pathID(r)
 		if err != nil {
@@ -501,6 +518,33 @@ func parseExchangeRateField(v string, fields *[]problem.FieldError) *money.Excha
 		return nil
 	}
 	return &rate
+}
+
+// invoiceSummaryResponse es el 200 de getInvoiceSummary en openapi/bff-internal.yaml del contrato.
+type invoiceSummaryResponse struct {
+	ID                 uuid.UUID `json:"id"`
+	DocumentType       string    `json:"documentType"`
+	Number             *string   `json:"number"`
+	Status             string    `json:"status"`
+	RequiresCorrection bool      `json:"requiresCorrection"`
+	// Del snapshot del cliente, que existe desde la emisión: en borrador se omite, igual que customerSnapshot
+	// en el detalle público.
+	CustomerLegalName string `json:"customerLegalName,omitempty"`
+	Currency          string `json:"currency"`
+	Total             string `json:"total"`
+}
+
+func toInvoiceSummary(inv invoice.Invoice) invoiceSummaryResponse {
+	out := invoiceSummaryResponse{
+		ID: inv.ID, DocumentType: string(inv.DocumentType), Status: string(inv.Status),
+		RequiresCorrection: inv.RequiresCorrection, CustomerLegalName: inv.Customer.LegalName,
+		Currency: inv.Currency.String(), Total: inv.Totals.Total.String(),
+	}
+	if inv.Number != "" {
+		n := inv.Number
+		out.Number = &n
+	}
+	return out
 }
 
 func toInvoiceResponse(inv invoice.Invoice) invoiceResponse {

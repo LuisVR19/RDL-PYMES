@@ -1,0 +1,33 @@
+/* design/referencias «10 Productos y servicios · lista». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.illustrative {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font: var(--text-caption);
+  color: var(--color-warning-fg);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+}
+
+.mono {
+  font: var(--text-code);
+}
+
+.desc {
+  display: block;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

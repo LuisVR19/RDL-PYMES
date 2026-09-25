@@ -1,13 +1,11 @@
 import { createContext, useContext, type ReactNode } from 'react'
 import type { DataSource } from './ports'
+import { config } from '@/shared/config'
 import { mockDataSource } from './mock'
 
 const DataSourceContext = createContext<DataSource>(mockDataSource)
 
-/**
- * Elige la implementación de los puertos. En esta etapa solo existe `mock`; en la de cableado se agrega `gateway`
- * y se elige por `VITE_DATA_SOURCE`.
- */
+/** Entrega la implementación de los puertos. La elige `src/app/sources.ts` según `VITE_DATA_SOURCE`. */
 export function DataSourceProvider({
   children,
   source = mockDataSource,
@@ -22,4 +20,4 @@ export function useDataSource(): DataSource {
   return useContext(DataSourceContext)
 }
 
-export const isMockDataSource = (import.meta.env.VITE_DATA_SOURCE ?? 'mock') === 'mock'
+export const isMockDataSource = config.dataSource === 'mock'

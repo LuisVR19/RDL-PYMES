@@ -1,0 +1,51 @@
+/* design/referencias «08 Cliente · crear y editar»: columna de 820 px, rejilla de 240 px mínimo. */
+.page {
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-4) 20px;
+  padding: 20px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.tabular input {
+  font-variant-numeric: tabular-nums;
+}
+
+.duplicate {
+  margin: 6px 0 0;
+  font: var(--text-caption);
+  color: var(--color-danger-fg);
+}
+
+.duplicate a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .card {
+    padding: var(--space-4);
+  }
+  .actions > * {
+    flex: 1;
+  }
+}

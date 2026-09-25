@@ -125,10 +125,11 @@ func openAPISchemas(doc any) []located {
 	return out
 }
 
-// problems valida problems/<servicio>.yaml para los cuatro servicios.
+// problems valida problems/<servicio>.yaml para los cuatro servicios de dominio y los de borde.
 func (c *LintCheck) problems(repo fs.FS) ([]finding.Finding, error) {
 	var out []finding.Finding
-	for _, svc := range ownership.Services {
+	services := append(slices.Clone(ownership.Services), slices.Sorted(maps.Keys(convention.EdgeProblems))...)
+	for _, svc := range services {
 		file := path.Join(ProblemsDir, svc+".yaml")
 		doc, err := c.docs.Load(repo, file)
 		switch {
@@ -152,7 +153,8 @@ func (c *LintCheck) problems(repo fs.FS) ([]finding.Finding, error) {
 			status, _ := m["status"].(int)
 			title, _ := m["title"].(string)
 			when, _ := m["when"].(string)
-			ps = append(ps, convention.Problem{Code: code, Status: status, Title: title, When: when})
+			ps = append(ps, convention.Problem{Code: code, Status: status, UpstreamStatus: m["status"] == "upstream",
+				Title: title, When: when})
 		}
 		for _, v := range convention.ProblemRules(svc, ps) {
 			out = append(out, finding.Errorf(v.Rule, file, v.Pointer, v.Message))

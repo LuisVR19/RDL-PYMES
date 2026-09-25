@@ -27,6 +27,7 @@ func TestCriterion1CrossTenantEndpoints(t *testing.T) {
 		{"DELETE", "/v1/invoices/" + b.draftID, ""},
 		{"POST", "/v1/invoices/" + b.draftID + "/issue", ""},
 		{"GET", "/v1/invoices/" + b.draftID + "/history", ""},
+		{"GET", "/internal/v1/invoices/" + b.draftID + "/summary", ""},
 		// Referencias a recursos de B desde documentos de A.
 		{"POST", "/v1/invoices", `{"documentType":"invoice","customerId":"` + b.customerID + `","saleConditionCode":"01","currency":"CRC"}`},
 		{"PUT", "/v1/document-sequences/invoice", `{"branchId":"` + branchB.String() + `","prefix":"X-","nextNumber":1}`},

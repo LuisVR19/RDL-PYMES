@@ -60,6 +60,7 @@ export interface ConfirmDialogProps {
   tone?: 'primary' | 'danger'
   /** Motivo obligatorio (anular, revertir, anular pago): mínimo 10 caracteres. */
   reasonRequired?: boolean
+  reasonPlaceholder?: string
   /** Confirmación escrita (cambiar a producción: «PRODUCCIÓN»). */
   typeToConfirm?: string
   onConfirm: (reason?: string) => void
@@ -82,6 +83,7 @@ export function ConfirmDialog({
   confirmingLabel,
   tone = 'primary',
   reasonRequired,
+  reasonPlaceholder,
   typeToConfirm,
   onConfirm,
   sending,
@@ -127,9 +129,15 @@ export function ConfirmDialog({
       {warning && <p className={styles.warning}>{warning}</p>}
       {reasonRequired && (
         <TextArea
-          label="Motivo"
+          label={t('common.reason')}
           required
           minLength={10}
+          placeholder={reasonPlaceholder}
+          help={
+            reason.trim().length >= 10
+              ? t('common.reasonEnough')
+              : t('common.reasonCounter', { n: reason.trim().length })
+          }
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           rows={3}

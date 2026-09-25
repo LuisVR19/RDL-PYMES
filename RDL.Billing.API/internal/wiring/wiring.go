@@ -40,6 +40,7 @@ func Deps(log *slog.Logger, checks *health.Handler, verifier tenancy.TokenVerifi
 			ReplaceLines: app.NewReplaceInvoiceLines(txm),
 			Discard:      app.NewDiscardInvoiceDraft(txm),
 			History:      app.NewGetInvoiceHistory(txm),
+			Summary:      app.NewGetInvoiceSummary(txm),
 			Issue:        app.NewIssueInvoice(txm),
 		},
 		Sequences: &httpadapter.SequenceHandlers{

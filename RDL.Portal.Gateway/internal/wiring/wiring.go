@@ -32,15 +32,14 @@ func Clients(cfg config.Config, log *slog.Logger) map[routes.Service]*downstream
 func Deps(cfg config.Config, log *slog.Logger, verifier httpadapter.Verifier,
 	clients map[routes.Service]*downstream.Client, checks *health.Handler) httpadapter.Deps {
 
-	overview := &app.OverviewService{
-		Invoices: &downstream.BillingReader{
-			Client: clients[routes.Billing],
-			Source: downstream.SummarySource(cfg.Upstreams.BillingSummarySource),
-		},
-		Fiscal:   &downstream.FiscalReader{Client: clients[routes.Fiscal]},
-		Balances: &downstream.ReceivablesReader{Client: clients[routes.Receivables]},
-		Log:      log,
+	billing := &downstream.BillingReader{
+		Client: clients[routes.Billing],
+		Source: downstream.SummarySource(cfg.Upstreams.BillingSummarySource),
 	}
+	fiscal := &downstream.FiscalReader{Client: clients[routes.Fiscal]}
+	balances := &downstream.ReceivablesReader{Client: clients[routes.Receivables]}
+	overview := &app.OverviewService{Invoices: billing, Fiscal: fiscal, Balances: balances, Log: log}
+	list := &app.InvoiceListService{Invoices: billing, Fiscal: fiscal, Balances: balances, Log: log}
 
 	return httpadapter.Deps{
 		Log:      log,
@@ -52,6 +51,7 @@ func Deps(cfg config.Config, log *slog.Logger, verifier httpadapter.Verifier,
 			Log:     log,
 		},
 		Overview: &httpadapter.OverviewHandler{Service: overview, Log: log},
+		Invoices: &httpadapter.InvoiceListHandler{Service: list, Log: log},
 		Budget:   cfg.Upstreams.Budget,
 		CORS:     cfg.CORS.AllowedOrigins,
 		Service:  cfg.ServiceName,

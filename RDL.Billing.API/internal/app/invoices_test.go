@@ -212,6 +212,28 @@ func TestRolesForDrafts(t *testing.T) {
 	}
 }
 
+// El resumen trae el encabezado y los totales del documento, sin leer líneas, y lo pueden leer todos los roles.
+func TestInvoiceSummary(t *testing.T) {
+	s := newScenario(t)
+	res, err := NewCreateInvoiceDraft(s.f).Execute(ctx, s.tn, "k", s.header(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, role := range []string{"owner", "admin", "biller", "collector", "accountant", "read_only"} {
+		got, err := NewGetInvoiceSummary(s.f).Execute(ctx, tenant(s.org, role), res.Invoice.ID)
+		if err != nil {
+			t.Fatalf("rol %s: %v", role, err)
+		}
+		if got.ID != res.Invoice.ID || got.Status != invoice.StatusDraft || got.Lines != nil ||
+			got.Totals.Total.String() != res.Invoice.Totals.Total.String() {
+			t.Fatalf("rol %s: resumen = %+v", role, got)
+		}
+	}
+	if _, err := NewGetInvoiceSummary(s.f).Execute(ctx, s.tn, uuid.New()); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("inexistente: err = %v", err)
+	}
+}
+
 func TestReplaceLinesAndUpdateHeader(t *testing.T) {
 	s := newScenario(t)
 	res, _ := NewCreateInvoiceDraft(s.f).Execute(ctx, s.tn, "k", s.header(), nil)
@@ -284,6 +306,9 @@ func TestInvoiceOfAnotherOrganizationIsNotFound(t *testing.T) {
 	}
 	if _, err := NewGetInvoiceHistory(s.f).Execute(ctx, intruder, id); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("history: %v", err)
+	}
+	if _, err := NewGetInvoiceSummary(s.f).Execute(ctx, intruder, id); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("summary: %v", err)
 	}
 	notes := "x"
 	if _, err := NewUpdateInvoiceDraft(s.f).Execute(ctx, intruder, id, invoice.HeaderPatch{Notes: &notes}, nil); !errors.Is(err, ErrNotFound) {
