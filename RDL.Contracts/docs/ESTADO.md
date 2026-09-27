@@ -87,7 +87,8 @@ se probaron en negativo sobre una copia (falta `internal` → `problem-common`; 
     `components/common.yaml` y `problems/platform.yaml`; su TODO de `identificationTypeCode` se resuelve con el
     punto 1. Ver `docs/openapi.md`.
 20. **Billing / fiscal / Receivables:** confirmar los problem types propuestos en `problems/*.yaml` y completar los
-    esqueletos OpenAPI al implementar.
+    esqueletos OpenAPI al implementar. Billing F2/F3 hecho (propuesta sin publicar); faltan sus rutas F5 (anular,
+    notas), la línea libre sin producto, y fiscal y Receivables.
 21. **BFF:** la vista transversal y su read model se documentan en su repo (P7). Sus problem types y las rutas
     por lote que necesita están en la propuesta sin publicar.
     **Pregunta abierta:** la regla `closed-object` solo se aplica a los schemas de eventos (ADR 0006); las

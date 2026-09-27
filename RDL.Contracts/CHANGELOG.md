@@ -4,7 +4,7 @@ Todo cambio de contrato se registra aquí. Formato: [Keep a Changelog](https://k
 
 ## [Sin publicar]
 
-Propuesta para el Portal Gateway (P7). **Pendiente de las 2 aprobaciones**; al aprobarse sale como v0.3.0.
+Propuesta para el Portal Gateway (P7) y OpenAPI de Billing F2/F3 (P4). **Pendiente de las 2 aprobaciones**; al aprobarse sale como v0.3.0.
 Todo compatible: `contractsctl breaking` contra v0.2.0 da OK.
 
 ### Agregado
@@ -25,6 +25,21 @@ Todo compatible: `contractsctl breaking` contra v0.2.0 da OK.
 - Las respuestas de a uno de fiscal y Receivables en `bff-internal.yaml` pasan a los componentes `FiscalStatus` y
   `Balance`, que reutilizan las rutas por lote. Misma forma que antes.
 - `bff-internal.yaml`: el resumen de Billing deja de ser esqueleto (Billing lo implementa desde 2026-09-25).
+- `openapi/billing.yaml` (v0.2.0 del documento) refleja lo que RDL.Billing.API implementa para F2/F3; anulación y
+  notas siguen como esqueleto F5. Todo compatible (`breaking` contra v0.2.0: OK):
+  - Filtros `issuedFrom`/`issuedTo` (fecha de negocio) en `listInvoices`.
+  - PATCH con esquemas propios, todo opcional: `ProductPatch` (taxes reemplaza la lista) e `InvoiceDraftPatch`
+    (branchId y creditTermDays admiten null para quitarlos). El cuerpo completo de antes sigue siendo válido.
+  - `Invoice` agrega `saleConditionCode`, `creditTermDays`, `exchangeRate`, `notes` y `updatedAt`; sus líneas son
+    `document-line.v1` (con `grossAmount`, v0.2.0).
+  - `Product` agrega `isActive` y hace obligatorios `taxes`, `createdAt`, `updatedAt` (la API siempre los envía).
+  - `PUT /v1/document-sequences/{documentType}` recibe `DocumentSequenceInput` (documentType opcional, prefijo de
+    hasta 10 caracteres `[A-Za-z0-9._/-]`, nextNumber hasta 15 dígitos) y responde `DocumentSequence` con `used` y
+    `updatedAt`.
+  - Respuestas de error (400/401/403/404/409/422) por operación y descripciones de reglas: validación de ids contra
+    la organización, snapshots, dueDate, Idempotent-Replayed. Billing v1 exige `productId` en cada línea.
+- `problems/billing.yaml`: códigos confirmados por la implementación, salvo `invoice-not-issued` e
+  `invalid-reference` (F5).
 
 ## [0.2.0] - 2026-09-24
 

@@ -3,7 +3,7 @@
 openapi: 3.1.0
 info:
   title: Billing API
-  version: 0.9.0
+  version: 0.9.1
   description: Operación comercial de cada organización con sus clientes. La organización sale del token (org_id + membresía activa).
 servers:
   - url: http://localhost:8081
@@ -469,7 +469,7 @@ components:
     InvoiceLine:
       type: object
       description: DocumentLine v1 del contrato (schemas/events/parts/document-line.v1.json).
-      required: [lineNumber, cabysCode, description, unitOfMeasureCode, isService, quantity, unitPrice, discount, subtotal, tax, total, taxes]
+      required: [lineNumber, cabysCode, description, unitOfMeasureCode, isService, quantity, unitPrice, grossAmount, discount, subtotal, tax, total, taxes]
       properties:
         lineNumber: { type: integer, minimum: 1 }
         productId: { type: string, format: uuid }
@@ -480,6 +480,7 @@ components:
         isService: { type: boolean }
         quantity: { type: string }
         unitPrice: { $ref: '#/components/schemas/Money' }
+        grossAmount: { $ref: '#/components/schemas/Money', description: Monto antes del descuento (subtotal + discount). }
         discount: { $ref: '#/components/schemas/Money' }
         discountReason: { type: string }
         subtotal: { $ref: '#/components/schemas/Money' }

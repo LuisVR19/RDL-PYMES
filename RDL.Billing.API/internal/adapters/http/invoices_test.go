@@ -158,7 +158,7 @@ func TestCreateInvoiceHTTP(t *testing.T) {
 	tax, _ := taxes[0].(map[string]any)
 	// Formato DocumentLine v1: montos como string, número null en borrador, sin snapshot de cliente.
 	if out["number"] != nil || out["status"] != "draft" || out["total"] != "1.12999" || out["customerSnapshot"] != nil ||
-		line["subtotal"] != "0.99999" || line["quantity"] != "3" || tax["rate"] != "13" || tax["amount"] != "0.13" {
+		line["subtotal"] != "0.99999" || line["grossAmount"] != "0.99999" || line["quantity"] != "3" || tax["rate"] != "13" || tax["amount"] != "0.13" {
 		t.Fatalf("respuesta = %v", out)
 	}
 }

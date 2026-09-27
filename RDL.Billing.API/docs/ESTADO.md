@@ -2,7 +2,14 @@
 
 Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 
-## Última actualización: 2026-09-25 — incremento 9 (endurecimiento). F2 y F3 implementadas.
+## Última actualización: 2026-09-26 — incremento 9 (endurecimiento). F2 y F3 implementadas.
+
+### OpenAPI de Billing en contratos (2026-09-26)
+- `RDL.Contracts/openapi/billing.yaml` refleja lo implementado en F2/F3 (ProductPatch, InvoiceDraftPatch, campos de
+  Invoice y Product, DocumentSequenceInput/`used`, issuedFrom/issuedTo, respuestas de error). Problem types
+  confirmados, salvo los de F5.
+- Corrección aquí: las líneas de la respuesta de factura traen `grossAmount` (document-line.v1 lo exige desde v0.2.0);
+  `api/openapi.yaml` pasa a 0.9.1.
 
 ### Conflicto con contratos v0.2.0 resuelto (2026-09-25)
 - Luis Valverde publicó en `main` contratos **v0.2.0** con la misma decisión de D2 y de `exoneratedRate`, tomada del
@@ -83,10 +90,9 @@ Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 - Publicar el tag `v0.2.0` de contratos (ADR 0007 de Luis Valverde: reglas del borrador de los Anexos v4.4,
   provisionales hasta la versión oficial); después quitar el
   `replace` de `go.mod` y el contexto especial del Dockerfile.
-- `ProductPatch` para `PATCH /v1/products/{id}` (ADR 0004 §3).
-- Completar el esqueleto de Billing: campos de `Invoice` que la API ya devuelve (`saleConditionCode`, `creditTermDays`,
-  `exchangeRate`, `notes`, `updatedAt`), `InvoiceDraftPatch`, líneas libres sin `productId`, filtros
-  `issuedFrom`/`issuedTo`, `used` en `DocumentSequence`.
+- OpenAPI de Billing en contratos: **propuesta escrita** en `openapi/billing.yaml` (entrada `[Sin publicar]` del
+  CHANGELOG, `breaking` contra v0.2.0 OK), pendiente de las 2 aprobaciones. Queda fuera la línea libre sin `productId`
+  (se define al implementarla) y las rutas F5.
 
 ### Decisiones de producto
 - Matriz de permisos (propuesta del prompt).

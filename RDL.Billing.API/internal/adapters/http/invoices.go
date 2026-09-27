@@ -161,6 +161,7 @@ type invoiceLineDTO struct {
 	IsService         bool         `json:"isService"`
 	Quantity          string       `json:"quantity"`
 	UnitPrice         string       `json:"unitPrice"`
+	GrossAmount       string       `json:"grossAmount"`
 	Discount          string       `json:"discount"`
 	DiscountReason    string       `json:"discountReason,omitempty"`
 	Subtotal          string       `json:"subtotal"`
@@ -578,7 +579,7 @@ func toInvoiceResponse(inv invoice.Invoice) invoiceResponse {
 		dto := invoiceLineDTO{
 			LineNumber: l.Number, ProductID: l.ProductID, ProductCode: l.ProductCode, CabysCode: l.CabysCode,
 			Description: l.Description, UnitOfMeasureCode: l.UnitOfMeasureCode, IsService: l.IsService,
-			Quantity: l.Quantity.String(), UnitPrice: l.UnitPrice.String(), Discount: l.Discount.String(),
+			Quantity: l.Quantity.String(), UnitPrice: l.UnitPrice.String(), GrossAmount: l.Gross().String(), Discount: l.Discount.String(),
 			DiscountReason: l.DiscountReason, Subtotal: l.Subtotal.String(), Tax: l.Tax.String(), Total: l.Total.String(),
 			Taxes: make([]lineTaxDTO, 0, len(l.Taxes)),
 		}

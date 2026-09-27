@@ -4,7 +4,7 @@
 |---|---|---|
 | [`openapi/components/common.yaml`](../openapi/components/common.yaml) | todas | Componentes comunes: seguridad, parámetros (`Idempotency-Key`, `X-Correlation-Id`, `limit`, `cursor`), `Problem`, respuestas de error y tipos de datos (los mismos JSON Schema de los eventos) |
 | [`openapi/platform.yaml`](../openapi/platform.yaml) | Platform | **Importado tal cual** de `RDL.Platform.API/api/openapi.yaml` (v0.7.0). Es la implementación real |
-| [`openapi/billing.yaml`](../openapi/billing.yaml) | Billing | Esqueleto: clientes, productos, facturas y notas, emisión, anulación, numeración |
+| [`openapi/billing.yaml`](../openapi/billing.yaml) | Billing | Implementado F2/F3 (clientes, productos, borradores, emisión, numeración); anulación y notas: esqueleto F5 |
 | [`openapi/fiscal.yaml`](../openapi/fiscal.yaml) | E-Invoice (`fiscal`) | Esqueleto: perfil fiscal y certificado, establecimientos, documentos electrónicos y archivos, reintento, catálogos |
 | [`openapi/receivables.yaml`](../openapi/receivables.yaml) | Receivables | Esqueleto: cuentas por cobrar, aging, pagos, aplicaciones y reversos, seguimientos |
 | [`openapi/bff-internal.yaml`](../openapi/bff-internal.yaml) | las tres | Rutas internas `/internal/v1/...` que el BFF compone para la vista transversal (arquitectura 2.2) y, por lote, para los listados sin N+1 |
