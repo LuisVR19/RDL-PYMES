@@ -1,0 +1,116 @@
+---
+import PortalLinks from '../components/PortalLinks.astro'
+import Shot from '../components/Shot.astro'
+import WhatsAppLink from '../components/WhatsAppLink.astro'
+import Base from '../layouts/Base.astro'
+import { content } from '../lib/content'
+
+const t = content.accountantsPage
+---
+
+<Base title={t.meta.title} description={t.meta.description}>
+  <section class="hero band-dark" aria-labelledby="contadores-title">
+    <div class="container grid">
+      <div class="copy">
+        <p class="eyebrow">{t.eyebrow}</p>
+        <h1 id="contadores-title">{t.title}</h1>
+        <p class="subtitle">{t.subtitle}</p>
+        <div class="actions-row">
+          <WhatsAppLink
+            label={t.cta}
+            message={content.contact.whatsappAccountantsMessage}
+            event="whatsapp-contadores"
+          />
+          <PortalLinks show="login" variant="secondary" size="lg" />
+        </div>
+      </div>
+      <Shot
+        name="organizaciones"
+        alt={content.home.accountants.imageLabel}
+        frame="none"
+        priority
+        sizes="(max-width: 1023px) 90vw, 400px"
+        class="orgs"
+      />
+    </div>
+  </section>
+
+  <section class="section" aria-label={t.title}>
+    <div class="container">
+      <ul class="grid2">
+        {t.sections.map((s) => (
+          <li class="card">
+            <h2 class="h">{s.title}</h2>
+            <p>{s.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding: var(--space-16) 0;
+  }
+
+  .grid :global(.orgs) {
+    max-width: 400px;
+    justify-self: center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  h1 {
+    font: var(--text-hero);
+    letter-spacing: -0.02em;
+    color: #ffffff;
+  }
+
+  .subtitle {
+    font: var(--text-lead);
+    color: var(--band-muted);
+    max-width: 560px;
+  }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .h {
+    font: var(--text-h3);
+    font-size: 18px;
+  }
+
+  @media (max-width: 1023px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-10);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      padding: var(--space-10) 0;
+    }
+    .grid2 {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

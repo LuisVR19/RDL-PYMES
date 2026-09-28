@@ -14,7 +14,8 @@ Un solo repo git que contiene varios **repositorios lógicos independientes** (c
 | `RDL.Billing.API` | Operación comercial. Dueña de `billing`. Productora de `InvoiceIssued`. Go, `:8081` | F2 y F3 |
 | `RDL.Portal.Gateway` | BFF del portal: verifica el token, reenvía a la API dueña y compone vistas. **Sin base de datos.** Go, `:8090` | Incrementos 1–4 de P7 |
 | `RDL.Web.Portal` | Portal React de la PYME. Consume solo el Portal Gateway (`/portal/v1`) | Diseño, datos simulados |
-| `prompts/` | Prompts P0–P8c: la especificación de cada repo, incluidos los que aún no existen (E-Invoice, Receivables, Landing) | — |
+| `RDL.Landing` | Landing pública estática (Astro): explica el producto, lleva al portal y abre WhatsApp. Sin backend | Construida, datos de prueba |
+| `prompts/` | Prompts P0–P8c: la especificación de cada repo, incluidos los que aún no existen (E-Invoice, Receivables) | — |
 | `designs/`, `docs/`, `RDL.Web.Portal/design/` | Prototipos de Claude Design, arquitectura y planning (.docx), PDFs de Hacienda | — |
 
 **Antes de tocar un módulo, lea su `CLAUDE.md`** (`RDL.Contracts/CLAUDE.md`, etc.): ahí están las reglas duras de ese
@@ -58,6 +59,9 @@ make test / make lint
 # Una sola prueba en Go
 go test ./internal/domain/invoice -run TestPropertyCalculation -v
 go test -tags=integration ./tests/isolation/... -run TestNombre -v
+
+# Landing (RDL.Landing)
+npm run dev | build | lint | check:content | test | test:e2e | lighthouse:local
 
 # Portal
 npm run dev | build | typecheck | lint | test | test:e2e

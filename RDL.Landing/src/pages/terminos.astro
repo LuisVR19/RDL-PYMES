@@ -1,0 +1,10 @@
+---
+import * as doc from '../content/legal/terminos.md'
+import Legal from '../layouts/Legal.astro'
+import { content } from '../lib/content'
+
+const t = content.legal.terms
+const html = await doc.compiledContent()
+---
+
+<Legal title={t.title} description={t.description} updated={String(doc.frontmatter.updated)} html={html} />

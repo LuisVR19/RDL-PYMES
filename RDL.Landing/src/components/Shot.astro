@@ -1,0 +1,111 @@
+---
+import type { ImageMetadata } from 'astro'
+import { Picture } from 'astro:assets'
+
+/**
+ * Captura del portal (src/assets/capturas/, datos ficticios del modo simulado; ver scripts/capture-portal.mjs) en
+ * un marco de navegador o de celular. Astro la sirve en AVIF y WebP, en varios anchos.
+ */
+interface Props {
+  name: 'detalle' | 'documentos' | 'borrador' | 'organizaciones' | 'detalle-movil'
+  alt: string
+  frame?: 'browser' | 'phone' | 'none'
+  /** La imagen principal del primer pantallazo: se pide primero y sin carga diferida. */
+  priority?: boolean
+  sizes?: string
+  class?: string
+}
+
+const images = import.meta.glob<{ default: ImageMetadata }>('../assets/capturas/*.png', { eager: true })
+const {
+  name,
+  alt,
+  frame = 'browser',
+  priority = false,
+  sizes = '(max-width: 1023px) 100vw, 640px',
+  class: className,
+} = Astro.props
+const src = images[`../assets/capturas/${name}.png`]?.default
+if (!src) throw new Error(`Falta la captura ${name}.png: corra scripts/capture-portal.mjs`)
+const widths = frame === 'phone' ? [240, 360, 480] : [480, 800, 1200, 1600]
+---
+
+<figure class:list={['shot', `frame-${frame}`, className]}>
+  {frame === 'browser' && (
+    <div class="bar" aria-hidden="true">
+      <span class="dot" />
+      <span class="dot" />
+      <span class="dot" />
+      <span class="url">app.rdl · Portal</span>
+    </div>
+  )}
+  <Picture
+    src={src}
+    alt={alt}
+    formats={['avif', 'webp']}
+    widths={widths}
+    sizes={frame === 'phone' ? '(max-width: 767px) 40vw, 240px' : sizes}
+    loading={priority ? 'eager' : 'lazy'}
+    fetchpriority={priority ? 'high' : 'auto'}
+    decoding={priority ? 'sync' : 'async'}
+  />
+</figure>
+
+<style>
+  .shot {
+    margin: 0;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .shot :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .frame-browser {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-default);
+    box-shadow:
+      0 24px 60px rgba(15, 27, 51, 0.22),
+      0 0 0 1px rgba(15, 27, 51, 0.04);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    background: #eef0f3;
+    border-bottom: 1px solid #dde1e7;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: var(--radius-full);
+    background: #c9cfd8;
+  }
+
+  .url {
+    margin-left: 12px;
+    padding: 2px 12px;
+    border-radius: var(--radius-full);
+    background: #ffffff;
+    color: #5a6272;
+    font: 400 11px/16px var(--font-sans);
+  }
+
+  .frame-phone {
+    border: 8px solid #0b1220;
+    border-radius: 28px;
+    box-shadow: 0 24px 50px rgba(15, 27, 51, 0.35);
+  }
+
+  .frame-none {
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 60px rgba(15, 27, 51, 0.28);
+  }
+</style>

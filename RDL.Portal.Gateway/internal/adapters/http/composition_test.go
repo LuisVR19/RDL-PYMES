@@ -251,6 +251,35 @@ func TestOverviewForwardsBillingErrorWhenPrimaryFails(t *testing.T) {
 	}
 }
 
+// El problema reenviado conserva todo lo de Billing salvo `instance`: el de Billing es su ruta interna
+// (/internal/v1/…), que el portal no debe ver. Pasa a ser la ruta que pidió el portal.
+func TestOverviewForwardedProblemDoesNotLeakTheInternalPath(t *testing.T) {
+	g := newGateway(t, options{})
+	seedOverview(t, g)
+	g.up(t, routes.Billing).setResponse(func(w http.ResponseWriter, _ *http.Request, _ int) {
+		w.Header().Set("Content-Type", "application/problem+json")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"type":"urn:rdl:billing:problem:not-found","title":"Recurso no encontrado","status":404,`+
+			`"instance":"/internal/v1/invoices/`+invoiceID+`/summary","correlationId":"c0000000-0000-4000-8000-000000000001"}`)
+	})
+
+	code, body := getOverview(t, g)
+	if code != http.StatusNotFound {
+		t.Fatalf("code=%d, want 404", code)
+	}
+	if want := "/portal/v1/invoices/" + invoiceID + "/overview"; body["instance"] != want {
+		t.Errorf("instance=%v, want %v", body["instance"], want)
+	}
+	for k, want := range map[string]any{
+		"type": "urn:rdl:billing:problem:not-found", "title": "Recurso no encontrado", "status": float64(404),
+		"correlationId": "c0000000-0000-4000-8000-000000000001",
+	} {
+		if body[k] != want {
+			t.Errorf("%s=%v, want %v (se conserva el de Billing)", k, body[k], want)
+		}
+	}
+}
+
 // Una composición hace UNA llamada por API: nada de N+1 escondido.
 func TestOverviewCallsEachAPIOnce(t *testing.T) {
 	g := newGateway(t, options{})

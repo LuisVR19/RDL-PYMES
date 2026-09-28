@@ -1,0 +1,54 @@
+---
+import PortalLinks from '../components/PortalLinks.astro'
+import Base from '../layouts/Base.astro'
+import { content } from '../lib/content'
+
+const t = content.notFound
+---
+
+<Base title={t.metaTitle} description={t.body} noindex>
+  <section class="section" aria-labelledby="nf-title">
+    <div class="container box">
+      <p class="code" aria-hidden="true">
+        404
+      </p>
+      <h1 id="nf-title" class="section-title">
+        {t.title}
+      </h1>
+      <p class="section-lead">{t.body}</p>
+      <div class="actions-row cta">
+        <a class="btn btn-primary btn-lg" href="/">
+          {t.home}
+        </a>
+        <PortalLinks show="login" variant="secondary" size="lg" />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 50vh;
+    justify-content: center;
+  }
+
+  .code {
+    font: 600 64px/1 var(--font-mono);
+    color: var(--color-text-disabled);
+    margin-bottom: var(--space-4);
+  }
+
+  .box .section-lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta {
+    margin-top: var(--space-8);
+    justify-content: center;
+  }
+</style>

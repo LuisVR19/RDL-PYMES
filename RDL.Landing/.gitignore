@@ -1,0 +1,10 @@
+node_modules
+dist
+.astro
+.env
+.env.*
+!.env.example
+e2e/.results
+test-results
+playwright-report
+.lighthouseci

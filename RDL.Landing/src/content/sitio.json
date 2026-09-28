@@ -1,0 +1,377 @@
+{
+  "brand": "RDL",
+  "nav": {
+    "skip": "Saltar al contenido",
+    "login": "Iniciar sesión",
+    "signup": "Crear cuenta",
+    "signupSoon": "Próximamente",
+    "signupSoonLabel": "Crear cuenta: próximamente",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "mainLabel": "Principal",
+    "links": [
+      {
+        "href": "/#funciones",
+        "label": "Funciones"
+      },
+      {
+        "href": "/#como-funciona",
+        "label": "Cómo funciona"
+      },
+      {
+        "href": "/#contadores",
+        "label": "Contadores"
+      },
+      {
+        "href": "/#seguridad",
+        "label": "Seguridad"
+      },
+      {
+        "href": "/#precios",
+        "label": "Precios"
+      },
+      {
+        "href": "/#preguntas",
+        "label": "Preguntas"
+      }
+    ],
+    "themeToDark": "Cambiar a tema oscuro",
+    "themeToLight": "Cambiar a tema claro"
+  },
+  "contact": {
+    "whatsapp": "Contactarme por WhatsApp",
+    "whatsappShort": "WhatsApp",
+    "whatsappMessage": "Hola, me interesa RDL para facturar y cobrar en mi empresa. ¿Me pueden dar más información?",
+    "whatsappAccountantsMessage": "Hola, soy contador y llevo varias empresas. Me interesa RDL. ¿Me pueden dar más información?",
+    "whatsappFloatLabel": "Escribirnos por WhatsApp",
+    "emailLabel": "Correo",
+    "phoneLabel": "WhatsApp",
+    "hoursLabel": "Horario"
+  },
+  "home": {
+    "meta": {
+      "title": "Factura electrónica y cobranza para PYMES en Costa Rica · RDL",
+      "description": "Emita facturas electrónicas versión 4.4, siga su estado ante Hacienda y controle lo que le deben, en un solo sistema. Para PYMES y contadores de Costa Rica."
+    },
+    "hero": {
+      "eyebrow": "Facturación electrónica · versión 4.4 de Hacienda",
+      "title": "Facture, siga a Hacienda y cobre, en un solo lugar",
+      "subtitle": "RDL es el sistema de facturación electrónica y cobranza para PYMES de Costa Rica. Emita facturas y notas, sepa al momento si Hacienda las aceptó y lleve el control de lo que le deben.",
+      "secondary": "Contactarme por WhatsApp",
+      "note": "¿Ya usa RDL?",
+      "noteLink": "Iniciar sesión",
+      "imageLabel": "Detalle de una factura en el portal de RDL: total de ₡113 000,00, aceptada por Hacienda y con un saldo pendiente de ₡63 000,00. Datos de ejemplo.",
+      "titleLead": "Facture, siga a Hacienda y cobre,",
+      "titleHighlight": "en un solo lugar",
+      "phoneLabel": "La misma factura en el celular. Datos de ejemplo.",
+      "chips": [
+        {
+          "tone": "success",
+          "icon": "check",
+          "title": "Aceptada por Hacienda",
+          "sub": "FAC-0000034"
+        },
+        {
+          "tone": "warning",
+          "icon": "hand-coins",
+          "title": "Pago parcial",
+          "sub": "Saldo ₡63 000,00"
+        },
+        {
+          "tone": "info",
+          "icon": "file-text",
+          "title": "Cuenta por cobrar creada",
+          "sub": "Al emitir, sola"
+        }
+      ]
+    },
+    "problem": {
+      "title": "Tres tareas que no deberían vivir en tres lugares",
+      "items": [
+        {
+          "icon": "file-text",
+          "title": "Facturar",
+          "body": "Un sistema para emitir, con clientes y productos que hay que mantener al día.",
+          "tone": "accent"
+        },
+        {
+          "icon": "landmark",
+          "title": "Estar pendiente de Hacienda",
+          "body": "Revisar si cada comprobante fue aceptado, rechazado o quedó en espera, y averiguar qué corregir.",
+          "tone": "warning"
+        },
+        {
+          "icon": "wallet",
+          "title": "Cobrar",
+          "body": "Una hoja de cálculo para saber quién debe, cuánto y desde cuándo.",
+          "tone": "success"
+        }
+      ],
+      "close": "En RDL las tres están conectadas: al emitir una factura, el sistema la envía a Hacienda y crea la cuenta por cobrar."
+    },
+    "features": {
+      "title": "Todo lo que necesita para facturar y cobrar",
+      "items": [
+        {
+          "icon": "receipt-text",
+          "title": "Facturación electrónica 4.4",
+          "body": "Facturas, notas de crédito y notas de débito según la versión 4.4 de los comprobantes de Hacienda. Clientes, productos con buscador CABYS, borradores y emisión.",
+          "tone": "accent"
+        },
+        {
+          "icon": "badge-check",
+          "title": "El estado de Hacienda, al momento",
+          "body": "Cada documento muestra si está en proceso, aceptado, rechazado o en contingencia. Los rechazados llegan a una bandeja para corregirlos, y el portal le avisa cuando cambia un estado.",
+          "tone": "success"
+        },
+        {
+          "icon": "hand-coins",
+          "title": "Cobranza sin hojas de cálculo",
+          "body": "La cuenta por cobrar se crea sola al emitir. Registre pagos y aplíquelos a una o varias facturas, vea los vencimientos y anote seguimientos y promesas de pago.",
+          "tone": "warning"
+        },
+        {
+          "icon": "chart-column",
+          "title": "Antigüedad de saldos",
+          "body": "Vea cuánto le deben por tramos de atraso, por moneda y a la fecha que elija.",
+          "tone": "info"
+        },
+        {
+          "icon": "building",
+          "title": "Varias empresas, un solo acceso",
+          "body": "Pensado para contadores que llevan varias PYMES: cambie de empresa sin cerrar sesión.",
+          "tone": "accent"
+        },
+        {
+          "icon": "users",
+          "title": "Cada quien con su rol",
+          "body": "Propietario, administrador, facturador, cobrador, contador y solo lectura. Invite a su equipo con un enlace.",
+          "tone": "success"
+        }
+      ]
+    },
+    "how": {
+      "title": "Empiece en tres pasos",
+      "steps": [
+        {
+          "title": "Cree su empresa y configure Hacienda",
+          "body": "Registre su empresa, suba su certificado de firma y conecte su usuario de Hacienda. Primero puede probar en el ambiente de pruebas."
+        },
+        {
+          "title": "Facture",
+          "body": "Elija el cliente, agregue productos del catálogo y emita. El sistema calcula los totales y envía el comprobante a Hacienda."
+        },
+        {
+          "title": "Cobre y dé seguimiento",
+          "body": "Cada factura crea su cuenta por cobrar. Registre los pagos y vea qué está vencido."
+        }
+      ]
+    },
+    "accountants": {
+      "title": "Para contadores: todas sus empresas en un solo acceso",
+      "body": "Si lleva la facturación de varias PYMES, entre una sola vez y cambie de empresa desde la barra superior, sin cerrar sesión. En cada una trabaja con el rol que esa empresa le asignó.",
+      "points": [
+        "Cambio de empresa en un clic, sin mezclar datos: cada empresa está aislada de las demás.",
+        "El rol de contador ve facturación, Hacienda y cobranza sin poder emitir ni modificar.",
+        "Las empresas lo invitan con un enlace; usted acepta con su mismo usuario."
+      ],
+      "more": "Más para contadores",
+      "imageLabel": "Selector de empresas del portal de RDL con seis empresas de ejemplo y el rol del usuario en cada una."
+    },
+    "trust": {
+      "title": "Sus datos, protegidos",
+      "items": [
+        {
+          "icon": "shield-check",
+          "strong": "Cada empresa, aislada.",
+          "text": "La separación entre empresas se aplica en la propia base de datos, no solo en la pantalla."
+        },
+        {
+          "icon": "scroll-text",
+          "strong": "Bitácora de auditoría.",
+          "text": "Las operaciones sensibles (emitir, anular, cambiar roles, registrar pagos) quedan registradas con quién y cuándo."
+        },
+        {
+          "icon": "key-round",
+          "strong": "Certificado de firma protegido.",
+          "text": "Se guarda cifrado en un gestor de secretos y el PIN nunca se vuelve a mostrar."
+        },
+        {
+          "icon": "file-check",
+          "strong": "Versión vigente de Hacienda.",
+          "text": "Comprobantes según la versión 4.4 de los documentos electrónicos."
+        }
+      ],
+      "note": "RDL no es un sistema de Hacienda: es un proveedor que emite sus comprobantes a través de los servicios oficiales."
+    },
+    "pricing": {
+      "title": "Precios",
+      "badge": "Próximamente",
+      "body": "Estamos definiendo los planes. Escríbanos y le contamos las condiciones para su empresa."
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "items": [
+        {
+          "q": "¿Qué es la versión 4.4 de la factura electrónica?",
+          "a": "Es la versión vigente del formato de los comprobantes electrónicos que define el Ministerio de Hacienda. RDL emite facturas y notas de crédito y débito en esa versión."
+        },
+        {
+          "q": "¿Qué necesito para empezar?",
+          "a": "Su certificado de firma (la llave criptográfica y su PIN) y el usuario y la contraseña de los servicios de comprobantes electrónicos de Hacienda. Con eso configura su empresa y puede probar primero en el ambiente de pruebas."
+        },
+        {
+          "q": "¿Puedo cambiarme desde otro sistema?",
+          "a": "Sí. Registre sus clientes y productos y configure la numeración para seguir con el consecutivo que traía."
+        },
+        {
+          "q": "¿Qué pasa si Hacienda no responde?",
+          "a": "El documento queda emitido y en contingencia, y el sistema lo reenvía solo. Usted puede seguir facturando y ve el estado de cada comprobante en la bandeja."
+        },
+        {
+          "q": "Soy contador, ¿puedo llevar varias empresas?",
+          "a": "Sí. Con un solo usuario trabaja en todas las empresas que lo inviten y cambia entre ellas sin cerrar sesión."
+        },
+        {
+          "q": "¿Puedo dar acceso a mi equipo?",
+          "a": "Sí. Invite a cada persona con un enlace y asígnele un rol: administrador, facturador, cobrador, contador o solo lectura."
+        },
+        {
+          "q": "¿Cuánto cuesta?",
+          "a": "Estamos definiendo los planes. Escríbanos y le contamos las condiciones."
+        },
+        {
+          "q": "¿Cómo me dan soporte?",
+          "a": "Por correo a {email} y por WhatsApp al {phone}, {hours}."
+        }
+      ]
+    },
+    "final": {
+      "title": "Hablemos de su empresa",
+      "body": "Escríbanos por WhatsApp y le contamos cómo funciona RDL para su empresa. Le respondemos en {responseTime}.",
+      "emailPrefix": "¿Prefiere el correo? Escríbanos a",
+      "eyebrow": "Hablemos"
+    },
+    "highlights": [
+      {
+        "icon": "file-check",
+        "title": "Comprobantes 4.4",
+        "body": "Facturas y notas de crédito y débito"
+      },
+      {
+        "icon": "badge-check",
+        "title": "Hacienda al momento",
+        "body": "Aceptada, rechazada o en contingencia"
+      },
+      {
+        "icon": "building",
+        "title": "Multiempresa",
+        "body": "Varias empresas con un solo usuario"
+      },
+      {
+        "icon": "users",
+        "title": "Seis roles",
+        "body": "Del propietario a solo lectura"
+      }
+    ],
+    "showcase": {
+      "eyebrow": "Así se ve RDL",
+      "title": "Hecho para el día a día de una PYME",
+      "items": [
+        {
+          "image": "documentos",
+          "eyebrow": "Documentos",
+          "title": "Todos sus documentos y su estado ante Hacienda",
+          "body": "Facturas y notas en una sola lista, con el estado de Hacienda y el saldo de cada una. Los que requieren corrección saltan a la vista.",
+          "points": [
+            "Pestañas por tipo de documento",
+            "Filtros por estado y por fecha",
+            "Si Hacienda no responde, la lista sigue funcionando"
+          ],
+          "alt": "Lista de documentos en RDL con su estado ante Hacienda: aceptados, en proceso, rechazados y en contingencia. Datos de ejemplo."
+        },
+        {
+          "image": "borrador",
+          "eyebrow": "Facturar",
+          "title": "Facture en minutos; los totales los calcula el sistema",
+          "body": "Elija el cliente, agregue productos del catálogo y emita. Los impuestos y el total salen del sistema, con el redondeo de Hacienda.",
+          "points": [
+            "Alta rápida de clientes sin salir de la factura",
+            "Descuentos con su motivo",
+            "Guarde el borrador y siga después"
+          ],
+          "alt": "Borrador de factura en RDL con dos líneas y los totales calculados por el sistema. Datos de ejemplo."
+        },
+        {
+          "image": "detalle",
+          "eyebrow": "Una factura, tres respuestas",
+          "title": "Total, Hacienda y saldo en la misma pantalla",
+          "body": "Abra cualquier factura y vea juntos cuánto se facturó, qué dijo Hacienda y cuánto falta por cobrar. Si una parte no está disponible, el resto sigue a la vista.",
+          "points": [
+            "Historial de la factura",
+            "Motivo del rechazo y cómo corregirlo",
+            "Notas de crédito y débito desde la misma factura"
+          ],
+          "alt": "Detalle de factura en RDL con tres cifras: total ₡113 000,00, estado Aceptada y saldo ₡63 000,00. Datos de ejemplo."
+        }
+      ]
+    }
+  },
+  "accountantsPage": {
+    "meta": {
+      "title": "Facturación electrónica para contadores con varias empresas · RDL",
+      "description": "Lleve la facturación y la cobranza de varias PYMES de Costa Rica con un solo usuario. Cambie de empresa sin cerrar sesión."
+    },
+    "eyebrow": "Para contadores y firmas contables",
+    "title": "Facturación electrónica para contadores con varias empresas",
+    "subtitle": "Lleve la facturación y la cobranza de todas sus PYMES con un solo usuario, y cambie de empresa sin cerrar sesión.",
+    "sections": [
+      {
+        "title": "Un solo acceso",
+        "body": "Cada empresa lo invita con un enlace y usted acepta con su mismo usuario. Desde la barra superior pasa de una a otra en un clic."
+      },
+      {
+        "title": "El rol que cada empresa le da",
+        "body": "Con el rol de contador ve facturación, Hacienda y cobranza, sin poder emitir ni modificar. Si una empresa le da otro rol, trabaja con ese."
+      },
+      {
+        "title": "Sin mezclar datos",
+        "body": "Cada empresa está aislada de las demás en la propia base de datos. Al cambiar de empresa, la pantalla se limpia antes de mostrar la nueva."
+      },
+      {
+        "title": "Lo que necesita revisar, a mano",
+        "body": "La bandeja de rechazados de Hacienda, la antigüedad de saldos y el detalle de cada factura con su total, su estado y su saldo."
+      }
+    ],
+    "cta": "Contactarme por WhatsApp"
+  },
+  "legal": {
+    "draftBanner": "Borrador sin revisión legal. Este texto se publica solo después de que lo revise un abogado.",
+    "updated": "Última actualización: {date}",
+    "terms": {
+      "title": "Términos y condiciones",
+      "description": "Condiciones de uso del servicio RDL."
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+      "description": "Cómo tratamos sus datos personales según la Ley 8968."
+    }
+  },
+  "notFound": {
+    "title": "No encontramos esta página",
+    "body": "Puede que el enlace esté incompleto. Vuelva al inicio o inicie sesión en el portal.",
+    "home": "Ir al inicio",
+    "metaTitle": "Página no encontrada · RDL"
+  },
+  "footer": {
+    "tagline": "Facturación electrónica y cobranza para PYMES de Costa Rica.",
+    "product": "Producto",
+    "contact": "Contacto",
+    "legal": "Legal",
+    "terms": "Términos y condiciones",
+    "privacy": "Política de privacidad",
+    "accountants": "Para contadores",
+    "account": "¿Ya tiene cuenta?",
+    "copy": "© {year} RDL. Todos los derechos reservados."
+  }
+}

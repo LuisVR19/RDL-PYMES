@@ -1,7 +1,13 @@
-import type { CabysItem, CatalogItem, Product, TaxOption } from '@/shared/api/billing-types'
+import type { Branch, CabysItem, CatalogItem, Product, TaxOption } from '@/shared/api/billing-types'
 
 // Productos del prototipo (PRODUCTS0). Los códigos CABYS, de unidad y de impuesto son ILUSTRATIVOS, como en el
 // diseño («catálogo oficial pendiente»): TODO(fiscal) cuando E-Invoice publique los catálogos oficiales.
+
+// Sucursales del prototipo (SUCURSALES).
+export const BRANCHES: Branch[] = [
+  { id: 'b001', code: '001', name: 'Central (San José)', isActive: true },
+  { id: 'b002', code: '002', name: 'Escazú', isActive: true },
+]
 
 export const MOCK_TAX_OPTIONS: TaxOption[] = [
   { key: 'iva13', label: 'IVA 13 %', taxes: [{ taxTypeCode: '01', taxRateCode: '08' }] },

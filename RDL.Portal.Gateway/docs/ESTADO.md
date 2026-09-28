@@ -2,7 +2,23 @@
 
 Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 
-**Última actualización:** 2026-09-25
+**Última actualización:** 2026-09-27 — probado de punta a punta contra Platform **y Billing** reales.
+
+### Verificación contra Billing real (2026-09-27)
+- Las tres APIs corriendo en local contra Supabase dev: `/readyz` con `billing`, `platform` y `jwks` en `ok`.
+- `go vet` + `go test -race` (con gcc de WinLibs) · `golangci-lint` 0 issues · **aislamiento 10/10** (los 8
+  anteriores más cliente y factura ajenos con su `overview`, que antes se saltaban) · **`e2e.sh` 33/33**.
+- `overview` y listado compuesto de facturas **emitidas** con token real: Billing por la ruta interna,
+  `fiscal`/`receivable` en `unavailable` (sin URL). Paso 6 del prompt cubierto.
+- **Arreglo — fuga de la ruta interna:** cuando fallaba la fuente principal, el Problem Details de Billing se
+  reenviaba byte a byte, con `instance: /internal/v1/invoices/{id}/summary`. Ahora `writePrimaryError` conserva
+  `type`, `title`, `status`, `correlationId` y cualquier otro campo, y cambia solo `instance` por la ruta del
+  portal; un cuerpo que no es un objeto JSON cae al `upstream-error` del gateway. Prueba:
+  `TestOverviewForwardedProblemDoesNotLeakTheInternalPath` (falló antes del arreglo). Verificado en vivo.
+- Ojo al depurar: `tests/isolation` crea una organización nueva por usuario **y la deja activa**; después de
+  correrla, `usuario.e2e` ya no ve las facturas de su organización anterior hasta volver a activarla.
+- Se normalizaron a LF 20 `.go` que el checkout dejó en CRLF.
+
 **Punto de corte:** incrementos 1 a 4 del prompt P7 y la parte del 8 que no depende de otros (aislamiento y
 e2e contra Platform real). Tiempo real y read model quedan como TODO documentados, por decisión explícita de
 alcance.
@@ -117,10 +133,7 @@ funcionando. **Sin probar contra Billing real** (no arranca en esta máquina).
 
 ## Sin verificar todavía
 
-- **Billing a través del gateway.** El aislamiento y el e2e ya corren contra Platform real, pero Billing no
-  arranca en esta máquina (falta su `.env` con la contraseña de `billing_api`). Cuando esté arriba en `:8081`,
-  `make test-isolation` y `make e2e` la cubren sin tocar nada: sus casos hoy se saltan o comprueban la
-  degradación. Queda pendiente con ella el `overview` de una factura **emitida** con token real (paso 6 del prompt).
+- ~~Billing a través del gateway~~ ✅ 2026-09-27 (ver arriba).
 - **La imagen Docker no se ha construido** (Docker no está instalado).
 
 ## TODOs en el código

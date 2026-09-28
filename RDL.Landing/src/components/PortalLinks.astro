@@ -1,0 +1,45 @@
+---
+import { config } from '../lib/config'
+import { content } from '../lib/content'
+import Icon from './Icon.astro'
+
+/**
+ * Los dos accesos al portal. `data-portal` marca los enlaces a los que `utm.ts` les agrega los UTM de la visita.
+ * `data-umami-event` registra el clic si la analítica está configurada.
+ */
+interface Props {
+  show: 'login' | 'signup'
+  size?: 'md' | 'lg'
+  variant?: 'primary' | 'secondary'
+  class?: string
+}
+
+const { show, size = 'md', variant = 'primary', class: extra } = Astro.props
+const t = content.nav
+const classes = ['btn', size === 'lg' && 'btn-lg', extra]
+---
+
+{show === 'login' ? (
+  <a
+    class:list={[...classes, `btn-${variant}`]}
+    href={config.loginUrl}
+    data-portal
+    data-umami-event="iniciar-sesion"
+  >
+    <Icon name="log-in" size={16} />
+    {t.login}
+  </a>
+) : config.signupUrl ? (
+  <a
+    class:list={[...classes, `btn-${variant}`]}
+    href={config.signupUrl}
+    data-portal
+    data-umami-event="crear-cuenta"
+  >
+    {t.signup}
+  </a>
+) : (
+  <span class:list={[...classes, 'btn-soon']} role="note" aria-label={t.signupSoonLabel}>
+    {t.signup} <span class="soon-tag">{t.signupSoon}</span>
+  </span>
+)}

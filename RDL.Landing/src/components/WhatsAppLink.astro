@@ -1,0 +1,33 @@
+---
+import { config } from '../lib/config'
+import { content } from '../lib/content'
+import { whatsappUrl } from '../lib/links'
+import Icon from './Icon.astro'
+
+/** «Contactarme por WhatsApp» con mensaje prellenado. Sin número configurado, no se muestra. */
+interface Props {
+  size?: 'md' | 'lg'
+  label?: string
+  /** Otro mensaje prellenado (por ejemplo, el de la página de contadores). */
+  message?: string
+  event?: string
+}
+
+const { size = 'lg', label = content.contact.whatsapp, message, event = 'whatsapp' } = Astro.props
+const number = import.meta.env.PUBLIC_CONTACT_WHATSAPP
+const href = message ? whatsappUrl(number, message) : config.contact.whatsappUrl
+---
+
+{href && (
+  <a
+    class:list={['btn', 'btn-whatsapp', size === 'lg' && 'btn-lg']}
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    data-umami-event={event}
+  >
+    <Icon name="message-circle" size={18} />
+    {label}
+    <span class="sr-only">(se abre en una pestaña nueva)</span>
+  </a>
+)}

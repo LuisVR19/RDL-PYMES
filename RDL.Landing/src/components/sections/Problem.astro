@@ -1,0 +1,50 @@
+---
+import { content } from '../../lib/content'
+import Icon from '../Icon.astro'
+
+const t = content.home.problem
+---
+
+<section class="section section-alt" id="problema" aria-labelledby="problema-title">
+  <div class="container">
+    <h2 class="section-title" id="problema-title">
+      {t.title}
+    </h2>
+    <ol class="items">
+      {t.items.map((it) => (
+        <li class="card">
+          <div class:list={['card-icon', `tone-${it.tone}`]}>
+            <Icon name={it.icon} />
+          </div>
+          <h3>{it.title}</h3>
+          <p>{it.body}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="close">{t.close}</p>
+  </div>
+</section>
+
+<style>
+  .items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .close {
+    margin-top: var(--space-8);
+    max-width: 760px;
+    font: var(--text-lead);
+    font-weight: 500;
+  }
+
+  @media (max-width: 899px) {
+    .items {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

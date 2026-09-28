@@ -1,0 +1,50 @@
+---
+import { config } from '../lib/config'
+import { content } from '../lib/content'
+import Icon from './Icon.astro'
+
+/** Botón flotante de WhatsApp (Paso 4 §3), abajo a la derecha. Sin número configurado, no aparece. */
+const href = config.contact.whatsappUrl
+---
+
+{href && (
+  <a
+    class="float"
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={`${content.contact.whatsappFloatLabel} (se abre en una pestaña nueva)`}
+    data-umami-event="whatsapp-flotante"
+  >
+    <Icon name="message-circle" size={26} />
+  </a>
+)}
+
+<style>
+  .float {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: var(--z-sticky);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--color-success-fg);
+    color: var(--color-bg-canvas);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .float:hover {
+    filter: brightness(0.92);
+  }
+
+  @media (max-width: 767px) {
+    .float {
+      right: 16px;
+      bottom: 16px;
+    }
+  }
+</style>

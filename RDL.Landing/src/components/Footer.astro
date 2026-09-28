@@ -1,0 +1,170 @@
+---
+import { config } from '../lib/config'
+import { content, fill } from '../lib/content'
+import Logo from './Logo.astro'
+
+const t = content.footer
+const c = content.contact
+const year = new Date().getFullYear()
+const product = [...content.nav.links, { href: '/contadores', label: t.accountants }]
+---
+
+<footer class="footer">
+  <div class="container grid">
+    <div class="brandCol">
+      <a class="brand" href="/" aria-label={`${content.brand}, inicio`}>
+        <Logo size={32} />
+        <span>{content.brand}</span>
+      </a>
+      <p class="tagline">{t.tagline}</p>
+    </div>
+
+    <nav aria-label={t.product}>
+      <h2 class="heading">{t.product}</h2>
+      <ul>
+        {product.map((l) => (
+          <li>
+            <a href={l.href}>{l.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="heading">{t.contact}</h2>
+      <ul>
+        {config.contact.email && (
+          <li>
+            <span class="label">{c.emailLabel}:</span>{' '}
+            <a href={`mailto:${config.contact.email}`}>{config.contact.email}</a>
+          </li>
+        )}
+        {config.contact.whatsappUrl && config.contact.phoneDisplay && (
+          <li>
+            <span class="label">{c.phoneLabel}:</span>{' '}
+            <a href={config.contact.whatsappUrl} target="_blank" rel="noopener noreferrer">
+              {config.contact.phoneDisplay}
+              <span class="sr-only">(se abre en una pestaña nueva)</span>
+            </a>
+          </li>
+        )}
+        {config.contact.hours && (
+          <li>
+            <span class="label">{c.hoursLabel}:</span> {config.contact.hours}
+          </li>
+        )}
+      </ul>
+    </div>
+
+    <nav aria-label={t.legal}>
+      <h2 class="heading">{t.legal}</h2>
+      <ul>
+        <li>
+          <a href="/terminos">{t.terms}</a>
+        </li>
+        <li>
+          <a href="/privacidad">{t.privacy}</a>
+        </li>
+      </ul>
+      <p class="account">
+        {t.account}{' '}
+        <a href={config.loginUrl} data-portal data-umami-event="iniciar-sesion">
+          {content.nav.login}
+        </a>
+      </p>
+    </nav>
+  </div>
+  <div class="container copy">{fill(t.copy, { year })}</div>
+</footer>
+
+<style>
+  .footer {
+    padding: var(--space-12) 0 var(--space-6);
+    background: var(--color-bg-canvas);
+    border-top: 1px solid var(--color-border-default);
+    font: 400 14px/22px var(--font-sans);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: var(--space-8);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text-primary);
+    font: 600 18px/24px var(--font-sans);
+    text-decoration: none;
+  }
+
+  .tagline {
+    margin-top: var(--space-3);
+    max-width: 280px;
+    color: var(--color-text-secondary);
+  }
+
+  .heading {
+    margin-bottom: var(--space-3);
+    font: 600 13px/18px var(--font-sans);
+    color: var(--color-text-primary);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  a {
+    color: var(--color-text-secondary);
+  }
+
+  a:hover {
+    color: var(--color-accent);
+  }
+
+  .label {
+    color: var(--color-text-secondary);
+  }
+
+  .account {
+    margin-top: var(--space-4);
+    color: var(--color-text-secondary);
+  }
+
+  .account a {
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+
+  .copy {
+    margin-top: var(--space-10);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border-default);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+
+  @media (max-width: 1023px) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    a {
+      display: inline-block;
+      padding: 6px 0;
+    }
+  }
+</style>

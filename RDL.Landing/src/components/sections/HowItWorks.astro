@@ -1,0 +1,80 @@
+---
+import { content } from '../../lib/content'
+import PortalLinks from '../PortalLinks.astro'
+
+const t = content.home.how
+---
+
+<section class="section" id="como-funciona" aria-labelledby="como-title">
+  <div class="container">
+    <h2 class="section-title" id="como-title">
+      {t.title}
+    </h2>
+    <ol class="steps">
+      {t.steps.map((s, i) => (
+        <li class="step">
+          <span class="num" aria-hidden="true">
+            {i + 1}
+          </span>
+          <h3>{s.title}</h3>
+          <p>{s.body}</p>
+        </li>
+      ))}
+    </ol>
+    <div class="actions-row cta">
+      <PortalLinks show="signup" size="lg" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-8);
+    margin: var(--space-10) 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .step {
+    position: relative;
+    padding-top: var(--space-2);
+  }
+
+  .num {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+    font: 600 18px/1 var(--font-sans);
+  }
+
+  .step h3 {
+    font: var(--text-h3);
+    font-size: 17px;
+  }
+
+  .step p {
+    margin-top: var(--space-2);
+    color: var(--color-text-secondary);
+    font: 400 15px/24px var(--font-sans);
+  }
+
+  .cta {
+    margin-top: var(--space-10);
+  }
+
+  @media (max-width: 899px) {
+    .steps {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+</style>

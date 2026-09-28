@@ -1,0 +1,10 @@
+dist
+node_modules
+.astro
+design
+e2e/.results
+test-results
+playwright-report
+.lighthouseci
+package-lock.json
+src/styles/tokens.generated.css

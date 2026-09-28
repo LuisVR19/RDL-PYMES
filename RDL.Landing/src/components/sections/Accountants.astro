@@ -1,0 +1,92 @@
+---
+import { content } from '../../lib/content'
+import Icon from '../Icon.astro'
+import Shot from '../Shot.astro'
+
+const t = content.home.accountants
+---
+
+<section class="section band-dark" id="contadores" aria-labelledby="contadores-title">
+  <div class="container grid">
+    <div>
+      <h2 class="section-title" id="contadores-title">
+        {t.title}
+      </h2>
+      <p class="lead">{t.body}</p>
+      <ul class="points">
+        {t.points.map((p) => (
+          <li>
+            <Icon name="check" size={18} class="tick" />
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+      <a class="more" href="/contadores">
+        {t.more} →
+      </a>
+    </div>
+    <Shot
+      name="organizaciones"
+      alt={t.imageLabel}
+      frame="none"
+      sizes="(max-width: 1023px) 90vw, 400px"
+      class="orgs"
+    />
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .lead {
+    margin-top: var(--space-4);
+    max-width: 620px;
+    font: var(--text-lead);
+    color: #c9d1e0;
+  }
+
+  .points {
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .points li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  .points :global(.tick) {
+    flex: none;
+    margin-top: 4px;
+    color: #9dbbff;
+  }
+
+  .more {
+    display: inline-block;
+    margin-top: var(--space-6);
+    color: #9dbbff;
+    font-weight: 500;
+  }
+
+  .grid :global(.orgs) {
+    max-width: 400px;
+    justify-self: center;
+  }
+
+  @media (max-width: 1023px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-10);
+    }
+  }
+</style>

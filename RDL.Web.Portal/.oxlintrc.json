@@ -10,6 +10,7 @@
     "no-restricted-globals": ["error", "parseFloat"],
     "unicorn/no-null": "off",
     "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/no-noninteractive-tabindex": ["error", { "roles": ["region"] }],
     "no-shadow": "off",
     "import/no-unassigned-import": ["warn", { "allow": ["**/*.css", "@testing-library/jest-dom/vitest"] }]
   },

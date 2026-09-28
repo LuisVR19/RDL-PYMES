@@ -151,6 +151,15 @@ export interface InvoiceQuery extends PageQuery {
   issuedTo?: string
 }
 
+// --- Sucursales (Platform · `Branch`) ---
+
+export interface Branch {
+  id: string
+  code: string
+  name: string
+  isActive: boolean
+}
+
 // --- Productos (Billing) ---
 
 export interface ProductTax {
@@ -275,6 +284,52 @@ export interface Invoice {
   total: string
   createdAt: string
   updatedAt: string
+}
+
+/**
+ * Una línea que manda el portal (InvoiceLineInput). Billing toma CABYS, descripción, unidad e impuestos del producto:
+ * el portal nunca los manda. `unitPrice` reemplaza el precio del producto y es obligatorio si el producto está en otra
+ * moneda. TODO(api): Billing v1 exige `productId` (422 si falta); la línea libre del diseño espera a que se defina.
+ */
+export interface InvoiceLineInput {
+  productId: string
+  quantity: string
+  unitPrice?: string
+  discount?: string
+  /** Obligatorio si `discount` no es cero. */
+  discountReason?: string
+}
+
+/** InvoiceDraftInput del contrato. Las notas (F5) llevan la factura de referencia y el motivo. */
+export interface InvoiceDraftInput {
+  documentType: DocumentType
+  customerId: string
+  branchId?: string
+  referencedInvoiceId?: string
+  referenceReason?: string
+  saleConditionCode: string
+  creditTermDays?: number
+  currency: Currency
+  exchangeRate?: string
+  notes?: string
+  lines?: InvoiceLineInput[]
+}
+
+/**
+ * InvoiceDraftPatch: campo ausente = no cambia; `branchId` o `creditTermDays` en null los quitan; `lines` presente
+ * reemplaza las líneas. `documentType` no cambia. El contrato admite también un InvoiceDraftInput completo: por eso
+ * una nota puede corregir su motivo.
+ */
+export interface InvoiceDraftPatch {
+  referenceReason?: string
+  customerId?: string
+  branchId?: string | null
+  saleConditionCode?: string
+  creditTermDays?: number | null
+  currency?: Currency
+  exchangeRate?: string
+  notes?: string
+  lines?: InvoiceLineInput[]
 }
 
 export interface StatusChange {

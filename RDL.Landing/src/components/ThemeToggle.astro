@@ -1,0 +1,90 @@
+---
+import Moon from '@lucide/astro/icons/moon'
+import Sun from '@lucide/astro/icons/sun'
+import { content } from '../lib/content'
+
+/** Botón de tema, como el del portal. `theme.js` pone el tema inicial; aquí solo se cambia y se recuerda. */
+const t = content.nav
+---
+
+<button
+  class="btn btn-secondary toggle"
+  type="button"
+  data-theme-toggle
+  data-to-dark={t.themeToDark}
+  data-to-light={t.themeToLight}
+  aria-label={t.themeToDark}
+  title={t.themeToDark}
+>
+  <span class="moon">
+    <Moon size={18} stroke-width={1.8} aria-hidden="true" />
+  </span>
+  <span class="sun">
+    <Sun size={18} stroke-width={1.8} aria-hidden="true" />
+  </span>
+</button>
+
+<script>
+  const KEY = 'rdl.theme'
+  const root = document.documentElement
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')
+
+  const label = () => {
+    for (const b of buttons) {
+      const text = (root.dataset.theme === 'dark' ? b.dataset.toLight : b.dataset.toDark) ?? ''
+      b.setAttribute('aria-label', text)
+      b.title = text
+    }
+  }
+
+  for (const b of buttons) {
+    b.addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark'
+      root.dataset.theme = next
+      try {
+        localStorage.setItem(KEY, next)
+      } catch {
+        // Sin almacenamiento: el cambio dura hasta recargar.
+      }
+      label()
+    })
+  }
+
+  // Si la persona no eligió, se sigue la preferencia del sistema cuando cambia.
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    let saved: string | null = null
+    try {
+      saved = localStorage.getItem(KEY)
+    } catch {}
+    if (saved) return
+    root.dataset.theme = e.matches ? 'dark' : 'light'
+    label()
+  })
+
+  label()
+</script>
+
+<style>
+  .toggle {
+    width: 36px;
+    padding: 0;
+  }
+
+  .sun {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .moon {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .sun {
+    display: inline;
+  }
+
+  @media (max-width: 767px) {
+    .toggle {
+      width: 44px;
+    }
+  }
+</style>

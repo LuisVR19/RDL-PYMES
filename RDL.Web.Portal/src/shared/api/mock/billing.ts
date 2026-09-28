@@ -15,6 +15,11 @@ export function resetMockBilling(): void {
   customers = structuredClone(CUSTOMERS)
 }
 
+/** Solo lectura, para otros simulados (un borrador valida su cliente; al emitir se copia el snapshot). */
+export function mockCustomerById(id: string): Customer | undefined {
+  return customers.find((c) => c.id === id)
+}
+
 const billingProblem = (status: number, code: string, title: string) =>
   new ApiError({ status, type: `urn:rdl:billing:problem:${code}`, title, correlationId: fakeCorrelationId() })
 

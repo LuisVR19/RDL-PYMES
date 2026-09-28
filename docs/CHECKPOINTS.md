@@ -2,7 +2,7 @@
 
 **Tablero de control del proyecto completo.** Una sola pregunta: qué está hecho, qué falta y quién lo destraba.
 
-**Última revisión:** 2026-09-25
+**Última revisión:** 2026-09-27
 **Cómo se usa:** este archivo es el índice de estado. El detalle de cada módulo vive en su
 `<módulo>/docs/ESTADO.md`, que manda sobre este resumen. Al cerrar un incremento se actualizan los dos.
 
@@ -17,17 +17,17 @@ Leyenda: ✅ terminado y verificado · 🟡 hecho pero **sin verificar de punta 
 |---|---|---|---|
 | P0 | `RDL.Contracts` v0.2.0 | ✅ | `contractsctl validate` + `lint` + tests |
 | P3 | `RDL.Platform.API` `:8080` | ✅ | Aislamiento 6/6 · E2E 69/69 contra dev |
-| P4 | `RDL.Billing.API` `:8081` | 🟡 | Tests en verde; **aislamiento y E2E escritos pero sin correr** |
+| P4 | `RDL.Billing.API` `:8081` | ✅ | `-race` · lint · aislamiento 6/6 · integración 11/11 · E2E 33/33 contra dev (2026-09-27) |
 | P5 | `RDL.EInvoice.API` `:8082` | ⬜ | — |
 | P6 | `RDL.Receivables.API` `:8083` | ⬜ | — |
-| P7 | `RDL.Portal.Gateway` `:8090` | 🟡 | Incrementos 1–5 · aislamiento y E2E 32/32 **contra Platform real**; Billing sin probar |
-| P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–2 · 127 unit + 27 e2e · **acceso completo probado en vivo** vía gateway |
-| P8c | `RDL.Landing` | ⬜ | — |
+| P7 | `RDL.Portal.Gateway` `:8090` | 🟡 | Incrementos 1–5 y 8 · aislamiento 10/10 y E2E 33/33 **contra Platform y Billing reales** (2026-09-27); 6 y 7 bloqueados |
+| P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–3 · 164 unit + 33 e2e · **acceso y facturación probados en vivo** contra Billing (2026-09-27) |
+| P8c | `RDL.Landing` `:4321` | 🟡 | Construida (2026-09-27) · 29 e2e + axe · Lighthouse móvil 99–100 · **datos de prueba y legales en borrador** |
 
 **Dónde está realmente el proyecto:** hay dos APIs de dominio funcionando contra la base de dev y un gateway
 que ya habla con Platform de punta a punta (token real, aislamiento entre dos organizaciones, correlación
 verificada en el log de Platform), y el portal ya inicia sesión y cambia de organización contra ellos.
-**Falta Billing detrás del gateway** (no arranca en esta máquina sin su `.env`), y las pantallas del portal
+Billing ya se probó detrás del gateway (2026-09-27), y las pantallas del portal
 siguen siendo marcadores provisionales.
 
 ---
@@ -53,14 +53,14 @@ siguen siendo marcadores provisionales.
 - [ ] Decisiones abiertas: solo un owner gestiona owners · invitaciones sin email · IP de auditoría
 - [ ] `operationId` en `/healthz` y `/readyz`; alinear su OpenAPI con el repo de contratos
 
-### P4 · Billing API — 🟡 F2 y F3 implementadas, endurecimiento a medias
+### P4 · Billing API — ✅ F2 y F3, cerrado en dev (2026-09-27)
 
 - [x] Incrementos 1–9: clientes, productos, borradores, numeración, emisión, `InvoiceIssued` en outbox
 - [x] Cálculo exacto con tests de propiedades; `money.Round` ≡ `money.Round5` del contrato
 - [x] Migraciones 00001 y 00002 aplicadas
-- [ ] ⏳ **Migración 00003** (`branch_fk`): falla por permisos. Falta `grant usage on schema core to billing_migrator`
-- [ ] ⏳ **Aislamiento nunca corrido**: faltan los fixtures `scripts/dev/0011_billing_isolation_fixtures.sql`
-- [ ] ⏳ **E2E nunca corrido**: falta `.e2e.local` con usuario de prueba
+- [x] **Migración 00003** (`branch_fk`) aplicada (2026-09-27)
+- [x] **Aislamiento 6/6** e **integración 11/11** contra dev (2026-09-27)
+- [x] **E2E 33/33** (2026-09-27). `usuario.e2e2` debe tener activa una organización propia: el script lo verifica
 - [ ] ⏳ `make docker` sin verificar (Docker no instalado)
 - [x] `GET /internal/v1/invoices/{id}/summary` implementada (2026-09-25), sin líneas; el gateway ya la usa por
       defecto. Pruebas unitarias en verde; aislamiento e integración escritos, sin correr (falta el `.env`)
@@ -78,7 +78,7 @@ siguen siendo marcadores provisionales.
 - [ ] Bloquea el módulo E del portal (6 pantallas) y el saldo de la vista transversal
 - [ ] `receivables_app` no tiene `USAGE` en `core` pero necesita revalidar membresía → `database-platform`
 
-### P7 · Portal Gateway — 🟡 incrementos 1–4
+### P7 · Portal Gateway — 🟡 incrementos 1–5 y 8
 
 - [x] Esqueleto, config validada, OTel, `/healthz`, `/readyz` (crítico vs degradable)
 - [x] JWT + propagación de identidad, correlación y trazas
@@ -91,10 +91,11 @@ siguen siendo marcadores provisionales.
 - [ ] ⛔ Incremento 6 · notificaciones → transporte de eventos (P2) sin decidir
 - [ ] ⛔ Incremento 7 · read model → no hay schema ni rol para este servicio
 - [x] Incremento 8 · `tests/isolation` **8/8** y `scripts/dev/e2e.sh` **31/31** contra Platform real (2026-09-25)
-- [ ] ⏳ Los mismos contra **Billing** real: sus casos se saltan hasta que Billing arranque en `:8081`
+- [x] Los mismos contra **Billing** real (2026-09-27): aislamiento 10/10, E2E 33/33, `overview` de factura emitida
+- [x] Arreglo: el problema reenviado de Billing ya no expone su ruta `/internal` en `instance` (2026-09-27)
 - [ ] ⏳ Imagen Docker (Docker no instalado)
 
-### P8b · Web Portal — 🟡 incremento 1
+### P8b · Web Portal — 🟡 incrementos 1–3
 
 - [x] Armazón, sistema de diseño, 36 pantallas con ruta y permiso, tokens del prototipo
 - [x] 76 pruebas unitarias/componentes · 11 e2e con axe (WCAG 2.1 AA, 1440 px y 390 px)
@@ -102,12 +103,21 @@ siguen siendo marcadores provisionales.
 - [x] Cableado 1 (2026-09-25): Supabase Auth + adaptador `gateway/`, pantalla 1, cambio de organización seguro,
       ADR 0005 (localStorage + CSP) y 0006. Probado en vivo contra Supabase + gateway + Platform
 - [x] Incremento 2 (2026-09-25): pantallas 1–5, 33 y 35 cableadas; invitación real aceptada entre dos usuarios
-- [ ] ⏳ Incrementos 3–7: facturación (el gateway ya sirve Billing), Hacienda, cobranza, inicio+admin, pulido
+- [x] Incremento 3 (2026-09-27): pantallas 7–17. Borrador con totales de Billing, emitir, notas (422 hasta F5)
+- [ ] ⏳ Incrementos 4–7: Hacienda (⛔ P5), cobranza (⛔ P6), inicio+admin, pulido
+- [ ] Propuesta a contratos: `referencedInvoiceId`/`referenceReason` en `Invoice`; vencimiento propio de la nota de débito
+- [ ] Pasar el chequeo «sin scroll horizontal» de `access.spec.ts`/`shell.spec.ts` al de `billing.spec.ts` (el actual no detecta desbordes en móvil)
 - [ ] Propuestas a contratos/Platform: `GET /v1/invitations/{token}`, `PATCH /v1/me`, separar revocada/usada,
       catálogo de tipos de identificación (hoy del borrador de Hacienda en el portal)
 - [ ] Separador de miles: U+202F (README del diseño) vs U+00A0 (prototipo)
 
-### P8c · Landing — ⬜ no empezado
+### P8c · Landing — 🟡 construida con datos de prueba (2026-09-27)
+
+- [x] Contenido aprobado, principal (12 secciones), `/contadores`, términos y privacidad (borradores, `noindex`), 404
+- [x] «Iniciar sesión» con UTM, «Crear cuenta · Próximamente», WhatsApp en lugar de formulario (ADR 0002), Umami (ADR 0003)
+- [x] SEO completo, CSP estricta sin `unsafe-inline`, Lighthouse móvil 99–100 en las cuatro categorías
+- [ ] ⏳ Datos reales en el `.env` (dominio, contacto, titular) · revisión legal · dónde vive Umami · hosting (P2)
+- [ ] ⛔ «Crear cuenta» espera el registro de cuentas en el portal (`/registro`)
 
 ---
 
@@ -115,7 +125,7 @@ siguen siendo marcadores provisionales.
 
 | # | Bloqueo | Destraba | Dueño |
 |---|---|---|---|
-| 1 | Correr los 3 pasos manuales de dev de Billing (§4) | Cierra P4 de verdad | **Luis** |
+| 1 | ~~Pasos manuales de dev de Billing~~ ✅ 2026-09-27 | — | — |
 | 2 | ~~`GET /internal/v1/invoices/{id}/summary` en Billing~~ ✅ 2026-09-25 | — | — |
 | 3 | Aprobar las rutas por lote (propuestas sin publicar en contratos) | Listados sin N+1 → datos reales en la pantalla 12 | **Equipo (2 aprobaciones)** |
 | 4 | Adaptador `gateway/` en el portal | Quita los datos simulados de 24 pantallas | **Web Portal** |
@@ -130,26 +140,25 @@ siguen siendo marcadores provisionales.
 
 Proyecto Supabase dev `dzlsnsstuqpxvwegeqcy`. Nada de esto lo puede hacer un agente.
 
-- [ ] **SQL Editor como `postgres`:** `grant usage on schema core to billing_migrator;` → luego
-      `cd RDL.Billing.API && make migrate-up` (aplica `00003_branch_fk`)
-- [ ] **SQL Editor:** correr `RDL.Billing.API/scripts/dev/0011_billing_isolation_fixtures.sql` → luego
-      `make test-isolation`
-- [ ] **`RDL.Billing.API/.e2e.local`** con `E2E_EMAIL`/`E2E_PASSWORD` (los usuarios ya existen del E2E de
-      Platform) → `make run` y `bash scripts/dev/e2e.sh`
-- [ ] **`RDL.Billing.API/.env`** (no existe en esta máquina): `DB_POOLER_HOST` y las contraseñas de
-      `billing_api`/`billing_migrate`. Sin él Billing no arranca y el gateway no se puede probar contra ella
+- [x] ~~`grant usage on schema core to billing_migrator` + `make migrate-up`~~ ✅ 2026-09-27
+- [x] ~~Fixtures `0011` + `make test-isolation`~~ ✅ 2026-09-27
+- [x] ~~`RDL.Billing.API/.env`~~ ✅ 2026-09-27 (pooler `aws-0-us-east-2`, contraseñas nuevas)
+- [x] ~~`.e2e.local` de Billing, Platform y gateway~~ ✅ 2026-09-27 (contraseñas nuevas de los usuarios de prueba)
+- [x] ~~`RDL.Platform.API/.env`~~ ✅ 2026-09-27 (contraseñas nuevas de `platform_api`/`platform_migrate`); Platform arranca
 - [ ] Crear los tags `v0.1.0` y `v0.2.0` en el repo de contratos al publicarlo
 
 ---
 
-## 5. Notas del entorno (revisadas el 2026-09-24)
+## 5. Notas del entorno (revisadas el 2026-09-27)
 
 | Herramienta | Estado | Impacto |
 |---|---|---|
 | Go 1.27.1 | ✅ Correcto | Compila los 4 módulos Go; resuelve el `replace` a contratos |
 | `golangci-lint` 2.14.0 | ✅ **Instalado en esta sesión** | Antes no estaba; es la v2 que piden los `.golangci.yml` |
-| `sqlc` | ❌ No instalado | `make sqlc` de Platform y Billing no corre. El gateway no lo usa |
-| Detector de carreras | ❌ **No funciona** | Necesita cgo y no hay `gcc`. **`make test` de Platform y Billing falla**, porque usan `go test -race` |
+| `sqlc` v1.31.1 | ✅ Instalado 2026-09-27 en `%USERPROFILE%\go\bin` | Misma versión que el código generado; regenera idéntico |
+| `gcc` (WinLibs 16.1) | ✅ Instalado 2026-09-27 | `go test -race` funciona |
+| Smart App Control | ✅ Apagado 2026-09-27 | Bloqueaba `go.exe` (no viene firmado, ni con el MSI oficial) |
+| `make` | ❌ No instalado | Se corren a mano los comandos de cada `Makefile` |
 | Docker | ❌ No instalado | `make docker` sin verificar en los tres servicios |
 | `%USERPROFILE%\go\bin` | ⚠️ Fuera del `PATH` | `golangci-lint` hay que llamarlo por ruta completa en Git Bash |
 
@@ -193,11 +202,10 @@ Mientras tanto, `go test` sin `-race` pasa en todos los módulos.
 
 En este orden, porque cada uno destraba al siguiente:
 
-1. **Cerrar P4 de verdad** — los tres pasos manuales de §4. Billing dice «terminado» pero su aislamiento y su
-   E2E nunca corrieron; es la brecha más incómoda del proyecto.
+1. ~~Cerrar P4 de verdad~~ ✅ 2026-09-27: aislamiento 6/6, integración 11/11, E2E 33/33.
 2. ~~`GET /internal/v1/invoices/{id}/summary` en Billing~~ ✅ hecho el 2026-09-25.
-3. **Levantar Billing detrás del gateway**: Platform + gateway ya se probaron juntos (2026-09-25). Con Billing
+3. ~~Levantar Billing detrás del gateway~~ ✅ 2026-09-27. **Levantar Billing detrás del gateway**: Platform + gateway ya se probaron juntos (2026-09-25). Con Billing
    en `:8081`, `make test-isolation` y `make e2e` del gateway cubren sus casos sin cambios, incluido el `overview`
    contra la ruta interna.
-4. ~~Cablear la sesión del portal~~ ✅ y ~~incremento 2 (acceso)~~ ✅ 2026-09-25. Lo siguiente del portal es el
-   **incremento 3 (facturación)**: las pantallas de Billing se cablean al construirse, porque el gateway ya las sirve.
+4. ~~Cablear la sesión del portal~~ ✅, ~~incremento 2 (acceso)~~ ✅ y ~~incremento 3 (facturación)~~ ✅ 2026-09-27.
+   Lo siguiente sin bloqueos: **P6 (Receivables)** o el **incremento 6 del portal** (inicio + administración).

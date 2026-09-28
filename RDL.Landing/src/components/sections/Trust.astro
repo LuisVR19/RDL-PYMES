@@ -1,0 +1,75 @@
+---
+import { content } from '../../lib/content'
+import Icon from '../Icon.astro'
+
+/** Confianza y seguridad: solo afirmaciones verificables (Paso 2); check:content vigila las prohibidas. */
+const t = content.home.trust
+---
+
+<section class="section" id="seguridad" aria-labelledby="seguridad-title">
+  <div class="container">
+    <h2 class="section-title" id="seguridad-title">
+      {t.title}
+    </h2>
+    <ul class="grid">
+      {t.items.map((it) => (
+        <li class="item">
+          <div class="card-icon">
+            <Icon name={it.icon} />
+          </div>
+          <p>
+            <strong>{it.strong}</strong> {it.text}
+          </p>
+        </li>
+      ))}
+    </ul>
+    <p class="note">{t.note}</p>
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-10);
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+  }
+
+  .item .card-icon {
+    flex: none;
+    margin: 0;
+  }
+
+  .item p {
+    font: 400 16px/26px var(--font-sans);
+    color: var(--color-text-secondary);
+  }
+
+  .item strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .note {
+    margin-top: var(--space-8);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--color-info-bg);
+    color: var(--color-info-fg);
+    font: 400 15px/24px var(--font-sans);
+  }
+
+  @media (max-width: 767px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

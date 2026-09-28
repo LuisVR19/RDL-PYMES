@@ -1,4 +1,5 @@
 import type {
+  Branch,
   CabysItem,
   CatalogItem,
   Customer,
@@ -6,6 +7,8 @@ import type {
   CustomerPatch,
   CustomerQuery,
   Invoice,
+  InvoiceDraftInput,
+  InvoiceDraftPatch,
   InvoiceListItem,
   InvoiceOverview,
   InvoiceQuery,
@@ -111,6 +114,25 @@ export interface InvoicesPort {
    * F5). La cuenta por cobrar la ajusta Receivables al recibir `InvoiceCancelled`, no el portal.
    */
   cancel(id: string, reason: string, idempotencyKey: string): Promise<Invoice>
+  /**
+   * Crea un borrador (pantallas 13 y 16). La respuesta trae las líneas y los totales calculados por Billing: es lo
+   * único que el portal muestra como total. Las notas (`credit_note`, `debit_note`) responden 422 hasta F5.
+   */
+  createDraft(input: InvoiceDraftInput, idempotencyKey: string): Promise<Invoice>
+  /** Edita un borrador y recalcula (PATCH; `lines` presente las reemplaza). 409 si ya no es borrador. */
+  updateDraft(id: string, patch: InvoiceDraftPatch): Promise<Invoice>
+  /** Descarta un borrador (se borra; queda en la auditoría). Nunca un documento emitido (409). */
+  discardDraft(id: string): Promise<void>
+  /**
+   * Emite: asigna número y deja el evento para Hacienda y Cobranza, sin esperarlos. La misma `Idempotency-Key`
+   * responde lo mismo, así que reintentar tras un error no duplica el documento.
+   */
+  issue(id: string, idempotencyKey: string): Promise<Invoice>
+}
+
+/** Sucursales de la organización activa (Platform). El borrador las ofrece; la pantalla 29 las administra. */
+export interface BranchesPort {
+  list(query?: { active?: boolean }): Promise<Page<Branch>>
 }
 
 export interface NotificationsPort {
@@ -131,6 +153,7 @@ export interface DataSource {
   catalogs: CatalogsPort
   receivables: ReceivablesPort
   invoices: InvoicesPort
+  branches: BranchesPort
   notifications: NotificationsPort
   shell: ShellPort
 }

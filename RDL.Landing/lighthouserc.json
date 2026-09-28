@@ -1,0 +1,75 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "./dist",
+      "url": ["/", "/contadores/", "/terminos/", "/privacidad/"],
+      "numberOfRuns": 1,
+      "settings": {
+        "chromeFlags": "--headless=new --no-sandbox"
+      }
+    },
+    "assert": {
+      "assertMatrix": [
+        {
+          "matchingUrlPattern": "^(?!.*/(terminos|privacidad)/).*$",
+          "assertions": {
+            "categories:performance": [
+              "error",
+              {
+                "minScore": 0.95
+              }
+            ],
+            "categories:accessibility": [
+              "error",
+              {
+                "minScore": 0.95
+              }
+            ],
+            "categories:best-practices": [
+              "error",
+              {
+                "minScore": 0.95
+              }
+            ],
+            "categories:seo": [
+              "error",
+              {
+                "minScore": 0.95,
+                "aggregationMethod": "median-run"
+              }
+            ]
+          }
+        },
+        {
+          "matchingUrlPattern": ".*/(terminos|privacidad)/$",
+          "assertions": {
+            "categories:performance": [
+              "error",
+              {
+                "minScore": 0.95
+              }
+            ],
+            "categories:accessibility": [
+              "error",
+              {
+                "minScore": 0.95
+              }
+            ],
+            "categories:best-practices": [
+              "error",
+              {
+                "minScore": 0.95
+              }
+            ],
+            "categories:seo": "off",
+            "is-crawlable": "off"
+          }
+        }
+      ]
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

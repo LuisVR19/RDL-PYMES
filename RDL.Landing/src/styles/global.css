@@ -1,0 +1,357 @@
+/* Tipografía del sistema de diseño, alojada en el sitio (sin CDN). Solo los pesos que se usan. */
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-sans/latin-600.css';
+@import '@fontsource/ibm-plex-sans/latin-700.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import './tokens.generated.css';
+
+/* Medidas propias de la landing (el portal no las necesita). */
+:root {
+  --page-max: 1200px;
+  --page-pad: 16px;
+  --header-h: 64px;
+  --text-hero: 600 44px/52px var(--font-sans);
+  --text-section: 600 32px/40px var(--font-sans);
+  --text-lead: 400 18px/28px var(--font-sans);
+  --text-reading: 400 16px/26px var(--font-sans);
+  color-scheme: light dark;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-pad: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --text-hero: 600 32px/40px var(--font-sans);
+    --text-section: 600 26px/34px var(--font-sans);
+    --text-lead: 400 16px/26px var(--font-sans);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Las anclas no quedan debajo del encabezado fijo. */
+  scroll-padding-top: calc(var(--header-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font: var(--text-reading);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: calc(var(--page-max) + 2 * var(--page-pad));
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: var(--z-tooltip);
+  padding: 10px 14px;
+  background: var(--color-bg-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.skip:focus {
+  top: 12px;
+}
+
+/* Botones: medidas y colores del portal (Button del sistema de diseño). */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-h-md);
+  padding: 0 14px;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
+  font: 500 14px/20px var(--font-sans);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.btn-lg {
+  height: var(--control-h-lg);
+  padding: 0 20px;
+  font-size: 15px;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg-subtle);
+}
+
+/* Verde de «éxito» del sistema: oscuro con texto claro en tema claro, y al revés en oscuro. */
+.btn-whatsapp {
+  background: var(--color-success-fg);
+  color: var(--color-bg-canvas);
+}
+
+.btn-whatsapp:hover {
+  filter: brightness(0.92);
+}
+
+/* «Crear cuenta · Próximamente»: se ve como botón, pero no es enlace ni se puede activar. */
+.btn-soon {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-default);
+  color: var(--color-text-secondary);
+  cursor: default;
+}
+
+.soon-tag {
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-fg);
+  font: var(--text-caption);
+  font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  .btn {
+    height: var(--control-h-lg);
+  }
+}
+
+/* Secciones de la página. */
+.section {
+  padding: var(--space-16) 0;
+}
+
+.section-alt {
+  background: var(--color-bg-canvas);
+}
+
+.section-title {
+  font: var(--text-section);
+  letter-spacing: -0.01em;
+  max-width: 760px;
+}
+
+.section-lead {
+  margin-top: var(--space-3);
+  max-width: 680px;
+  font: var(--text-lead);
+  color: var(--color-text-secondary);
+}
+
+.eyebrow {
+  font: var(--text-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+}
+
+.card {
+  padding: var(--space-6);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.card h3 {
+  font: var(--text-h3);
+  font-size: 17px;
+}
+
+.card p {
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font: 400 15px/24px var(--font-sans);
+}
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .section {
+    padding: var(--space-12) 0;
+  }
+  .actions-row > .btn,
+  .actions-row > a,
+  .actions-row > span {
+    width: 100%;
+  }
+}
+
+/* Tonos de los iconos de tarjeta: los colores de estado del sistema de diseño, para dar color sin inventar paleta. */
+.tone-accent {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+.tone-success {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+.tone-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+.tone-info {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+
+/* Bandas oscuras (hero, contadores, llamado final): el azul del menú del portal, igual en los dos temas. */
+.band-dark {
+  --band-text: #e6e9ef;
+  --band-muted: #c9d1e0;
+  --band-accent: #9dbbff;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 80% at 85% 10%, rgba(35, 85, 201, 0.55) 0%, transparent 60%),
+    radial-gradient(50% 70% at 0% 100%, rgba(122, 162, 247, 0.22) 0%, transparent 60%), #0f1b33;
+  color: var(--band-text);
+}
+
+.band-dark :focus-visible {
+  box-shadow:
+    0 0 0 2px #0f1b33,
+    0 0 0 4px var(--band-accent);
+}
+
+.band-dark .eyebrow {
+  color: var(--band-accent);
+}
+
+.band-dark .btn-soon {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: var(--band-muted);
+}
+
+.band-dark .soon-tag {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--band-text);
+}
+
+.band-dark .btn-secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--band-text);
+}
+
+.band-dark .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* WhatsApp sobre banda oscura: verde claro con texto oscuro (contraste AA). */
+.band-dark .btn-whatsapp {
+  background: #7fd6a0;
+  color: #0b1220;
+}
+
+.highlight {
+  background: linear-gradient(90deg, #7aa2f7 0%, #9dbbff 55%, #c2d3f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Llamado final: el azul de marca, más intenso que las otras bandas. */
+.band-accent {
+  background:
+    radial-gradient(70% 90% at 50% 0%, rgba(157, 187, 255, 0.35) 0%, transparent 60%),
+    linear-gradient(135deg, #2355c9 0%, #173c94 60%, #0f1b33 100%);
+}
+
+.band-accent .eyebrow {
+  color: #e7eefc;
+}

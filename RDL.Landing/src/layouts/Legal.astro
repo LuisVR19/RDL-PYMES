@@ -1,0 +1,101 @@
+---
+import Base from './Base.astro'
+import { config } from '../lib/config'
+import { content, fill } from '../lib/content'
+
+/**
+ * Páginas legales: borradores con revisión legal obligatoria (Paso 2). Van con `noindex` y un aviso visible hasta
+ * que un abogado los apruebe. Los datos del titular salen de la configuración y se escapan antes de insertarlos.
+ */
+interface Props {
+  title: string
+  description: string
+  updated: string
+  html: string
+}
+
+const { title, description, updated, html } = Astro.props
+
+const escape = (s: string) =>
+  s.replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,
+  )
+
+const body = fill(html, {
+  legalName: escape(config.legal.name),
+  legalId: escape(config.legal.id),
+  address: escape(config.legal.address),
+  privacyEmail: escape(config.legal.privacyEmail),
+  email: escape(config.contact.email),
+})
+const [y, m, d] = updated.split('-')
+---
+
+<Base title={`${title} · ${content.brand}`} description={description} noindex>
+  <article class="container legal">
+    <p class="draft" role="note">
+      {content.legal.draftBanner}
+    </p>
+    <h1>{title}</h1>
+    <p class="updated">{fill(content.legal.updated, { date: `${d}/${m}/${y}` })}</p>
+    <div class="prose" set:html={body} />
+  </article>
+</Base>
+
+<style>
+  .legal {
+    max-width: calc(760px + 2 * var(--page-pad));
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-16);
+  }
+
+  .draft {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--radius-md);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-fg);
+    font: 500 14px/20px var(--font-sans);
+  }
+
+  h1 {
+    margin-top: var(--space-8);
+    font: var(--text-section);
+  }
+
+  .updated {
+    margin-top: var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: 14px;
+  }
+
+  .prose {
+    margin-top: var(--space-8);
+    font: var(--text-reading);
+  }
+
+  .prose :global(h2) {
+    margin: var(--space-10) 0 var(--space-3);
+    font: var(--text-h2);
+  }
+
+  .prose :global(h3) {
+    margin: var(--space-6) 0 var(--space-2);
+    font: var(--text-h3);
+  }
+
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: 0 0 var(--space-4);
+  }
+
+  .prose :global(li) {
+    margin-bottom: var(--space-2);
+  }
+
+  .prose :global(code) {
+    font: var(--text-code);
+  }
+</style>

@@ -1,6 +1,57 @@
 # Estado del proyecto
 
-Última actualización: 2026-09-25
+Última actualización: 2026-09-27
+
+## Incremento 3 · Facturación — terminado (2026-09-27)
+Pantallas 7–17. Las 7–12, 15 y 17 ya estaban en el repositorio (cableadas, con pruebas) sin registrar aquí; en esta
+sesión se construyeron la **13 (borrador)**, la **14 (emitir)** y la **16 (notas)**, y se cerró el incremento.
+
+| # | Pantalla | Cableado |
+|---|---|---|
+| 7–11 | Clientes (lista, alta/edición, ficha) y productos (lista, alta/edición) | Billing · saldo por cliente sin ruta por lote (TODO(api)) |
+| 12 | Documentos | listado compuesto del gateway (Hacienda y saldo `unavailable` hasta P5/P6) |
+| 13 | Borrador de factura: cliente con buscador y alta rápida (panel), sucursal, moneda y tipo de cambio, condición de venta y plazo, líneas del catálogo con descuento y motivo, notas, descartar | `POST/PATCH/DELETE /invoices` · `GET branches` |
+| 14 | Emitir: resumen, error con reintento seguro (misma `Idempotency-Key`), va al detalle | `POST /invoices/{id}/issue` |
+| 15 | Detalle con las tres cifras | Billing + `overview` |
+| 16 | Nota de crédito (líneas y cantidades de la factura) y de débito (cargos del catálogo y vencimiento) | `POST /invoices` con referencia · **Billing responde 422 hasta F5** |
+| 17 | Anular | `POST /cancel` · **404 hasta F5** (el gateway no declara la ruta) |
+
+- **Los totales son siempre de Billing.** Billing no tiene «calcular sin guardar»: el primer guardado lo pide el
+  usuario (botón o Ctrl S) y desde ahí cada cambio válido se guarda solo tras 700 ms de pausa y trae los totales. Nunca
+  hay dos envíos a la vez (`draft/useDraftSync.ts`). Antes del primer guardado se lee «Guarde el borrador para que el
+  sistema calcule los totales».
+- Validación local antes de enviar (`draft/model.ts`): cantidad (3 decimales, > 0), montos, motivo obligatorio con
+  descuento, precio obligatorio si el producto está en otra moneda, tipo de cambio fuera de CRC, plazo 0–3650. Los
+  422 por campo de Billing (`lines[i].campo`) caen en su línea.
+- Condición de venta: solo 01 Contado y 02 Crédito, de la Nota 5 del **borrador** de Hacienda
+  (`shared/saleConditions.ts`, `FUENTE: borrador`), como ya se hizo con los tipos de identificación.
+- Nuevo puerto `branches` (Platform) y métodos `createDraft`, `updateDraft`, `discardDraft`, `issue` en `invoices`,
+  con su simulado (calcula como Billing: D2, impuestos del producto, 422 por campo, misma clave = misma respuesta).
+- Verificación: `typecheck` y `lint` limpios · **164 pruebas** (17 nuevas: modelo, pantallas 13, 14 y 16) · **33 e2e**
+  (6 nuevas: axe WCAG 2.1 AA y ancho en 1440 y 390 px) · `build`. **En vivo** contra Supabase + gateway + Billing:
+  crear (201), recalcular con cantidad y descuento (PATCH 200, ₡299 996,50 calculado por Billing), recargar sin
+  cambios fantasma, emitir (201, número 00000003) y la nota de crédito con su 422 mostrado como error con código.
+- Arreglos encontrados al probar: (1) al abrir un borrador guardado se marcaba «cambios sin guardar» y se volvía a
+  guardar (comparación sin normalizar y `2.000` vs `2`); (2) emitir sin haber guardado remontaba el editor y el
+  diálogo se perdía; (3) en móvil el texto `sr-only` de un encabezado se salía del desplazamiento de la tabla y
+  ensanchaba la página a 788 px. El chequeo «sin scroll horizontal» de `e2e/access.spec.ts` y `shell.spec.ts` compara
+  contra `innerWidth`, que en móvil crece con el desborde: **no detecta ese caso**; `billing.spec.ts` compara contra
+  el viewport configurado. Conviene pasar los otros dos al mismo chequeo.
+- `.oxlintrc.json`: `no-noninteractive-tabindex` admite `role="region"` (una tabla con desplazamiento lateral debe
+  ser enfocable: axe `scrollable-region-focusable`).
+
+### Desviaciones y huecos del contrato
+- **Línea libre** del diseño: Billing v1 exige `productId`; el botón no se ofrece (TODO(api)).
+- **Descuento** como monto (contrato `discount: Money`), no como porcentaje (prototipo «Desc. %»).
+- **Impuesto por línea**: el prototipo lo deja elegir; el contrato lo toma del producto. Se muestra el que devolvió
+  Billing.
+- **Vencimiento** en el borrador: estimado «si emite hoy»; lo fija Billing al emitir.
+- **Nota de crédito parcial con descuento**: el descuento de la factura solo se repite si se acredita la cantidad
+  completa; con cantidad parcial el portal no lo reparte (lo definirá F5).
+- **Contrato:** el `Invoice` no trae `referencedInvoiceId` ni `referenceReason`. Una nota guardada se retoma solo desde
+  su factura (`?borrador=`), el motivo no vuelve al recargar, y un borrador de nota abierto desde Documentos muestra un
+  aviso en vez del editor. Propuesta: agregar ambos campos a `Invoice`.
+- **Contrato:** la nota de débito no tiene fecha de vencimiento propia; se manda como plazo (`creditTermDays`).
 
 ## Incremento 2 · Acceso y transversales — terminado (2026-09-25)
 Pantallas 1–5, 33 y 35, construidas fieles al prototipo y **cableadas** (probadas en vivo contra Supabase dev +
@@ -96,7 +147,7 @@ Sin funcionalidad ni cableado: solo diseño y arquitectura.
 | # | Alcance | Pantallas |
 |---|---|---|
 | 2 | Acceso + transversales | ✅ 1–5, 33, 35 (arriba) |
-| 3 | Facturación | 7–17 (incluye borrador con totales del servidor, emitir, notas, anular) |
+| 3 | Facturación | ✅ 7–17 (arriba) |
 | 4 | Hacienda | 18–21 |
 | 5 | Cobranza | 22–27 (aging con gráfico) |
 | 6 | Inicio + administración | 6, 28–32 |

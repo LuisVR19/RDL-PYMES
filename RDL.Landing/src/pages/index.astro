@@ -1,0 +1,43 @@
+---
+import Accountants from '../components/sections/Accountants.astro'
+import Faq from '../components/sections/Faq.astro'
+import Features from '../components/sections/Features.astro'
+import FinalCta from '../components/sections/FinalCta.astro'
+import Hero from '../components/sections/Hero.astro'
+import HowItWorks from '../components/sections/HowItWorks.astro'
+import Pricing from '../components/sections/Pricing.astro'
+import Problem from '../components/sections/Problem.astro'
+import Showcase from '../components/sections/Showcase.astro'
+import Trust from '../components/sections/Trust.astro'
+import Base from '../layouts/Base.astro'
+import { config } from '../lib/config'
+import { content } from '../lib/content'
+import { faqJsonLd } from '../lib/faq'
+
+const t = content.home
+// Sin precios definidos no se declaran ofertas: nada inventado ni en los datos estructurados.
+const software = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: content.brand,
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: config.siteUrl,
+  inLanguage: 'es-CR',
+  description: t.meta.description,
+  featureList: t.features.items.map((f) => f.title),
+}
+---
+
+<Base title={t.meta.title} description={t.meta.description} jsonLd={[software, faqJsonLd()]}>
+  <Hero />
+  <Problem />
+  <Features />
+  <Showcase />
+  <HowItWorks />
+  <Accountants />
+  <Trust />
+  <Pricing />
+  <Faq />
+  <FinalCta />
+</Base>

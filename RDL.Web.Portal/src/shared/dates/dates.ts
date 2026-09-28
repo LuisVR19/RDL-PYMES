@@ -56,6 +56,14 @@ function toUtcDay(date: string): number {
   return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) / 86_400_000
 }
 
+/** Fecha de negocio más `days` días (vencimiento = emisión + plazo), sin pasar por la zona del navegador. */
+export function addDays(date: string, days: number): string {
+  const d = new Date((toUtcDay(date) + days) * 86_400_000)
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
 /** Días entre dos fechas de negocio (b − a). Positivo si `b` es posterior. */
 export function daysBetween(a: string, b: string): number {
   return toUtcDay(b) - toUtcDay(a)

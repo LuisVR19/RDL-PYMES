@@ -1,16 +1,19 @@
 import { Big } from 'big.js'
 import { CUSTOMERS, INVOICES } from '@/mocks/billing'
+import { addDays, DEFAULT_TZ, todayIn } from '@/shared/dates/dates'
 import type {
   BalancePart,
   FiscalPart,
   Invoice,
+  InvoiceDraftInput,
+  InvoiceDraftPatch,
   InvoiceLine,
   InvoiceListItem,
   StatusChange,
 } from '../billing-types'
 import type { InvoicesPort } from '../ports'
 import { ApiError } from '../types'
-import { paginate } from './billing'
+import { mockCustomerById, paginate } from './billing'
 import { mockProductById } from './products'
 import { fakeCorrelationId, simulate, simulateSecondary } from './simulate'
 
@@ -191,6 +194,9 @@ let docs: MockDoc[] = INVOICES.map(fromListItem)
 /** Solo pruebas: vuelve a los documentos iniciales. */
 export function resetMockInvoices(): void {
   docs = INVOICES.map(fromListItem)
+  createdByKey.clear()
+  issuedByKey.clear()
+  references.clear()
 }
 
 export const mockDocs = {
@@ -317,4 +323,228 @@ export const mockInvoices: InvoicesPort = {
     if (!d) throw notFound()
     return structuredClone(d.history)
   },
+  async createDraft(input, idempotencyKey) {
+    await simulate(null, null)
+    const repeated = createdByKey.get(idempotencyKey)
+    if (repeated) return structuredClone(repeated)
+    const now = new Date().toISOString()
+    const draft = draftFrom(
+      {
+        id: `b${Date.now()}`,
+        documentType: input.documentType,
+        number: null,
+        status: 'draft',
+        requiresCorrection: false,
+        customerId: input.customerId,
+        saleConditionCode: input.saleConditionCode,
+        currency: input.currency,
+        exchangeRate: input.exchangeRate ?? '1',
+        lines: [],
+        subtotal: '0',
+        discount: '0',
+        tax: '0',
+        exoneration: '0',
+        total: '0',
+        createdAt: now,
+        updatedAt: now,
+      },
+      input,
+    )
+    if (input.referencedInvoiceId) references.set(draft.id, input.referencedInvoiceId)
+    mockDocs.put({ invoice: draft, ...NO_PARTS, history: [] })
+    createdByKey.set(idempotencyKey, draft)
+    return structuredClone(draft)
+  },
+  async updateDraft(id, patch) {
+    await simulate(null, null)
+    const d = draftOrThrow(id)
+    const next = draftFrom({ ...d.invoice, updatedAt: new Date().toISOString() }, patch)
+    mockDocs.put({ ...d, invoice: next })
+    return structuredClone(next)
+  },
+  async discardDraft(id) {
+    await simulate(null, null)
+    draftOrThrow(id)
+    mockDocs.remove(id)
+  },
+  async issue(id, idempotencyKey) {
+    await simulate(null, null)
+    const repeated = issuedByKey.get(idempotencyKey)
+    if (repeated) return structuredClone(repeated)
+    const d = draftOrThrow(id)
+    if (d.invoice.lines.length === 0) {
+      throw problem(422, 'invoice-without-lines', 'Documento sin líneas')
+    }
+    const customer = mockCustomerById(d.invoice.customerId)
+    if (!customer) throw notFound()
+    const now = new Date()
+    const issuedAt = now.toISOString()
+    const issueDate = todayIn(DEFAULT_TZ, now)
+    const invoice: Invoice = {
+      ...d.invoice,
+      status: 'issued',
+      number: nextNumber(d.invoice.documentType),
+      issuedAt,
+      dueDate: addDays(issueDate, d.invoice.creditTermDays ?? 0),
+      customerSnapshot: {
+        customerId: customer.id,
+        identification: customer.identification,
+        legalName: customer.legalName,
+        ...(customer.email ? { email: customer.email } : {}),
+        ...(customer.phone ? { phone: customer.phone } : {}),
+        ...(customer.address ? { address: customer.address } : {}),
+      },
+      updatedAt: issuedAt,
+    }
+    // Lo que harían E-Invoice y Receivables al recibir el evento: un documento en proceso y, para una factura, su
+    // cuenta por cobrar. Las notas ajustan la cuenta de la factura de referencia; aquí no se simula ese ajuste.
+    mockDocs.put({
+      invoice,
+      fiscal: {
+        availability: 'available',
+        status: { electronicDocumentId: `e${invoice.id}`, status: 'processing' },
+      },
+      receivable:
+        invoice.documentType === 'invoice'
+          ? {
+              availability: 'available',
+              balance: {
+                receivableId: `r${invoice.id}`,
+                status: 'open',
+                currency: invoice.currency,
+                balanceAmount: invoice.total,
+                dueOn: invoice.dueDate ?? issueDate,
+              },
+            }
+          : { availability: 'absent' },
+      history: [{ fromStatus: 'draft', toStatus: 'issued', changedByUserId: 'u1', changedAt: issuedAt }],
+    })
+    issuedByKey.set(idempotencyKey, invoice)
+    return structuredClone(invoice)
+  },
+}
+
+// --- Borradores simulados (pantallas 13, 14 y 16) ---
+
+const NO_PARTS = {
+  fiscal: { availability: 'absent' },
+  receivable: { availability: 'absent' },
+} satisfies Pick<MockDoc, 'fiscal' | 'receivable'>
+
+/** La misma Idempotency-Key responde lo mismo, como en Billing. */
+const createdByKey = new Map<string, Invoice>()
+const issuedByKey = new Map<string, Invoice>()
+/** Factura de referencia de cada nota (el `Invoice` del contrato no la trae). */
+const references = new Map<string, string>()
+
+/** Solo pruebas y revisión: la factura de referencia de una nota simulada. */
+export function mockReferenceOf(noteId: string): string | undefined {
+  return references.get(noteId)
+}
+
+const PREFIX = { invoice: 'FAC', credit_note: 'NC', debit_note: 'ND' } as const
+
+function nextNumber(type: Invoice['documentType']): string {
+  const used = docs
+    .filter((d) => d.invoice.documentType === type && d.invoice.number)
+    .map((d) => Number.parseInt((d.invoice.number ?? '').replace(/\D/g, ''), 10))
+  return `${PREFIX[type]}-${String(Math.max(0, ...used) + 1).padStart(7, '0')}`
+}
+
+const problem = (
+  status: number,
+  code: string,
+  title: string,
+  errors?: { field: string; message: string }[],
+) =>
+  new ApiError({
+    status,
+    type: `urn:rdl:billing:problem:${code}`,
+    title,
+    correlationId: fakeCorrelationId(),
+    ...(errors ? { errors } : {}),
+  })
+
+function draftOrThrow(id: string): MockDoc {
+  const d = docs.find((x) => x.invoice.id === id)
+  if (!d) throw notFound()
+  if (d.invoice.status !== 'draft') {
+    throw problem(409, 'invoice-not-draft', 'El documento no es un borrador')
+  }
+  return d
+}
+
+/** Tarifas ilustrativas por código (las de `MOCK_TAX_OPTIONS`). TODO(fiscal): catálogo oficial. */
+const RATE: Record<string, string> = { '08': '13', '04': '4' }
+
+/**
+ * Aplica un alta o un PATCH a un borrador y recalcula como lo haría Billing: valida cliente y productos, toma la
+ * descripción, el CABYS y los impuestos del producto, y redondea cada campo de línea a 5 decimales (D2).
+ */
+function draftFrom(base: Invoice, change: InvoiceDraftInput | InvoiceDraftPatch): Invoice {
+  const customerId = change.customerId ?? base.customerId
+  const customer = mockCustomerById(customerId)
+  if (!customer) throw notFound()
+  if (!customer.isActive) throw problem(422, 'customer-inactive', 'Cliente inactivo')
+
+  const next: Invoice = { ...base, customerId }
+  if (change.saleConditionCode !== undefined) next.saleConditionCode = change.saleConditionCode
+  if (change.currency !== undefined) next.currency = change.currency
+  if (change.exchangeRate !== undefined) next.exchangeRate = change.exchangeRate
+  if (change.notes !== undefined) {
+    if (change.notes) next.notes = change.notes
+    else delete next.notes
+  }
+  if (change.branchId !== undefined) {
+    if (change.branchId) next.branchId = change.branchId
+    else delete next.branchId
+  }
+  if (change.creditTermDays !== undefined) {
+    if (change.creditTermDays === null) delete next.creditTermDays
+    else next.creditTermDays = change.creditTermDays
+  }
+  if (next.currency !== 'CRC' && next.exchangeRate === '1') {
+    throw problem(422, 'validation', 'Datos inválidos', [
+      { field: 'exchangeRate', message: 'Indique el tipo de cambio.' },
+    ])
+  }
+  if (!change.lines) return withTotals(next, base.lines)
+
+  const errors: { field: string; message: string }[] = []
+  const lines = change.lines.map((l, i) => {
+    const p = mockProductById(l.productId)
+    if (!p || !p.isActive) throw notFound()
+    if (!l.unitPrice && p.currency !== next.currency) {
+      errors.push({
+        field: `lines[${i}].unitPrice`,
+        message: 'Indique el precio en la moneda del documento.',
+      })
+    }
+    const discount = l.discount ?? '0'
+    if (new Big(discount).gt(0) && !l.discountReason?.trim()) {
+      errors.push({
+        field: `lines[${i}].discountReason`,
+        message: 'El motivo es obligatorio cuando hay descuento.',
+      })
+    }
+    const rate = RATE[p.taxes[0]?.taxRateCode ?? ''] ?? '0'
+    return mockLine(
+      i + 1,
+      {
+        id: p.id,
+        code: p.code,
+        cabys: p.cabysCode,
+        description: p.description,
+        unit: p.unitOfMeasureCode,
+        isService: p.isService,
+      },
+      l.quantity,
+      l.unitPrice ?? p.unitPrice,
+      discount,
+      l.discountReason?.trim() || undefined,
+      rate,
+    )
+  })
+  if (errors.length > 0) throw problem(422, 'validation', 'Datos inválidos', errors)
+  return withTotals(next, lines)
 }

@@ -1,0 +1,643 @@
+/* design/referencias «13 Factura · borrador», «13 Alta rápida de cliente» y «16 Nota de crédito o débito». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.back {
+  font: var(--text-caption);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font: var(--text-h1);
+}
+
+.muted {
+  margin: 0;
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.unsaved {
+  font: var(--text-caption);
+  color: var(--color-warning-fg);
+}
+
+.errList {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* Dos columnas: el formulario (640 px mínimo) y los totales (280–360 px, fijos al desplazar). */
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.main {
+  flex: 1 1 640px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card,
+.headCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.card {
+  padding: 0;
+}
+
+.card > .notes {
+  padding: var(--space-4) 20px;
+}
+
+.headCard {
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 14px var(--space-4);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.cardHead {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+/* Campos propios (combobox, celdas): las mismas medidas que Field del sistema de diseño. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--color-text-primary);
+}
+
+.required {
+  color: var(--color-danger-fg);
+}
+
+.control {
+  height: var(--control-h-md);
+  min-width: 0;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0 10px;
+  font-size: 14px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+
+.control:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-info-border);
+  outline: none;
+}
+
+.control::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.invalid {
+  border-color: var(--color-danger-fg);
+}
+
+.error {
+  font: var(--text-caption);
+  color: var(--color-danger-fg);
+}
+
+.readonly {
+  height: var(--control-h-md);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular input {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.mono {
+  display: block;
+  font: var(--text-caption);
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+}
+
+.amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cliente elegido. */
+.chosen {
+  min-height: var(--control-h-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.chosenText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chosenName {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.linkButton {
+  min-height: 32px;
+  padding: 0 var(--space-1);
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Lista del combobox de clientes. */
+.comboWrap {
+  position: relative;
+}
+
+.popList {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow: auto;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  background: var(--color-bg-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 14px;
+}
+
+.popOption {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.popOption[aria-selected='true'],
+.popOption:hover {
+  background: var(--color-bg-selected);
+}
+
+.popCreate {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.popNote {
+  padding: 8px 10px;
+  font: var(--text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Catálogo de productos (popover). */
+.catalog {
+  z-index: 60;
+  width: min(460px, calc(100vw - 32px));
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--color-bg-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.catalogList {
+  max-height: 240px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalogItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px var(--space-3);
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.catalogItem:hover,
+.catalogItem:focus-visible {
+  background: var(--color-bg-selected);
+}
+
+/* Líneas. `position: relative` hace que el texto solo para lectores (sr-only, absoluto) quede dentro del
+   desplazamiento: si no, se sale del recorte y ensancha la página en móvil. */
+.linesScroll {
+  position: relative;
+  overflow-x: auto;
+}
+
+.linesScroll:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.lines {
+  width: 100%;
+  min-width: 760px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* Anchos de columna del prototipo (columna + 10 px de separación). */
+.colQty {
+  width: 86px;
+}
+.colPrice {
+  width: 130px;
+}
+.colDiscount {
+  width: 82px;
+}
+.colTax {
+  width: 120px;
+}
+.colTotal {
+  width: 128px;
+}
+.colRemove {
+  width: 42px;
+}
+
+.lines th {
+  padding: 8px 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.lines th:first-child,
+.lines td:first-child {
+  padding-left: 20px;
+}
+
+.lines td {
+  padding: 10px 5px 4px;
+  vertical-align: top;
+}
+
+.lineGroup {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lines th.num {
+  text-align: right;
+}
+
+.lineDesc {
+  display: block;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.cell {
+  width: 100%;
+  min-width: 64px;
+  height: 34px;
+  padding: 0 8px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineTotal {
+  padding-top: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dimmedText {
+  color: var(--color-text-disabled);
+}
+
+.reasonCell {
+  padding-top: 0;
+  padding-bottom: 10px;
+}
+
+.reasonRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.reasonLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.reasonInput {
+  flex: 1 1 240px;
+  max-width: 420px;
+  height: 32px;
+  font-size: 13px;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-6) 20px;
+  font: var(--text-body);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.linesFoot {
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Totales (columna derecha). */
+.totalsCard {
+  flex: 1 1 280px;
+  max-width: 360px;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--space-4) 18px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.totalsHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totals {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-variant-numeric: tabular-nums;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.dimmed {
+  opacity: 0.45;
+}
+
+.totalRow,
+.grandTotal {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.totalRow dt {
+  color: var(--color-text-strong);
+}
+
+.totalRow dd,
+.grandTotal dd {
+  margin: 0;
+}
+
+.grandTotal {
+  align-items: baseline;
+  margin-top: 3px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-default);
+  font-weight: 600;
+}
+
+.grandTotal dd {
+  font: var(--text-amount-lg);
+  font-weight: 600;
+}
+
+.recalc {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+  font: var(--text-body-sm);
+}
+
+/* Alta rápida de cliente. */
+.quick {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quickActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+/* Nota: bloque de la factura de referencia (fijo) y líneas a acreditar. */
+.refBlock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px var(--space-4);
+  padding: 14px 18px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+}
+
+.refTitle {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.refItem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.creditLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.creditLine[data-included='false'] {
+  opacity: 0.55;
+}
+
+.check {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-on-accent);
+  cursor: pointer;
+}
+
+.check[data-state='checked'] {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.check:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.monoValue {
+  font-family: var(--font-mono);
+}
+
+.creditDesc {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.creditQty {
+  width: 76px;
+}
+
+.creditMax {
+  width: 60px;
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.creditTotal {
+  width: 120px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  .headCard {
+    padding: var(--space-4);
+  }
+  .totalsCard {
+    position: static;
+    max-width: none;
+  }
+  .control {
+    height: var(--control-h-lg);
+  }
+}

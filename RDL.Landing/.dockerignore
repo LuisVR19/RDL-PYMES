@@ -1,0 +1,8 @@
+node_modules
+dist
+.astro
+.env
+.env.*
+e2e/.results
+test-results
+.lighthouseci

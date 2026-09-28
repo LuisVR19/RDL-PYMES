@@ -3,6 +3,7 @@ import { isRole } from '@/shared/permissions/permissions'
 import { ApiError, type Memberships, type Organization } from '../types'
 import type { DataSource } from '../ports'
 import {
+  createBranchesPort,
   createCatalogsPort,
   createCustomersPort,
   createInvoicesPort,
@@ -104,6 +105,7 @@ export function createGatewayDataSource(http: GatewayHttp): DataSource {
     catalogs: createCatalogsPort(http),
     receivables: createReceivablesPort(http),
     invoices: createInvoicesPort(http),
+    branches: createBranchesPort(http),
 
     notifications: {
       // TODO(api): /portal/v1/notifications es el incremento 6 del gateway, bloqueado por el transporte de

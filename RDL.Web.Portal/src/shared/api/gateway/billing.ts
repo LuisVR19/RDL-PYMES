@@ -1,4 +1,5 @@
 import type {
+  Branch,
   CabysItem,
   CatalogItem,
   Customer,
@@ -11,7 +12,14 @@ import type {
   Receivable,
   StatusChange,
 } from '../billing-types'
-import type { CatalogsPort, CustomersPort, InvoicesPort, ProductsPort, ReceivablesPort } from '../ports'
+import type {
+  BranchesPort,
+  CatalogsPort,
+  CustomersPort,
+  InvoicesPort,
+  ProductsPort,
+  ReceivablesPort,
+} from '../ports'
 import { ApiError } from '../types'
 import type { GatewayHttp } from './http'
 
@@ -87,6 +95,26 @@ export function createInvoicesPort(http: GatewayHttp): InvoicesPort {
         { reason },
         { idempotencyKey },
       ),
+    createDraft: (input, idempotencyKey) =>
+      http.send<Invoice>('POST', '/portal/v1/invoices', input, { idempotencyKey }),
+    updateDraft: (id, patch) =>
+      http.send<Invoice>('PATCH', `/portal/v1/invoices/${encodeURIComponent(id)}`, patch),
+    discardDraft: (id) => http.send<void>('DELETE', `/portal/v1/invoices/${encodeURIComponent(id)}`),
+    issue: (id, idempotencyKey) =>
+      http.send<Invoice>('POST', `/portal/v1/invoices/${encodeURIComponent(id)}/issue`, undefined, {
+        idempotencyKey,
+      }),
+  }
+}
+
+/** Sucursales: paso directo a Platform. */
+export function createBranchesPort(http: GatewayHttp): BranchesPort {
+  return {
+    list: (q) =>
+      http.get<Page<Branch>>('/portal/v1/organizations/current/branches', {
+        active: bool(q?.active),
+        limit: '100',
+      }),
   }
 }
 

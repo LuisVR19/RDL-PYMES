@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -75,16 +76,18 @@ func (h *OverviewHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 // writePrimaryError responde cuando falla la fuente PRINCIPAL de una composición (Billing): si mandó Problem
-// Details, el portal recibe el suyo tal cual; si no, uno del gateway que conserva lo que se sepa.
+// Details, el portal recibe el suyo tal cual salvo `instance`; si no, uno del gateway que conserva lo que se sepa.
 func writePrimaryError(w http.ResponseWriter, r *http.Request, log *slog.Logger, err error, msg string, attrs ...any) {
 	var status *downstream.StatusError
 	if errors.As(err, &status) && len(status.Problem) > 0 {
-		w.Header().Set("Content-Type", problem.ContentType)
-		w.WriteHeader(status.Status)
-		if _, err := w.Write(status.Problem); err != nil {
-			log.WarnContext(r.Context(), "no se pudo reenviar el problema de la API", slog.Any("error", err))
+		if body, ok := withInstance(status.Problem, r.URL.Path); ok {
+			w.Header().Set("Content-Type", problem.ContentType)
+			w.WriteHeader(status.Status)
+			if _, err := w.Write(body); err != nil {
+				log.WarnContext(r.Context(), "no se pudo reenviar el problema de la API", slog.Any("error", err))
+			}
+			return
 		}
-		return
 	}
 
 	log.ErrorContext(r.Context(), msg, append(attrs, slog.Any("error", err))...)
@@ -100,6 +103,26 @@ func writePrimaryError(w http.ResponseWriter, r *http.Request, log *slog.Logger,
 	default:
 		problem.Write(w, r, problem.UpstreamUnavailable)
 	}
+}
+
+// withInstance cambia el `instance` del problema de la API por la ruta que pidió el portal: el de la API es su
+// ruta interna (/internal/v1/…), que el portal no debe ver. Todo lo demás se conserva byte a byte. Un cuerpo
+// que no es un objeto JSON no se reenvía (ok=false): lo reemplaza el problema genérico del gateway.
+func withInstance(body []byte, path string) ([]byte, bool) {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(body, &fields); err != nil || fields == nil {
+		return nil, false
+	}
+	instance, err := json.Marshal(path)
+	if err != nil {
+		return nil, false
+	}
+	fields["instance"] = instance
+	out, err := json.Marshal(fields)
+	if err != nil {
+		return nil, false
+	}
+	return out, true
 }
 
 func toOverviewDTO(o view.InvoiceOverview) overviewDTO {

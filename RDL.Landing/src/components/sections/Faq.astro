@@ -1,0 +1,72 @@
+---
+import { faqItems } from '../../lib/faq'
+import { content } from '../../lib/content'
+
+/** Preguntas frecuentes con <details>: acordeón accesible sin JavaScript. El JSON-LD sale de los mismos textos. */
+const t = content.home.faq
+---
+
+<section class="section" id="preguntas" aria-labelledby="preguntas-title">
+  <div class="container narrow">
+    <h2 class="section-title" id="preguntas-title">
+      {t.title}
+    </h2>
+    <div class="list">
+      {faqItems().map((it) => (
+        <details>
+          <summary>{it.q}</summary>
+          <p>{it.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .narrow {
+    max-width: calc(840px + 2 * var(--page-pad));
+  }
+
+  .list {
+    margin-top: var(--space-8);
+    border-top: 1px solid var(--color-border-default);
+  }
+
+  details {
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 56px;
+    padding: var(--space-4) 0;
+    font: 600 17px/24px var(--font-sans);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: '+';
+    flex: none;
+    font: 400 24px/1 var(--font-sans);
+    color: var(--color-accent);
+  }
+
+  details[open] summary::after {
+    content: '−';
+  }
+
+  details p {
+    padding: 0 0 var(--space-5);
+    color: var(--color-text-secondary);
+    font: var(--text-reading);
+    max-width: 720px;
+  }
+</style>

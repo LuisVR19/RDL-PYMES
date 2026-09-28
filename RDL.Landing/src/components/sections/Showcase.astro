@@ -1,0 +1,148 @@
+---
+import { content } from '../../lib/content'
+import Icon from '../Icon.astro'
+import Shot from '../Shot.astro'
+
+/** «Así se ve RDL»: tres pantallas reales del portal (datos de ejemplo), alternando lado. */
+const t = content.home.showcase
+type ShotName = 'documentos' | 'borrador' | 'detalle'
+---
+
+<section class="section" id="vista-factura" aria-labelledby="showcase-title">
+  <div class="container">
+    <div class="head">
+      <p class="eyebrow">{t.eyebrow}</p>
+      <h2 class="section-title" id="showcase-title">
+        {t.title}
+      </h2>
+    </div>
+    <div class="rows">
+      {t.items.map((it, i) => (
+        <article class:list={['row', i % 2 === 1 && 'reverse']}>
+          <div class="text">
+            <p class="eyebrow">{it.eyebrow}</p>
+            <h3>{it.title}</h3>
+            <p class="body">{it.body}</p>
+            <ul class="points">
+              {it.points.map((p) => (
+                <li>
+                  <span class="tick">
+                    <Icon name="check" size={14} />
+                  </span>
+                  {p}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="media">
+            <Shot name={it.image as ShotName} alt={it.alt} sizes="(max-width: 1023px) 100vw, 680px" />
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin-top: var(--space-12);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .reverse .text {
+    order: 2;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  h3 {
+    font: 600 26px/34px var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+
+  .body {
+    font: var(--text-lead);
+    color: var(--color-text-secondary);
+  }
+
+  .points {
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .points li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font: 500 15px/22px var(--font-sans);
+  }
+
+  .tick {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: var(--color-success-bg);
+    color: var(--color-success-fg);
+  }
+
+  /* Un halo del color de acento detrás de cada captura. */
+  .media {
+    position: relative;
+  }
+
+  .media::before {
+    content: '';
+    position: absolute;
+    inset: 8% -4% -6% 8%;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--color-accent-soft) 0%, transparent 70%);
+    z-index: -1;
+  }
+
+  .reverse .media::before {
+    inset: 8% 8% -6% -4%;
+    background: linear-gradient(225deg, var(--color-accent-soft) 0%, transparent 70%);
+  }
+
+  @media (max-width: 1023px) {
+    .row {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .reverse .text {
+      order: 0;
+    }
+    .rows {
+      gap: var(--space-12);
+    }
+  }
+</style>

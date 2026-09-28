@@ -2,7 +2,28 @@
 
 Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 
-## Última actualización: 2026-09-26 — incremento 9 (endurecimiento). F2 y F3 implementadas.
+## Última actualización: 2026-09-27 — **P4 cerrado en dev**: migración 00003, aislamiento 6/6, integración 11/11, E2E 33/33.
+
+### Cierre en dev (2026-09-27)
+- SQL Editor (Luis): `grant usage on schema core to billing_migrator`, contraseñas nuevas de `billing_api` y
+  `billing_migrate` (las del `.env` de esta máquina) y fixtures `0011`.
+- `.env` creado: pooler `aws-0-us-east-2.pooler.supabase.com` (el `.env.example` sugiere us-east-1, que no es).
+- Migración **00003_branch_fk aplicada**; `migrate status` → 00001–00003 aplicadas.
+- `go vet` + `go test -race` en verde (por primera vez con `-race`: gcc de WinLibs instalado) · `golangci-lint` 0
+  issues tras normalizar a LF los 90 `.go` que el checkout dejó en CRLF.
+- **Aislamiento 6/6** (36 subpruebas, ninguna saltada).
+- **Integración 11/11** con `TEST_MEMBER_ORG=b0000000-0000-4000-8000-00000000000a` y
+  `TEST_MEMBER_SUBJECT=billing-iso-owner-a` (org A de los fixtures): sin ellas se saltan la emisión completa y la
+  membresía activa. La emisión corre en una transacción revertida; no deja datos.
+- Contraseñas nuevas de `usuario.e2e@…` / `usuario.e2e2@…` (SQL Editor, `auth.users`), en los `.e2e.local` de
+  Billing, Platform y el gateway.
+- **E2E 33/33** contra la API local. La primera corrida dio 31/32 con una falsa fuga: `usuario.e2e2` tenía como
+  activa la organización de `usuario.e2e` (aceptó su invitación en la prueba del portal del 2026-09-25, rol
+  collector), así que ver la factura era lo correcto. Se cambió su organización activa a una propia con
+  `PUT /v1/me/active-organization` (→ 404 en la factura ajena) y `scripts/dev/e2e.sh` ahora verifica esa
+  precondición antes del caso de aislamiento. Datos confirmados en dev: facturas 00000001 y 00000002 de la
+  organización `5a0a4fd1-…`.
+
 
 ### OpenAPI de Billing en contratos (2026-09-26)
 - `RDL.Contracts/openapi/billing.yaml` refleja lo implementado en F2/F3 (ProductPatch, InvoiceDraftPatch, campos de
@@ -62,16 +83,16 @@ Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 | Cambiar cliente o producto no altera lo emitido ni su evento (criterio 5) | ✅ unit + integración contra dev |
 | Tests de propiedades del cálculo en verde | ✅ 5 invariantes, referencia exacta, mutaciones detectadas |
 | `InvoiceIssued` v1 en el outbox, misma transacción, validado contra el schema | ✅ unit + integración contra dev |
-| Suite de aislamiento en verde con `make test-isolation`; E2E en verde | ⏳ escritas; faltan los fixtures (script 0011) y `.e2e.local` |
+| Suite de aislamiento en verde con `make test-isolation`; E2E en verde | ✅ aislamiento 6/6 · E2E 33/33 (2026-09-27) |
 | Audit en cada operación sensible; idempotencia en cada comando; correlationId de punta a punta | ✅ |
 | `golangci-lint` limpio, cobertura alta, imagen Docker, health checks | ✅ lint, cobertura, health · ⏳ Docker sin verificar (no está instalado) |
 | Lista final de TODOs | ✅ abajo |
 
 ## Para correr en dev (una vez, como `postgres`, desde el SQL Editor)
 
-1. `grant usage on schema core to billing_migrator;` → luego `make migrate-up` (aplica `00003_branch_fk`).
-2. `scripts/dev/0011_billing_isolation_fixtures.sql` → luego `make test-isolation`.
-3. Para el E2E: `.e2e.local` con `E2E_EMAIL`/`E2E_PASSWORD` (y opcional `E2E_EMAIL2`/`E2E_PASSWORD2`) de usuarios de
+1. ~~`grant usage on schema core to billing_migrator;` → `make migrate-up`~~ ✅ 2026-09-27.
+2. ~~`scripts/dev/0011_billing_isolation_fixtures.sql` → `make test-isolation`~~ ✅ 2026-09-27.
+3. ✅ 2026-09-27. Para el E2E: `.e2e.local` con `E2E_EMAIL`/`E2E_PASSWORD` (y opcional `E2E_EMAIL2`/`E2E_PASSWORD2`) de usuarios de
    prueba con organización activa (se crea con el E2E de Platform) → `make run` y `bash scripts/dev/e2e.sh`.
 
 ## TODOs para revisar en equipo

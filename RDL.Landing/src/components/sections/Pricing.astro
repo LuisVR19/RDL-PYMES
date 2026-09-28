@@ -1,0 +1,59 @@
+---
+import { content } from '../../lib/content'
+import WhatsAppLink from '../WhatsAppLink.astro'
+
+/** Precios: «Próximamente» (decidido 2026-09-27). No se inventan planes ni montos. */
+const t = content.home.pricing
+---
+
+<section class="section section-alt" id="precios" aria-labelledby="precios-title">
+  <div class="container">
+    <div class="card box">
+      <div class="head">
+        <h2 class="section-title" id="precios-title">
+          {t.title}
+        </h2>
+        <span class="soon-tag">{t.badge}</span>
+      </div>
+      <p class="section-lead">{t.body}</p>
+      <div class="actions-row cta">
+        <WhatsAppLink event="whatsapp-precios" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .box {
+    padding: var(--space-10);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .box .section-lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta {
+    margin-top: var(--space-6);
+    justify-content: center;
+  }
+
+  @media (max-width: 767px) {
+    .box {
+      padding: var(--space-6);
+    }
+    .cta {
+      width: 100%;
+    }
+  }
+</style>

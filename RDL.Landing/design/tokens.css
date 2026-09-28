@@ -1,0 +1,114 @@
+/* RDL · Portal de la PYME · Tokens v0.1 (dirección 1a Institucional)
+   Nombres estables. Tema claro en :root, oscuro en [data-theme="dark"]. */
+:root {
+  /* Color · superficies */
+  --color-bg-canvas: #F4F5F7;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-raised: #FFFFFF;
+  --color-bg-subtle: #F8F9FB;
+  --color-bg-nav: #0F1B33;
+  --color-bg-nav-active: #23345A;
+  --color-bg-selected: #EEF3FD;
+  /* Color · texto */
+  --color-text-primary: #161B26;
+  --color-text-secondary: #5A6272;
+  --color-text-disabled: #8A93A3;
+  --color-text-on-accent: #FFFFFF;
+  --color-text-nav: #C9D1E0;
+  /* Color · bordes */
+  --color-border-default: #DDE1E7;
+  --color-border-subtle: #EBEEF2;
+  --color-border-strong: #C9CFD8;
+  /* Color · acento y foco */
+  --color-accent: #2355C9;
+  --color-accent-hover: #1B46AA;
+  --color-accent-active: #173C94;
+  --color-accent-soft: #E7EEFC;
+  --color-focus-ring: #2355C9;
+  /* Color · estados (bg suave / fg texto e icono / border) */
+  --color-success-bg: #E6F4EC; --color-success-fg: #1B6B3A; --color-success-border: #B7DEC5;
+  --color-warning-bg: #FDF1DC; --color-warning-fg: #8A5300; --color-warning-border: #F1D29B;
+  --color-danger-bg:  #FCE8E8; --color-danger-fg:  #B42323; --color-danger-border:  #F2BDBD;
+  --color-info-bg:    #E7EEFC; --color-info-fg:    #1F4FB8; --color-info-border:    #C2D3F7;
+  --color-neutral-bg: #EEF0F3; --color-neutral-fg: #4A5160; --color-neutral-border: #D5DAE1;
+  --color-danger-solid: #B42323; --color-danger-solid-hover: #971C1C;
+  /* Aging (tramos) */
+  --color-aging-0: #2355C9; --color-aging-1: #7AA2F7; --color-aging-2: #E0A63A; --color-aging-3: #D2691E; --color-aging-4: #B42323;
+
+  /* Tipografía */
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --text-display: 600 32px/40px var(--font-sans);
+  --text-h1: 600 24px/32px var(--font-sans);
+  --text-h2: 600 20px/28px var(--font-sans);
+  --text-h3: 600 16px/24px var(--font-sans);
+  --text-body: 400 14px/20px var(--font-sans);
+  --text-body-sm: 400 13px/18px var(--font-sans);
+  --text-caption: 400 12px/16px var(--font-sans);
+  --text-overline: 600 11px/16px var(--font-sans); /* + uppercase, letter-spacing .08em */
+  --text-amount-lg: 600 28px/36px var(--font-sans); /* + tabular-nums */
+  --text-amount: 500 14px/20px var(--font-sans);    /* + tabular-nums */
+  --text-code: 400 13px/20px var(--font-mono);
+
+  /* Espaciado (base 4) */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+
+  /* Radios, bordes, sombras */
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-full: 999px;
+  --border-width: 1px;
+  --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--color-focus-ring);
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 0 0 1px rgba(16,24,40,.06);
+  --shadow-md: 0 4px 12px rgba(16,24,40,.10), 0 0 0 1px rgba(16,24,40,.06);
+  --shadow-lg: 0 16px 40px rgba(16,24,40,.18), 0 0 0 1px rgba(16,24,40,.06);
+  --scrim: rgba(15,27,51,.5);
+
+  /* Capas */
+  --z-base: 0; --z-sticky: 100; --z-nav: 200; --z-dropdown: 1000; --z-drawer: 1100; --z-modal: 1200; --z-toast: 1300; --z-tooltip: 1400;
+
+  /* Movimiento */
+  --duration-fast: 120ms; --duration-base: 180ms; --duration-slow: 260ms;
+  --ease-standard: cubic-bezier(.2,0,0,1); --ease-exit: cubic-bezier(.3,0,1,1);
+
+  /* Controles */
+  --control-h-sm: 32px; --control-h-md: 36px; --control-h-lg: 44px;
+  --row-h-comfortable: 52px; --row-h-compact: 36px;
+  --sidebar-w: 232px; --sidebar-w-collapsed: 72px; --topbar-h: 56px;
+}
+
+/* Puntos de corte (usar en media queries):
+   móvil 0–767 (diseño a 390) · tableta 768–1279 (diseño a 1024)
+   escritorio 1280–1535 (diseño a 1440) · ancho ≥1536 (contenido máx. 1600) */
+
+[data-theme="dark"] {
+  --color-bg-canvas: #0E131C;
+  --color-bg-surface: #151B26;
+  --color-bg-surface-raised: #1C2330;
+  --color-bg-subtle: #1A212D;
+  --color-bg-nav: #0A101B;
+  --color-bg-nav-active: #1C2A48;
+  --color-bg-selected: #1A2A4D;
+  --color-text-primary: #E6E9EF;
+  --color-text-secondary: #A3ABBA;
+  --color-text-disabled: #5F6878;
+  --color-text-on-accent: #0B1220;
+  --color-border-default: #2A3342;
+  --color-border-subtle: #222A37;
+  --color-border-strong: #3A4454;
+  --color-accent: #7FA3F5;
+  --color-accent-hover: #9DBBFF;
+  --color-accent-active: #9DBBFF;
+  --color-accent-soft: #16274A;
+  --color-focus-ring: #9DBBFF;
+  --color-success-bg: #12301F; --color-success-fg: #7FD6A0; --color-success-border: #1F4A30;
+  --color-warning-bg: #3A2A0C; --color-warning-fg: #F2C170; --color-warning-border: #5A4518;
+  --color-danger-bg:  #3D1717; --color-danger-fg:  #F59A9A; --color-danger-border:  #5A2A2A;
+  --color-info-bg:    #16274A; --color-info-fg:    #9DBBFF; --color-info-border:    #26407A;
+  --color-neutral-bg: #232A36; --color-neutral-fg: #B4BCC9; --color-neutral-border: #3A4454;
+  --color-danger-solid: #E05656; --color-danger-solid-hover: #F07070;
+  --focus-ring: 0 0 0 2px #0E131C, 0 0 0 4px var(--color-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-fast: 0ms; --duration-base: 0ms; --duration-slow: 0ms; }
+}

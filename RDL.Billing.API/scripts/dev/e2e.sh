@@ -105,6 +105,10 @@ check "query/header no cambian el tenant" 200 "$(status "$r")"
 if [ -n "${E2E_EMAIL2:-}" ]; then
   echo "== Aislamiento (segundo usuario: $E2E_EMAIL2)"
   TOKEN2=$(login "$E2E_EMAIL2" "$E2E_PASSWORD2")
+  # Precondición: si el segundo usuario tiene como activa la misma organización (p. ej. aceptó una invitación del
+  # primero), verla es lo correcto y el caso no prueba aislamiento. Se reporta aparte, no como fuga.
+  ORG2=$(claims "$TOKEN2" | json ".get('org_id')")
+  check "precondición: el segundo usuario está en otra organización (cámbiela con PUT /v1/me/active-organization)" "True" "$([ "$ORG2" != "$ORG" ] && echo True || echo False)"
   r=$(call GET "/v1/invoices/$INV" "$TOKEN2"); s=$(status "$r")
   check "otro usuario no ve la factura (403/404)" "True" "$([ "$s" = 403 ] || [ "$s" = 404 ] && echo True || echo False)"
   r=$(call PATCH "/v1/customers/$CUSTOMER" "$TOKEN2" '{"legalName":"Robado"}'); s=$(status "$r")

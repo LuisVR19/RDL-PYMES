@@ -8,6 +8,8 @@ import { ClientFormPage } from '@/features/billing/pages/ClientFormPage'
 import { ClientsPage } from '@/features/billing/pages/ClientsPage'
 import { DocumentsPage } from '@/features/billing/pages/DocumentsPage'
 import { InvoiceDetailPage } from '@/features/billing/pages/InvoiceDetailPage'
+import { InvoiceDraftPage } from '@/features/billing/pages/InvoiceDraftPage'
+import { NotePage } from '@/features/billing/pages/NotePage'
 import { ProductFormPage } from '@/features/billing/pages/ProductFormPage'
 import { ProductsPage } from '@/features/billing/pages/ProductsPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
@@ -41,7 +43,11 @@ const BUILT: Partial<Record<string, ComponentType>> = {
   productNew: ProductFormPage,
   productEdit: ProductFormPage,
   documents: DocumentsPage,
+  invoiceNew: InvoiceDraftPage,
+  invoiceEdit: InvoiceDraftPage,
   invoiceDetail: InvoiceDetailPage,
+  creditNote: NotePage,
+  debitNote: NotePage,
 }
 
 /** Fuera del armazón pero con sesión: elegir o crear organización, aceptar una invitación. */

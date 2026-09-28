@@ -1,0 +1,24 @@
+---
+/** Icono de la app, opción «1a Sigla» del diseño (design/referencias/RDL Icono.dc.html). Decorativo: el nombre va al lado. */
+interface Props {
+  size?: number
+}
+const { size = 32 } = Astro.props
+---
+
+<svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+  <rect width="64" height="64" rx="13" fill="#0F1B33"></rect>
+  <text
+    x="32"
+    y="39.5"
+    text-anchor="middle"
+    font-family="IBM Plex Sans, system-ui, sans-serif"
+    font-weight="700"
+    font-size="20"
+    letter-spacing="1.2"
+    fill="#FFFFFF"
+  >
+    RDL
+  </text>
+  <rect x="14" y="45" width="36" height="3" rx="1.5" fill="#7AA2F7"></rect>
+</svg>

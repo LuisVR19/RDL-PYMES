@@ -1,0 +1,54 @@
+---
+import BadgeCheck from '@lucide/astro/icons/badge-check'
+import Building from '@lucide/astro/icons/building'
+import ChartColumn from '@lucide/astro/icons/chart-column'
+import Check from '@lucide/astro/icons/check'
+import FileCheck from '@lucide/astro/icons/file-check'
+import FileText from '@lucide/astro/icons/file-text'
+import HandCoins from '@lucide/astro/icons/hand-coins'
+import KeyRound from '@lucide/astro/icons/key-round'
+import Landmark from '@lucide/astro/icons/landmark'
+import LogIn from '@lucide/astro/icons/log-in'
+import Menu from '@lucide/astro/icons/menu'
+import MessageCircle from '@lucide/astro/icons/message-circle'
+import ReceiptText from '@lucide/astro/icons/receipt-text'
+import ScrollText from '@lucide/astro/icons/scroll-text'
+import ShieldCheck from '@lucide/astro/icons/shield-check'
+import Users from '@lucide/astro/icons/users'
+import Wallet from '@lucide/astro/icons/wallet'
+import X from '@lucide/astro/icons/x'
+
+/** Iconos Lucide (ISC), trazo 1,8 como en el portal. Solo los que usa el sitio: el resto no llega al HTML. */
+const ICONS = {
+  'badge-check': BadgeCheck,
+  building: Building,
+  'chart-column': ChartColumn,
+  check: Check,
+  'file-check': FileCheck,
+  'file-text': FileText,
+  'hand-coins': HandCoins,
+  'key-round': KeyRound,
+  landmark: Landmark,
+  'log-in': LogIn,
+  menu: Menu,
+  'message-circle': MessageCircle,
+  'receipt-text': ReceiptText,
+  'scroll-text': ScrollText,
+  'shield-check': ShieldCheck,
+  users: Users,
+  wallet: Wallet,
+  x: X,
+} as const
+
+interface Props {
+  name: string
+  size?: number
+  class?: string
+}
+
+const { name, size = 20, class: className } = Astro.props
+const Component = ICONS[name as keyof typeof ICONS]
+if (!Component) throw new Error(`Icono desconocido en el contenido: ${name}`)
+---
+
+<Component size={size} stroke-width={1.8} aria-hidden="true" {...(className ? { class: className } : {})} />

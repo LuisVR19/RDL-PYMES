@@ -1,0 +1,309 @@
+---
+import { config } from '../../lib/config'
+import { content } from '../../lib/content'
+import Icon from '../Icon.astro'
+import PortalLinks from '../PortalLinks.astro'
+import Shot from '../Shot.astro'
+import WhatsAppLink from '../WhatsAppLink.astro'
+
+const t = content.home.hero
+const highlights = content.home.highlights
+---
+
+<section class="hero band-dark" id="inicio" aria-labelledby="hero-title">
+  <div class="container grid">
+    <div class="copy">
+      <p class="pill">
+        <span class="pillDot" aria-hidden="true"></span>
+        {t.eyebrow}
+      </p>
+      <h1 id="hero-title">
+        {t.titleLead} <span class="highlight">{t.titleHighlight}</span>
+      </h1>
+      <p class="subtitle">{t.subtitle}</p>
+      <div class="actions-row">
+        <WhatsAppLink />
+        <PortalLinks show="signup" size="lg" />
+      </div>
+      <p class="note">
+        {t.note}{' '}
+        <a href={config.loginUrl} data-portal data-umami-event="iniciar-sesion">
+          {t.noteLink}
+        </a>
+      </p>
+    </div>
+
+    <div class="visual">
+      <Shot
+        name="detalle"
+        alt={t.imageLabel}
+        priority
+        sizes="(max-width: 1023px) 100vw, 680px"
+        class="main"
+      />
+      <Shot name="detalle-movil" alt={t.phoneLabel} frame="phone" class="phone" />
+      <ul class="chips" aria-hidden="true">
+        {t.chips.map((c, i) => (
+          <li class:list={['chip', `chip-${i}`]}>
+            <span class:list={['chipIcon', `tone-${c.tone}`]}>
+              <Icon name={c.icon} size={16} />
+            </span>
+            <span class="chipText">
+              <strong>{c.title}</strong>
+              <span>{c.sub}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="container">
+    <ul class="highlights">
+      {highlights.map((h) => (
+        <li>
+          <span class="hIcon">
+            <Icon name={h.icon} size={20} />
+          </span>
+          <span>
+            <strong>{h.title}</strong>
+            <span class="hBody">{h.body}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding: var(--space-16) 0 var(--space-10);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    border: 1px solid rgba(157, 187, 255, 0.35);
+    border-radius: var(--radius-full);
+    background: rgba(35, 85, 201, 0.18);
+    color: var(--band-accent);
+    font: 500 13px/18px var(--font-sans);
+  }
+
+  .pillDot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: #7fd6a0;
+    box-shadow: 0 0 0 4px rgba(127, 214, 160, 0.2);
+  }
+
+  h1 {
+    font: 700 52px/60px var(--font-sans);
+    letter-spacing: -0.025em;
+    color: #ffffff;
+  }
+
+  .subtitle {
+    max-width: 540px;
+    font: var(--text-lead);
+    color: var(--band-muted);
+  }
+
+  .note {
+    color: var(--band-muted);
+    font-size: 15px;
+  }
+
+  .note a {
+    color: var(--band-accent);
+    font-weight: 500;
+  }
+
+  .visual {
+    position: relative;
+    padding: 0 0 48px 32px;
+  }
+
+  .visual :global(.main) {
+    transform: perspective(1600px) rotateY(-6deg) rotateX(2deg);
+    transform-origin: left center;
+  }
+
+  .visual :global(.phone) {
+    position: absolute;
+    left: -8px;
+    bottom: 0;
+    width: 150px;
+  }
+
+  .chips {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chip {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 10px 10px;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-surface-raised);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-lg);
+    white-space: nowrap;
+  }
+
+  .chip-0 {
+    top: 18%;
+    right: -12px;
+  }
+
+  .chip-1 {
+    bottom: 18%;
+    right: 6%;
+  }
+
+  .chip-2 {
+    top: -18px;
+    left: 18%;
+  }
+
+  .chipIcon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+  }
+
+  .chipText {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .chipText span {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chip {
+      animation: float 6s ease-in-out infinite;
+    }
+    .chip-1 {
+      animation-delay: -2s;
+    }
+    .chip-2 {
+      animation-delay: -4s;
+    }
+  }
+
+  @keyframes float {
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .highlights {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-6);
+    margin: var(--space-12) 0 0;
+    padding: var(--space-8) 0 0;
+    list-style: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .highlights li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+
+  .hIcon {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: rgba(157, 187, 255, 0.14);
+    color: var(--band-accent);
+  }
+
+  .highlights strong {
+    display: block;
+    color: #ffffff;
+    font: 600 15px/22px var(--font-sans);
+  }
+
+  .hBody {
+    display: block;
+    color: var(--band-muted);
+    font: 400 14px/20px var(--font-sans);
+  }
+
+  @media (max-width: 1023px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .visual :global(.main) {
+      transform: none;
+    }
+    .highlights {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      padding: var(--space-10) 0 var(--space-8);
+    }
+    h1 {
+      font: 700 34px/42px var(--font-sans);
+    }
+    .visual {
+      padding: 0 0 36px 20px;
+    }
+    .visual :global(.phone) {
+      width: 96px;
+      left: -4px;
+    }
+    .chip-0,
+    .chip-2 {
+      display: none;
+    }
+    .chip-1 {
+      right: 0;
+      bottom: 4px;
+    }
+    .highlights {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+      margin-top: var(--space-8);
+    }
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+import { config } from '../../lib/config'
+import { content, fill } from '../../lib/content'
+import PortalLinks from '../PortalLinks.astro'
+import WhatsAppLink from '../WhatsAppLink.astro'
+
+/** Llamado final: WhatsApp en lugar del formulario (decidido 2026-09-27). */
+const t = content.home.final
+---
+
+<section class="section band-dark band-accent" id="contacto" aria-labelledby="contacto-title">
+  <div class="container box">
+    <p class="eyebrow">{t.eyebrow}</p>
+    <h2 class="section-title" id="contacto-title">
+      {t.title}
+    </h2>
+    <p class="section-lead">{fill(t.body, { responseTime: config.contact.responseTime })}</p>
+    <div class="actions-row cta">
+      <WhatsAppLink event="whatsapp-final" />
+      <PortalLinks show="signup" size="lg" />
+    </div>
+    {config.contact.email && (
+      <p class="email">
+        {t.emailPrefix}{' '}
+        <a href={`mailto:${config.contact.email}`} data-umami-event="correo">
+          {config.contact.email}
+        </a>
+        .
+      </p>
+    )}
+  </div>
+</section>
+
+<style>
+  .box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .box .section-lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta {
+    margin-top: var(--space-8);
+    justify-content: center;
+  }
+
+  .box .section-title {
+    color: #ffffff;
+    font-size: 40px;
+    line-height: 48px;
+    margin-top: var(--space-3);
+  }
+
+  .box .section-lead {
+    color: var(--band-muted);
+  }
+
+  .email {
+    margin-top: var(--space-5);
+    color: var(--band-muted);
+  }
+
+  .email a {
+    color: #ffffff;
+  }
+
+  @media (max-width: 767px) {
+    .box .section-title {
+      font-size: 28px;
+      line-height: 36px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .cta {
+      width: 100%;
+    }
+  }
+</style>
