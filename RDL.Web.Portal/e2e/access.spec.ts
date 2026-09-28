@@ -67,3 +67,13 @@ test('pantalla 35 · sesión vencida en diálogo, sin perder la página', async 
   await expect(dialog).toBeHidden()
   await expect(page).toHaveURL(/\/perfil$/)
 })
+
+test('crear cuenta · validación y enlaces legales', async ({ page }) => {
+  await page.goto('/registro')
+  await expect(page.getByRole('heading', { level: 1, name: 'Crear cuenta' })).toBeVisible()
+  await page.getByRole('button', { name: 'Crear cuenta' }).click()
+  await expect(page.getByText('Escriba su nombre y apellido.')).toBeVisible()
+  await expectNoAxeViolations(page)
+  await noHorizontalScroll(page)
+  await expect(page.getByRole('link', { name: 'términos de servicio' })).toHaveAttribute('href', /\/terminos$/)
+})

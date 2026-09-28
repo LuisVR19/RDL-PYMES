@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '../types'
-import {
-  createCatalogsPort,
-  createCustomersPort,
-  createInvoicesPort,
-  createProductsPort,
-  createReceivablesPort,
-} from './billing'
+import { createCatalogsPort, createCustomersPort, createInvoicesPort, createProductsPort } from './billing'
 import type { GatewayHttp } from './http'
 
 function recorder() {
@@ -51,17 +45,6 @@ describe('adaptador del Portal Gateway · facturación', () => {
       },
       { method: 'PATCH', path: '/portal/v1/customers/a%2Fb', body: { phone: '' }, key: undefined },
     ])
-  })
-
-  it('cobranza por cliente va a Receivables por el gateway; el saldo por lote no existe y no se inventa', async () => {
-    const { http, calls } = recorder()
-    const port = createReceivablesPort(http)
-    await port.byCustomer('c9')
-    await port.paymentsByCustomer('c9', { limit: 100 })
-    expect(calls.map((c) => c.path)).toEqual(['/portal/v1/receivables', '/portal/v1/payments'])
-    expect(calls[1]?.query).toMatchObject({ customerId: 'c9', limit: '100' })
-    await expect(port.balancesByCustomer(['c1', 'c2'])).rejects.toBeInstanceOf(ApiError)
-    expect(calls).toHaveLength(2)
   })
 
   it('documentos: el listado compuesto con sus filtros', async () => {

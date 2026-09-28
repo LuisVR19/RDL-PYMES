@@ -13,12 +13,38 @@ export interface AuthSession {
 
 export type SignInResult = { ok: true } | { ok: false; reason: 'invalid-credentials' | 'unavailable' }
 
+/** Parámetro con el que vuelve el enlace de confirmación del correo a la pantalla 1. */
+export const CONFIRMED_PARAM = 'cuenta'
+
+/**
+ * Resultado del registro. `confirmEmail`: Supabase pide confirmar el correo antes de dar sesión (la cuenta existe,
+ * pero todavía no se puede entrar). Con un correo que ya tiene cuenta Supabase responde igual que con uno nuevo
+ * cuando la confirmación está activa: el portal no revela quién está registrado.
+ */
+export type SignUpResult =
+  | { ok: true; next: 'signedIn' | 'confirmEmail' }
+  | {
+      ok: false
+      reason: 'exists' | 'weak-password' | 'invalid-email' | 'disabled' | 'rate-limited' | 'unavailable'
+    }
+
+export interface SignUpInput {
+  fullName: string
+  email: string
+  password: string
+}
+
 export interface AuthPort {
   /** Sesión actual; null si no hay. Resuelve después de leer lo guardado. */
   current(): Promise<AuthSession | null>
   /** Access token vigente (refrescado si hace falta). null = sin sesión. */
   accessToken(): Promise<string | null>
   signIn(email: string, password: string): Promise<SignInResult>
+  /**
+   * Crea la cuenta en Supabase Auth con el nombre en `user_metadata.full_name`, que es de donde Platform lo toma al
+   * dar de alta al usuario en su primera llamada (`GET /v1/me`). No crea organización: eso es la pantalla 3.
+   */
+  signUp(input: SignUpInput): Promise<SignUpResult>
   signOut(): Promise<void>
   /**
    * Pide el correo de recuperación. Resuelve igual exista o no la cuenta: la pantalla siempre dice lo mismo
@@ -39,6 +65,7 @@ export const mockAuth: AuthPort = {
   current: async () => ({ email: 'maria.rojas@correo.example' }),
   accessToken: async () => 'token-simulado',
   signIn: async () => ({ ok: true }),
+  signUp: async () => ({ ok: true, next: 'signedIn' }),
   signOut: async () => {},
   requestPasswordReset: async () => {},
   refresh: async () => {},

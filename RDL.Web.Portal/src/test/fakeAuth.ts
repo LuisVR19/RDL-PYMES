@@ -1,7 +1,16 @@
-import type { AuthPort, AuthSession } from '@/shared/auth/auth'
+import type { AuthPort, AuthSession, SignUpResult } from '@/shared/auth/auth'
 
 /** Sesión falsa y controlable: arranca con o sin sesión y registra el orden de las llamadas. */
-export function fakeAuth({ signedIn, password = 'secreta' }: { signedIn: boolean; password?: string }) {
+export function fakeAuth({
+  signedIn,
+  password = 'secreta',
+  signUp = { ok: true, next: 'confirmEmail' },
+}: {
+  signedIn: boolean
+  password?: string
+  /** Lo que responde el registro (por defecto, «confirme su correo»). */
+  signUp?: SignUpResult
+}) {
   const log: string[] = []
   let session: AuthSession | null = signedIn ? { email: 'a@b.cr' } : null
   let listener: ((s: AuthSession | null) => void) | null = null
@@ -13,6 +22,11 @@ export function fakeAuth({ signedIn, password = 'secreta' }: { signedIn: boolean
       if (pw !== password) return { ok: false, reason: 'invalid-credentials' }
       session = { email }
       return { ok: true }
+    },
+    signUp: async (input) => {
+      log.push(`signUp:${input.email}:${input.fullName}`)
+      if (signUp.ok && signUp.next === 'signedIn') session = { email: input.email }
+      return signUp
     },
     signOut: async () => {
       log.push('signOut')

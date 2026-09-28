@@ -9,7 +9,15 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { mockAuth, type AuthPort, type AuthSession, type AuthStatus, type SignInResult } from './auth'
+import {
+  mockAuth,
+  type AuthPort,
+  type AuthSession,
+  type AuthStatus,
+  type SignInResult,
+  type SignUpInput,
+  type SignUpResult,
+} from './auth'
 import { onSessionExpired } from './expiry'
 
 /**
@@ -24,6 +32,7 @@ interface AuthValue {
   session: AuthSession | null
   port: AuthPort
   signIn: (email: string, password: string) => Promise<SignInResult>
+  signUp: (input: SignUpInput) => Promise<SignUpResult>
   /** Vuelve a entrar con el correo de la sesión vencida; si sale bien, reintenta lo que había fallado. */
   reauthenticate: (password: string) => Promise<SignInResult>
   /** Cierra la sesión y vacía TODA la caché: nada del usuario queda en memoria. */
@@ -90,6 +99,18 @@ export function AuthProvider({ children, port = mockAuth }: { children: ReactNod
     [port, queryClient, apply],
   )
 
+  const signUp = useCallback(
+    async (input: SignUpInput) => {
+      const r = await port.signUp(input)
+      if (r.ok && r.next === 'signedIn') {
+        queryClient.clear()
+        apply('signedIn', await port.current())
+      }
+      return r
+    },
+    [port, queryClient, apply],
+  )
+
   const reauthenticate = useCallback(
     async (password: string) => {
       const r = await port.signIn(session?.email ?? '', password)
@@ -113,8 +134,8 @@ export function AuthProvider({ children, port = mockAuth }: { children: ReactNod
   }, [port, queryClient, apply])
 
   const value = useMemo(
-    () => ({ status, session, port, signIn, reauthenticate, signOut }),
-    [status, session, port, signIn, reauthenticate, signOut],
+    () => ({ status, session, port, signIn, signUp, reauthenticate, signOut }),
+    [status, session, port, signIn, signUp, reauthenticate, signOut],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

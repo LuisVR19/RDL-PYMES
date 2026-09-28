@@ -41,6 +41,9 @@ type ReceivableReader interface {
 	// Get y GetByInvoice devuelven ErrNotFound si la cuenta no existe en la organización (o es de otra).
 	Get(ctx context.Context, organizationID, id uuid.UUID) (ReceivableDetail, error)
 	GetByInvoice(ctx context.Context, organizationID, invoiceID uuid.UUID) (ReceivableView, error)
+	// ListByInvoices devuelve las cuentas de las facturas que existen en la organización, en cualquier orden. Una
+	// factura sin cuenta (o de otra organización) simplemente no viene.
+	ListByInvoices(ctx context.Context, organizationID uuid.UUID, invoiceIDs []uuid.UUID) ([]ReceivableView, error)
 	// AgingByDueDate suma el saldo cobrable por moneda y vencimiento; el tramo lo decide internal/domain/aging.
 	AgingByDueDate(ctx context.Context, organizationID uuid.UUID, currency string) ([]AgingRow, error)
 }

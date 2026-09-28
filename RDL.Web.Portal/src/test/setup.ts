@@ -20,5 +20,6 @@ if (!('ResizeObserver' in globalThis)) {
 await Promise.all([
   import('@/features/billing/pages'),
   import('@/features/admin/pages'),
+  import('@/features/receivables/pages'),
   import('@/features/home/pages/HomePage'),
 ])

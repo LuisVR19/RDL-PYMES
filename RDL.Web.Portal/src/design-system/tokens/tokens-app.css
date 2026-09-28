@@ -9,9 +9,21 @@
   --color-text-strong: #343b48;
   --color-bg-row-hover: #f6f8fb;
   --content-max-w: 1600px;
+  /* Alta rápida dentro de un panel (prototipo «24»: seguimientos y promesas). */
+  --color-bg-quick-form: #f8faff;
+  /* Tramos del aging (prototipo «23»; 31-60 ajustado a #d6ae3a para separarse de 61-90, validado con
+     scripts/validate_palette.js de la guía de visualización: modo claro sin fallas). */
+  --color-aging-current: #2355c9;
+  --color-aging-1-30: #7aa2f7;
+  --color-aging-31-60: #d6ae3a;
+  --color-aging-61-90: #d2691e;
+  --color-aging-90-plus: #b42323;
 }
 [data-theme='dark'] {
   --color-icon: #c9d1e0;
   --color-text-strong: #c9d1e0;
   --color-bg-row-hover: #1a212d;
+  --color-bg-quick-form: #172033;
+  /* TODO(diseño): pasos oscuros validados del aging. Con cinco tonos vecinos no cabe en la banda de luminosidad
+     del modo oscuro; por ahora se usan los del modo claro (cada barra lleva su etiqueta y la tabla repite las cifras). */
 }

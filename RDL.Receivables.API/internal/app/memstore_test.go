@@ -338,6 +338,16 @@ func (m memReceivables) GetByInvoice(_ context.Context, _, invoiceID uuid.UUID) 
 	return ReceivableView{}, ErrNotFound
 }
 
+func (m memReceivables) ListByInvoices(_ context.Context, _ uuid.UUID, invoiceIDs []uuid.UUID) ([]ReceivableView, error) {
+	var out []ReceivableView
+	for id, r := range m.s.receivables {
+		if slices.Contains(invoiceIDs, r.inv.ID) {
+			out = append(out, m.view(id))
+		}
+	}
+	return out, nil
+}
+
 func (m memReceivables) AgingByDueDate(context.Context, uuid.UUID, string) ([]AgingRow, error) {
 	return nil, nil
 }

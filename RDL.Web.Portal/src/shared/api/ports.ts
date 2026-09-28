@@ -1,3 +1,4 @@
+import type { Currency } from '@/shared/money/money'
 import type {
   Branch,
   CabysItem,
@@ -14,12 +15,21 @@ import type {
   InvoiceQuery,
   Page,
   PageQuery,
+  AgingRow,
+  FollowUp,
+  FollowUpInput,
   Payment,
+  PaymentApplication,
+  PaymentInput,
+  PaymentPromise,
+  PaymentPromiseInput,
   Product,
   ProductInput,
   ProductPatch,
   ProductQuery,
   Receivable,
+  ReceivableDetail,
+  ReceivableQuery,
   ReceivablesSummary,
   StatusChange,
   TaxOption,
@@ -97,10 +107,31 @@ export interface CatalogsPort {
 }
 
 /**
- * Cobranza vista desde facturación (pantallas 7 y 9). Es de Receivables (P6), que todavía no existe: con el
- * gateway, estas llamadas responden 503 y las pantallas muestran «datos parciales».
+ * Cobranza (Receivables): el módulo E (pantallas 22–27) y lo que facturación e Inicio muestran de ella. Los comandos
+ * llevan `Idempotency-Key` (una por intento del usuario); saldo y estado los calcula siempre Receivables.
  */
 export interface ReceivablesPort {
+  /** Pantalla 22: cuentas con saldo, de la más nueva a la más vieja. */
+  list(query?: ReceivableQuery): Promise<Page<Receivable>>
+  /** Pantalla 24: la cuenta con sus aplicaciones (vigentes y revertidas) y ajustes. */
+  get(id: string): Promise<ReceivableDetail>
+  /** Pantalla 23: saldo por moneda y tramo a la fecha de corte `asOf` (fecha de negocio). */
+  aging(asOf: string, currency?: Currency): Promise<AgingRow[]>
+  followUps(receivableId: string): Promise<FollowUp[]>
+  createFollowUp(receivableId: string, input: FollowUpInput, idempotencyKey: string): Promise<FollowUp>
+  promises(receivableId: string): Promise<PaymentPromise[]>
+  createPromise(
+    receivableId: string,
+    input: PaymentPromiseInput,
+    idempotencyKey: string,
+  ): Promise<PaymentPromise>
+  /** `pending → kept | broken | cancelled` (finales). */
+  closePromise(
+    promiseId: string,
+    status: Exclude<PaymentPromise['status'], 'pending'>,
+    idempotencyKey: string,
+  ): Promise<PaymentPromise>
+
   byCustomer(customerId: string, query?: PageQuery): Promise<Page<Receivable>>
   paymentsByCustomer(customerId: string, query?: PageQuery): Promise<Page<Payment>>
   /**
@@ -109,8 +140,27 @@ export interface ReceivablesPort {
    * factura). Con el gateway rechaza; la columna muestra «No disponible» en vez de hacer una llamada por fila.
    */
   balancesByCustomer(customerIds: string[]): Promise<Record<string, Receivable[]>>
+
   /** Pagos registrados, los más recientes primero (Inicio y pantalla 25). */
   payments(query?: PageQuery): Promise<Page<Payment>>
+  /** Pantalla 27. */
+  payment(id: string): Promise<Payment>
+  /** Pantalla 26: registra el pago y sus aplicaciones en una sola operación. */
+  createPayment(input: PaymentInput, idempotencyKey: string): Promise<Payment>
+  /** Pantalla 27: aplica lo que quedó sin aplicar de un pago a una cuenta. */
+  applyPayment(
+    input: { paymentId: string; receivableId: string; amount: string },
+    idempotencyKey: string,
+  ): Promise<PaymentApplication>
+  /** Revierte una aplicación con motivo (owner, admin): el saldo de la cuenta vuelve a lo de antes. */
+  reverseApplication(
+    applicationId: string,
+    reason: string,
+    idempotencyKey: string,
+  ): Promise<PaymentApplication>
+  /** Anula el pago con motivo (owner, admin) y revierte todas sus aplicaciones vigentes. */
+  voidPayment(paymentId: string, reason: string, idempotencyKey: string): Promise<Payment>
+
   /** Saldo abierto y vencido a la fecha de corte `asOf` (fecha de negocio), para Inicio. */
   summary(asOf: string): Promise<ReceivablesSummary>
 }

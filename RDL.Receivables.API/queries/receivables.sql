@@ -59,6 +59,17 @@ select id, source_invoice_id, customer_id, customer_legal_name, document_number,
 from receivables.receivables
 where organization_id = sqlc.arg(organization_id) and source_invoice_id = sqlc.arg(source_invoice_id);
 
+-- Lote del BFF: las cuentas de varias facturas en una sola consulta. Los ids viajan como text[] (Supavisor).
+-- name: ListReceivablesByInvoices :many
+select id, source_invoice_id, customer_id, customer_legal_name, document_number,
+       currency_code::text as currency_code,
+       trim_scale(original_amount)::text as original_amount,
+       trim_scale(balance_amount)::text as balance_amount,
+       issued_on, due_on, status, settled_at, created_at
+from receivables.receivables
+where organization_id = sqlc.arg(organization_id)
+  and source_invoice_id = any(sqlc.arg(source_invoice_ids)::text[]::uuid[]);
+
 -- name: ListAdjustmentViews :many
 select id, adjustment_type, trim_scale(amount)::text as amount, source_document_id, reason, created_at
 from receivables.receivable_adjustments

@@ -58,6 +58,22 @@ func (r receivables) GetByInvoice(ctx context.Context, org, invoiceID uuid.UUID)
 	return receivableView(db.ListReceivablesRow(row)), nil
 }
 
+func (r receivables) ListByInvoices(ctx context.Context, org uuid.UUID, invoiceIDs []uuid.UUID) ([]app.ReceivableView, error) {
+	ids := make([]string, 0, len(invoiceIDs))
+	for _, id := range invoiceIDs {
+		ids = append(ids, id.String())
+	}
+	rows, err := r.q.ListReceivablesByInvoices(ctx, db.ListReceivablesByInvoicesParams{OrganizationID: org, SourceInvoiceIds: ids})
+	if err != nil {
+		return nil, fmt.Errorf("leyendo las cuentas de las facturas: %w", err)
+	}
+	out := make([]app.ReceivableView, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, receivableView(db.ListReceivablesRow(row)))
+	}
+	return out, nil
+}
+
 func (r receivables) AgingByDueDate(ctx context.Context, org uuid.UUID, currency string) ([]app.AgingRow, error) {
 	rows, err := r.q.AgingByDueDate(ctx, db.AgingByDueDateParams{OrganizationID: org, Currency: text(currency)})
 	if err != nil {

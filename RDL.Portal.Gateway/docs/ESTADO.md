@@ -2,7 +2,19 @@
 
 Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 
-**Última actualización:** 2026-09-27 — probado de punta a punta contra Platform **y Billing** reales.
+**Última actualización:** 2026-09-28 — rutas de Receivables confirmadas contra `RDL.Receivables.API`.
+
+### Rutas de Receivables confirmadas (2026-09-28)
+- Las 10 filas de cobranza coincidían con `RDL.Receivables.API/api/openapi.yaml`. Faltaban 5, ya agregadas (tabla y
+  `api/openapi.yaml`): `POST /portal/v1/receivables/{id}/follow-ups`, `GET`/`POST /portal/v1/receivables/{id}/promises`
+  y `POST /portal/v1/payment-promises/{id}/status`. La tabla queda en **60 rutas** (la cifra anterior, 56, estaba
+  corrida en uno: eran 55).
+- `X-Aging-As-Of` (fecha de corte del aging) entra a la lista blanca de respuesta y, por lo tanto, a
+  `Access-Control-Expose-Headers`.
+- `POST /internal/v1/receivables/by-invoice` (saldos por lote del listado) ya existe en Receivables con la misma
+  forma que espera `BalancesByInvoice`.
+- **Sin probar contra Receivables real**: falta levantarla en `:8083` con su `.env` y correr `tests/isolation` y
+  `e2e.sh` con `RECEIVABLES_API_URL`.
 
 ### Ruta de anulación (2026-09-27)
 - `POST /portal/v1/invoices/{id}/cancel` → Billing (paso directo, pantalla 17), ahora que Billing implementa F5. Sin
@@ -144,7 +156,7 @@ funcionando. **Sin probar contra Billing real** (no arranca en esta máquina).
 
 | Dónde | Qué |
 |---|---|
-| `internal/domain/routes/routes.go` | Confirmar rutas y campos de fiscal y receivables cuando existan sus repos |
+| `internal/domain/routes/routes.go` | Confirmar rutas y campos de fiscal cuando exista su repo (receivables ✅ 2026-09-28) |
 | `internal/adapters/http/problem/problem.go` | Registrar los problem types en el repo de contratos |
 | `cmd/gateway/main.go`, `Makefile`, `Dockerfile` | `replay` y el cierre ordenado de conexiones SSE (incremento 6) |
 | `api/openapi.yaml` | Enriquecer `GET /portal/v1/invoices` en el incremento 5 |

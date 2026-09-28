@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -211,5 +213,101 @@ func TestReceivablesMethodNotAllowed(t *testing.T) {
 	rec, p := do(newProtectedRouter(tokenOrg, nil, &fakeList{}), http.MethodPost, "/v1/receivables", "valid")
 	if rec.Code != http.StatusMethodNotAllowed || p.Type != "urn:rdl:receivables:problem:method-not-allowed" {
 		t.Fatalf("code=%d type=%q", rec.Code, p.Type)
+	}
+}
+
+type fakeBalances struct {
+	views []app.ReceivableView
+	ids   []uuid.UUID
+	calls int
+}
+
+func (f *fakeBalances) Execute(_ context.Context, _ tenancy.Context, ids []uuid.UUID) ([]app.ReceivableView, error) {
+	f.calls++
+	f.ids = ids
+	return f.views, nil
+}
+
+func postBatch(h http.Handler, body string) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodPost, "/internal/v1/receivables/by-invoice", strings.NewReader(body))
+	req.Header.Set("Authorization", "Bearer valid")
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	return rec
+}
+
+func newBatchRouter(b *fakeBalances) http.Handler {
+	log := slog.New(slog.DiscardHandler)
+	return NewRouter(Deps{
+		Log:         log,
+		Health:      health.New(log, time.Second),
+		Verifier:    fakeVerifier{id: tenancy.Identity{Subject: "sub-1", OrganizationID: tokenOrg}},
+		Memberships: fakeResolver{m: tenancy.Membership{UserID: uuid.New(), Roles: []string{"biller"}}},
+		Receivables: &ReceivableHandlers{ByInvoices: b},
+	})
+}
+
+func TestBalancesByInvoiceResponse(t *testing.T) {
+	inv, rec := uuid.New(), uuid.New()
+	b := &fakeBalances{views: []app.ReceivableView{{
+		ID: rec, SourceInvoiceID: inv, Currency: "CRC", BalanceAmount: "1300.5", Status: "partially_paid",
+		DueOn: civil.Date{Year: 2026, Month: 10, Day: 15},
+	}}}
+	res := postBatch(newBatchRouter(b), `{"ids":["`+inv.String()+`","`+uuid.NewString()+`"]}`)
+	if res.Code != http.StatusOK {
+		t.Fatalf("code=%d body=%s", res.Code, res.Body)
+	}
+	if len(b.ids) != 2 || b.ids[0] != inv {
+		t.Errorf("ids que llegan al caso de uso: %v", b.ids)
+	}
+	var out struct {
+		Items []map[string]string `json:"items"`
+	}
+	if err := json.Unmarshal(res.Body.Bytes(), &out); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]string{
+		"invoiceId": inv.String(), "receivableId": rec.String(), "status": "partially_paid", "currency": "CRC",
+		"balanceAmount": "1300.5", "dueOn": "2026-10-15",
+	}
+	if len(out.Items) != 1 || !maps.Equal(out.Items[0], want) {
+		t.Errorf("items: %+v", out.Items)
+	}
+}
+
+func TestBalancesByInvoiceValidation(t *testing.T) {
+	id := uuid.NewString()
+	many := make([]string, app.MaxBalanceBatch+1)
+	for i := range many {
+		many[i] = `"` + uuid.NewString() + `"`
+	}
+	cases := map[string]struct {
+		body   string
+		status int
+		field  string
+	}{
+		"vacío":            {`{"ids":[]}`, http.StatusUnprocessableEntity, "ids"},
+		"sin ids":          {`{}`, http.StatusUnprocessableEntity, "ids"},
+		"más de 100":       {`{"ids":[` + strings.Join(many, ",") + `]}`, http.StatusUnprocessableEntity, "ids"},
+		"id inválido":      {`{"ids":["x"]}`, http.StatusUnprocessableEntity, "ids[0]"},
+		"id repetido":      {`{"ids":["` + id + `","` + id + `"]}`, http.StatusUnprocessableEntity, "ids[1]"},
+		"campo extra":      {`{"ids":["` + id + `"],"organizationId":"` + id + `"}`, http.StatusBadRequest, ""},
+		"JSON mal formado": {`{"ids":`, http.StatusBadRequest, ""},
+	}
+	for name, c := range cases {
+		b := &fakeBalances{}
+		res := postBatch(newBatchRouter(b), c.body)
+		var p problemBody
+		_ = json.Unmarshal(res.Body.Bytes(), &p)
+		if res.Code != c.status {
+			t.Errorf("%s: code=%d body=%s", name, res.Code, res.Body)
+		}
+		if c.field != "" && (len(p.Errors) == 0 || p.Errors[0].Field != c.field) {
+			t.Errorf("%s: errores %+v", name, p.Errors)
+		}
+		if b.calls != 0 {
+			t.Errorf("%s: el caso de uso no debe ejecutarse", name)
+		}
 	}
 }

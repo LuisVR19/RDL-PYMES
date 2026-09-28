@@ -119,6 +119,18 @@ func TestEndpointsDoNotReachOtherTenant(t *testing.T) {
 		}
 	}
 
+	// Saldos por lote (BFF): con el token de A, la factura de B no viene (no es un 404, simplemente no está), y con
+	// el org_id de B no entra.
+	batch := map[string]any{"ids": []string{br.invoice.ID.String()}}
+	rb := env.Call(t, http.MethodPost, "/internal/v1/receivables/by-invoice", tokA, batch)
+	testkit.Expect(t, "saldos por lote de A", http.StatusOK, rb)
+	if items, _ := rb.Body["items"].([]any); len(items) != 0 {
+		t.Errorf("saldos por lote de A exponen la cuenta de B: %v", items)
+	}
+	if r := env.Call(t, http.MethodPost, "/internal/v1/receivables/by-invoice", tokAinB, batch); r.Status != http.StatusForbidden {
+		t.Errorf("A con org_id de B en los saldos por lote: %d %s", r.Status, r.Str("type"))
+	}
+
 	// Los listados de A no traen nada de B.
 	for _, path := range []string{"/v1/receivables?limit=100", "/v1/payments?limit=100", "/v1/receivables?limit=100&customerId=" + br.invoice.Customer.String()} {
 		r := env.Call(t, http.MethodGet, path, tokA, nil)
@@ -136,6 +148,11 @@ func TestEndpointsDoNotReachOtherTenant(t *testing.T) {
 	acc := env.ReceivableOf(t, b, br.invoice.ID)
 	if acc.Str("balanceAmount") != "400" || acc.Str("status") != "partially_paid" {
 		t.Errorf("la cuenta de B cambió: %v", acc.Body)
+	}
+	// Control: la misma consulta por lote con el token de B sí trae su cuenta.
+	if r := env.Call(t, http.MethodPost, "/internal/v1/receivables/by-invoice", tokB, batch); r.Status != http.StatusOK ||
+		len(r.Body["items"].([]any)) != 1 || r.Body["items"].([]any)[0].(map[string]any)["receivableId"] != br.receivable {
+		t.Errorf("saldos por lote de B: %d %v", r.Status, r.Body)
 	}
 	p := env.Call(t, http.MethodGet, "/v1/payments/"+br.payment, tokB, nil)
 	if p.Str("status") != "posted" {

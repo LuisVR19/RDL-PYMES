@@ -63,7 +63,7 @@ export interface CustomerQuery extends PageQuery {
   active?: boolean
 }
 
-// --- Cobranza (Receivables · esqueleto del contrato) ---
+// --- Cobranza (Receivables · `api/openapi.yaml` de RDL.Receivables.API) ---
 
 export type ReceivableStatus = 'open' | 'partially_paid' | 'paid' | 'cancelled'
 
@@ -71,6 +71,8 @@ export interface Receivable {
   id: string
   sourceInvoiceId: string
   customerId: string
+  /** El nombre del cliente al emitir la factura (snapshot). */
+  customerLegalName?: string
   documentNumber: string
   currency: Currency
   originalAmount: string
@@ -78,6 +80,42 @@ export interface Receivable {
   issuedOn: string
   dueOn: string
   status: ReceivableStatus
+  settledAt?: string
+}
+
+/** Filtros de `GET /v1/receivables`. `overdue`: pendiente con vencimiento anterior al día de negocio. */
+export interface ReceivableQuery extends PageQuery {
+  status?: ReceivableStatus
+  customerId?: string
+  overdue?: boolean
+}
+
+/** Aplicación de un pago a una cuenta. Nunca se borra: se revierte con motivo (`reversedAt`). */
+export interface PaymentApplication {
+  id: string
+  paymentId: string
+  receivableId: string
+  amount: string
+  appliedAt: string
+  reversedAt?: string
+  reversalReason?: string
+}
+
+export type AdjustmentType = 'credit_note' | 'debit_note' | 'cancellation' | 'write_off'
+
+/** Ajuste de la cuenta por una nota o una anulación de la factura (lo hace Receivables al consumir el evento). */
+export interface ReceivableAdjustment {
+  id: string
+  adjustmentType: AdjustmentType
+  amount: string
+  sourceDocumentId?: string
+  reason: string
+  createdAt: string
+}
+
+export interface ReceivableDetail extends Receivable {
+  applications: PaymentApplication[]
+  adjustments: ReceivableAdjustment[]
 }
 
 /**
@@ -89,6 +127,17 @@ export interface ReceivablesSummary {
   overdue: { totals: Partial<Record<Currency, string>>; count: number }
 }
 
+/** Tramos de antigüedad de Receivables (R6): vencer hoy no es atraso. */
+export const AGING_BUCKETS = ['current', '1_30', '31_60', '61_90', '90_plus'] as const
+export type AgingBucket = (typeof AGING_BUCKETS)[number]
+
+/** Una fila de `GET /v1/receivables/aging`: saldo de una moneda en un tramo. */
+export interface AgingRow {
+  bucket: AgingBucket
+  currency: Currency
+  balance: string
+}
+
 export type PaymentStatus = 'posted' | 'voided'
 
 export interface Payment {
@@ -97,9 +146,68 @@ export interface Payment {
   receivedOn: string
   amount: string
   currency: Currency
+  exchangeRate: string
+  /** Medio de pago de Hacienda (`shared/paymentMethods.ts`). */
+  paymentMethodCode: string
   reference?: string
+  notes?: string
   status: PaymentStatus
+  voidReason?: string
+  voidedAt?: string
   createdAt: string
+  /** Vigentes y revertidas. */
+  applications: PaymentApplication[]
+}
+
+/** `POST /v1/payments`: el pago y, opcionalmente, sus aplicaciones (cada cuenta una sola vez). */
+export interface PaymentInput {
+  customerId: string
+  receivedOn: string
+  amount: string
+  currency: Currency
+  exchangeRate?: string
+  paymentMethodCode: string
+  reference?: string
+  notes?: string
+  applications?: { receivableId: string; amount: string }[]
+}
+
+export type FollowUpType = 'call' | 'email' | 'visit' | 'message' | 'note'
+
+/** Gestión de cobro sobre una cuenta. */
+export interface FollowUp {
+  id: string
+  receivableId: string
+  followupType: FollowUpType
+  notes: string
+  nextActionOn?: string
+  performedAt: string
+  performedByUserId?: string
+  createdAt: string
+}
+
+export interface FollowUpInput {
+  followupType: FollowUpType
+  notes: string
+  nextActionOn?: string
+}
+
+export type PromiseStatus = 'pending' | 'kept' | 'broken' | 'cancelled'
+
+export interface PaymentPromise {
+  id: string
+  receivableId: string
+  followupId?: string
+  promisedAmount: string
+  promisedOn: string
+  status: PromiseStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PaymentPromiseInput {
+  promisedAmount: string
+  promisedOn: string
 }
 
 // --- Documentos (listado compuesto del Portal Gateway, pantalla 12) ---

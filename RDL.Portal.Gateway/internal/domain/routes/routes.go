@@ -98,6 +98,8 @@ var ResponseHeaders = []string{
 	"Location",
 	"Retry-After",
 	"ETag",
+	// Fecha de corte del aging de Receivables (pantalla 23): es de negocio, no interna.
+	"X-Aging-As-Of",
 }
 
 // InvoiceListParams son los filtros del listado que viajan a Billing (los de su GET /v1/invoices). Una
@@ -250,8 +252,8 @@ func fiscalRoutes() []Route {
 	}
 }
 
-// receivablesRoutes salen de `openapi/receivables.yaml` del repo de contratos (esqueleto).
-// TODO(P6): confirmarlas contra RDL.Receivables.API cuando exista.
+// receivablesRoutes salen de `api/openapi.yaml` de RDL.Receivables.API (confirmadas el 2026-09-28). Seguimientos y
+// promesas todavía no están en `openapi/receivables.yaml` del contrato: van en el PR que lo completa.
 func receivablesRoutes() []Route {
 	const s = Receivables
 	return []Route{
@@ -263,6 +265,14 @@ func receivablesRoutes() []Route {
 			Upstream: "/v1/receivables/{id}", Why: "Pantalla 24 · Detalle de cuenta"},
 		{Method: "GET", Path: "/portal/v1/receivables/{id}/follow-ups", Kind: Passthrough, Service: s,
 			Upstream: "/v1/receivables/{id}/follow-ups", Why: "Pantalla 24 · Gestiones de cobro"},
+		{Method: "POST", Path: "/portal/v1/receivables/{id}/follow-ups", Kind: Passthrough, Service: s,
+			Upstream: "/v1/receivables/{id}/follow-ups", Why: "Pantalla 24 · Registrar gestión de cobro"},
+		{Method: "GET", Path: "/portal/v1/receivables/{id}/promises", Kind: Passthrough, Service: s,
+			Upstream: "/v1/receivables/{id}/promises", Why: "Pantalla 24 · Promesas de pago"},
+		{Method: "POST", Path: "/portal/v1/receivables/{id}/promises", Kind: Passthrough, Service: s,
+			Upstream: "/v1/receivables/{id}/promises", Why: "Pantalla 24 · Registrar promesa de pago"},
+		{Method: "POST", Path: "/portal/v1/payment-promises/{id}/status", Kind: Passthrough, Service: s,
+			Upstream: "/v1/payment-promises/{id}/status", Why: "Pantalla 24 · Cerrar promesa (cumplida, incumplida, cancelada)"},
 		{Method: "GET", Path: "/portal/v1/payments", Kind: Passthrough, Service: s,
 			Upstream: "/v1/payments", Why: "Pantalla 25 · Pagos"},
 		{Method: "POST", Path: "/portal/v1/payments", Kind: Passthrough, Service: s,

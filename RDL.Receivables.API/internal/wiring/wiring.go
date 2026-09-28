@@ -28,10 +28,11 @@ func Deps(log *slog.Logger, checks *health.Handler, verifier tenancy.TokenVerifi
 		Verifier:    verifier,
 		Memberships: memberships,
 		Receivables: &httpadapter.ReceivableHandlers{
-			List:      app.NewListReceivables(txm),
-			Get:       app.NewGetReceivable(txm),
-			ByInvoice: app.NewGetBalanceByInvoice(txm),
-			Aging:     app.NewGetAging(txm),
+			List:       app.NewListReceivables(txm),
+			Get:        app.NewGetReceivable(txm),
+			ByInvoice:  app.NewGetBalanceByInvoice(txm),
+			ByInvoices: app.NewGetBalancesByInvoice(txm),
+			Aging:      app.NewGetAging(txm),
 		},
 		Payments: &httpadapter.PaymentHandlers{
 			Create:  app.NewCreatePayment(txm),

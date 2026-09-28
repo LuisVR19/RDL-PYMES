@@ -48,6 +48,18 @@ export const SCREENS: ScreenDef[] = [
     outsideShell: true,
   },
   {
+    // Sin pantalla en el diseño: sigue la tarjeta de «01 Iniciar sesión». Destino de «Crear cuenta» de la landing.
+    n: 1,
+    id: 'signup',
+    name: 'Crear cuenta',
+    path: '/registro',
+    module: 'A',
+    capability: null,
+    mobile: true,
+    reference: '01 Iniciar sesión',
+    outsideShell: true,
+  },
+  {
     n: 1,
     id: 'recover',
     name: 'Recuperar contraseña',

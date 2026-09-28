@@ -27,7 +27,7 @@ Alcance: incrementos 1 a 4 del planning P7. Estado y pendientes: [`docs/ESTADO.m
   token de servicio. Un token inválido se corta aquí y **ninguna API se entera**.
 - **La organización no la decide el gateway.** Sale del `org_id` del token y la revalida cada API contra su
   base. El gateway no la agrega a ninguna llamada y la borra si el cliente la manda por query.
-- **Solo existe lo declarado.** Las 56 rutas viven en una tabla (`internal/domain/routes`); lo demás es 404.
+- **Solo existe lo declarado.** Las 60 rutas viven en una tabla (`internal/domain/routes`); lo demás es 404.
   Las rutas internas de las APIs nunca se exponen al navegador.
 - **Una API caída no tumba la pantalla.** La vista transversal sale con la parte faltante marcada
   (criterio 2), y `/readyz` distingue una dependencia crítica de una degradable.

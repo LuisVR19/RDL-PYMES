@@ -1,4 +1,12 @@
-import type { Customer, InvoiceListItem, Payment, Receivable } from '@/shared/api/billing-types'
+import type {
+  Customer,
+  FollowUp,
+  InvoiceListItem,
+  Payment,
+  PaymentPromise,
+  Receivable,
+  ReceivableAdjustment,
+} from '@/shared/api/billing-types'
 
 // Datos ficticios de facturación tomados del prototipo de diseño (design/referencias, CLIENTS0 y DOCS0).
 // Ninguna empresa ni persona es real. Los tipos de identificación usan los códigos del borrador de Hacienda
@@ -143,8 +151,10 @@ const r = (
   dueOn: string,
 ): Receivable => ({
   id,
-  sourceInvoiceId: `inv-${documentNumber}`,
+  // El mismo id que la factura en INVOICES (la nota de débito ND-0000002 es «dN2»).
+  sourceInvoiceId: id === 'rN2' ? 'dN2' : id.replace(/^r/, 'i'),
   customerId,
+  customerLegalName: CUSTOMERS.find((x) => x.id === customerId)?.legalName,
   documentNumber,
   currency,
   originalAmount,
@@ -167,10 +177,12 @@ export const RECEIVABLES: Receivable[] = [
   r('rN2', 'c2', 'ND-0000002', 'CRC', '12000', '12000', '2026-08-17', '2026-09-16'),
   r('r32', 'c3', 'FAC-0000032', 'USD', '3480', '1480', '2026-08-12', '2026-09-11'),
   r('r29', 'c9', 'FAC-0000029', 'CRC', '85000', '85000', '2026-08-05', '2026-09-04'),
-  r('r27', 'c7', 'FAC-0000027', 'CRC', '23500', '23500', '2026-07-01', '2026-07-31'),
+  r('r27', 'c7', 'FAC-0000027', 'CRC', '23500', '20000', '2026-07-01', '2026-07-31'),
   r('r24', 'c6', 'FAC-0000024', 'CRC', '54000', '54000', '2026-06-10', '2026-07-10'),
 ]
 
+// Pagos del prototipo, con sus aplicaciones (cuadran con los saldos de RECEIVABLES): pg15 está anulado y su
+// aplicación a FAC-0000029 quedó revertida.
 export const PAYMENTS: Payment[] = [
   {
     id: 'pg18',
@@ -178,9 +190,20 @@ export const PAYMENTS: Payment[] = [
     receivedOn: '2026-09-24',
     amount: '50000',
     currency: 'CRC',
+    exchangeRate: '1',
+    paymentMethodCode: '04',
     reference: 'Transferencia 88412',
     status: 'posted',
     createdAt: '2026-09-24T15:12:00Z',
+    applications: [
+      {
+        id: 'ap18',
+        paymentId: 'pg18',
+        receivableId: 'r34',
+        amount: '50000',
+        appliedAt: '2026-09-24T15:12:00Z',
+      },
+    ],
   },
   {
     id: 'pg17',
@@ -188,9 +211,20 @@ export const PAYMENTS: Payment[] = [
     receivedOn: '2026-09-23',
     amount: '39550',
     currency: 'CRC',
+    exchangeRate: '1',
+    paymentMethodCode: '06',
     reference: 'SINPE 5520',
     status: 'posted',
     createdAt: '2026-09-23T22:40:00Z',
+    applications: [
+      {
+        id: 'ap17',
+        paymentId: 'pg17',
+        receivableId: 'r35',
+        amount: '39550',
+        appliedAt: '2026-09-23T22:40:00Z',
+      },
+    ],
   },
   {
     id: 'pg16',
@@ -198,9 +232,20 @@ export const PAYMENTS: Payment[] = [
     receivedOn: '2026-09-10',
     amount: '2000',
     currency: 'USD',
+    exchangeRate: '508.35',
+    paymentMethodCode: '04',
     reference: 'Depósito 1182',
     status: 'posted',
     createdAt: '2026-09-10T16:05:00Z',
+    applications: [
+      {
+        id: 'ap16',
+        paymentId: 'pg16',
+        receivableId: 'r32',
+        amount: '2000',
+        appliedAt: '2026-09-10T16:05:00Z',
+      },
+    ],
   },
   {
     id: 'pg15',
@@ -208,10 +253,72 @@ export const PAYMENTS: Payment[] = [
     receivedOn: '2026-09-02',
     amount: '10000',
     currency: 'CRC',
+    exchangeRate: '1',
+    paymentMethodCode: '03',
+    reference: 'Cheque 000231',
     status: 'voided',
+    voidReason: 'Cheque devuelto por el banco',
+    voidedAt: '2026-09-05T14:20:00Z',
     createdAt: '2026-09-02T18:30:00Z',
+    applications: [
+      {
+        id: 'ap15',
+        paymentId: 'pg15',
+        receivableId: 'r29',
+        amount: '10000',
+        appliedAt: '2026-09-02T18:30:00Z',
+        reversedAt: '2026-09-05T14:20:00Z',
+        reversalReason: 'Cheque devuelto por el banco',
+      },
+    ],
   },
 ]
+
+// Gestiones de cobro y promesas de la cuenta vencida más vieja de Soluciones Ibis (FAC-0000029).
+export const FOLLOW_UPS: FollowUp[] = [
+  {
+    id: 'fu2',
+    receivableId: 'r29',
+    followupType: 'call',
+    notes: 'Confirma que paga la próxima semana por transferencia.',
+    performedAt: '2026-09-22T16:10:00Z',
+    createdAt: '2026-09-22T16:10:00Z',
+  },
+  {
+    id: 'fu1',
+    receivableId: 'r29',
+    followupType: 'email',
+    notes: 'Se envió el estado de cuenta con las facturas vencidas.',
+    performedAt: '2026-09-15T14:00:00Z',
+    createdAt: '2026-09-15T14:00:00Z',
+  },
+]
+
+export const PROMISES: PaymentPromise[] = [
+  {
+    id: 'pr1',
+    receivableId: 'r29',
+    followupId: 'fu2',
+    promisedAmount: '85000',
+    promisedOn: '2026-09-30',
+    status: 'pending',
+    createdAt: '2026-09-22T16:12:00Z',
+    updatedAt: '2026-09-22T16:12:00Z',
+  },
+]
+
+// Ajustes que Receivables hizo al consumir notas: la de crédito de FAC-0000027 bajó su saldo de 23 500 a 20 000.
+export const ADJUSTMENTS: Record<string, ReceivableAdjustment[]> = {
+  r27: [
+    {
+      id: 'aj1',
+      adjustmentType: 'credit_note',
+      amount: '3500',
+      reason: 'Devolución de mercadería dañada',
+      createdAt: '2026-08-04T15:00:00Z',
+    },
+  ],
+}
 
 // Documentos del prototipo (DOCS0) en la forma del listado compuesto del gateway: la factura, su estado en
 // Hacienda y su saldo, cada uno con su disponibilidad.

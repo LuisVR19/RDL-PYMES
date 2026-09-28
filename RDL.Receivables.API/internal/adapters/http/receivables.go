@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,15 +28,20 @@ type getBalanceByInvoice interface {
 	Execute(ctx context.Context, t tenancy.Context, invoiceID uuid.UUID) (app.ReceivableView, error)
 }
 
+type getBalancesByInvoice interface {
+	Execute(ctx context.Context, t tenancy.Context, invoiceIDs []uuid.UUID) ([]app.ReceivableView, error)
+}
+
 type getAging interface {
 	Execute(ctx context.Context, t tenancy.Context, q app.AgingQuery) (app.AgingReport, error)
 }
 
 type ReceivableHandlers struct {
-	List      listReceivables
-	Get       getReceivable
-	ByInvoice getBalanceByInvoice
-	Aging     getAging
+	List       listReceivables
+	Get        getReceivable
+	ByInvoice  getBalanceByInvoice
+	ByInvoices getBalancesByInvoice
+	Aging      getAging
 }
 
 // receivableResponse sigue el schema Receivable de RDL.Contracts/openapi/receivables.yaml.
@@ -77,6 +83,20 @@ type balanceResponse struct {
 	Currency      string    `json:"currency"`
 	BalanceAmount string    `json:"balanceAmount"`
 	DueOn         string    `json:"dueOn"`
+}
+
+// balanceItemResponse: un elemento de getBalancesByInvoice (Balance más el id de la factura).
+type balanceItemResponse struct {
+	InvoiceID uuid.UUID `json:"invoiceId"`
+	balanceResponse
+}
+
+type balanceBatchResponse struct {
+	Items []balanceItemResponse `json:"items"`
+}
+
+type idBatchRequest struct {
+	IDs []string `json:"ids"`
 }
 
 type agingResponse struct {
@@ -181,10 +201,66 @@ func (h *ReceivableHandlers) registerInternal(rt *routes, fail func(http.Respons
 			fail(w, r, err)
 			return
 		}
-		writeJSON(w, http.StatusOK, balanceResponse{
-			ReceivableID: v.ID, Status: string(v.Status), Currency: v.Currency, BalanceAmount: v.BalanceAmount, DueOn: v.DueOn.String(),
-		})
+		writeJSON(w, http.StatusOK, toBalanceResponse(v))
 	})
+
+	// Lectura por lote: POST solo porque la lista no cabe cómoda en una query. Sin Idempotency-Key ni efectos.
+	rt.handle("POST /internal/v1/receivables/by-invoice", func(w http.ResponseWriter, r *http.Request) {
+		var in idBatchRequest
+		if err := decodeJSON(w, r, &in); err != nil {
+			fail(w, r, err)
+			return
+		}
+		ids, err := parseIDBatch(in.IDs)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		t, _ := tenancy.From(r.Context())
+		views, err := h.ByInvoices.Execute(r.Context(), t, ids)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		out := balanceBatchResponse{Items: make([]balanceItemResponse, 0, len(views))}
+		for _, v := range views {
+			out.Items = append(out.Items, balanceItemResponse{InvoiceID: v.SourceInvoiceID, balanceResponse: toBalanceResponse(v)})
+		}
+		writeJSON(w, http.StatusOK, out)
+	})
+}
+
+func toBalanceResponse(v app.ReceivableView) balanceResponse {
+	return balanceResponse{
+		ReceivableID: v.ID, Status: string(v.Status), Currency: v.Currency, BalanceAmount: v.BalanceAmount, DueOn: v.DueOn.String(),
+	}
+}
+
+// parseIDBatch valida el IdBatch del contrato: de 1 a 100 UUID distintos. Todos los errores juntos en un 422.
+func parseIDBatch(raw []string) ([]uuid.UUID, error) {
+	var f fields
+	switch {
+	case len(raw) == 0:
+		f.add("ids", "debe traer al menos un id")
+	case len(raw) > app.MaxBalanceBatch:
+		f.add("ids", fmt.Sprintf("admite hasta %d ids", app.MaxBalanceBatch))
+	}
+	ids := make([]uuid.UUID, 0, len(raw))
+	seen := make(map[uuid.UUID]bool, len(raw))
+	for i, v := range raw {
+		field := fmt.Sprintf("ids[%d]", i)
+		id := f.uuid(field, v)
+		if id == uuid.Nil {
+			continue
+		}
+		if seen[id] {
+			f.add(field, "está repetido")
+			continue
+		}
+		seen[id] = true
+		ids = append(ids, id)
+	}
+	return ids, f.err()
 }
 
 func parseAgingQuery(r *http.Request) (app.AgingQuery, error) {

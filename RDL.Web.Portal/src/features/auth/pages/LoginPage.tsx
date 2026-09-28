@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/design-system/components/Button/Button'
 import { InlineAlert } from '@/design-system/components/Feedback/Feedback'
 import { TextField } from '@/design-system/components/Field/Field'
-import { RETURN_PARAM } from '@/shared/auth/auth'
+import { CONFIRMED_PARAM, RETURN_PARAM } from '@/shared/auth/auth'
 import { useAuth } from '@/shared/auth/AuthProvider'
 import { t } from '@/shared/i18n/t'
 import styles from './LoginPage.module.css'
@@ -20,6 +20,12 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const back = safeReturn(params.get(RETURN_PARAM))
+  const confirmed = params.get(CONFIRMED_PARAM) === 'confirmada'
+  // El enlace de confirmación de Supabase trae tokens en el fragmento. El portal no los usa (se ingresa con la
+  // contraseña): se borran de la barra de direcciones y del historial.
+  if (confirmed && window.location.hash) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+  }
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,6 +61,9 @@ export function LoginPage() {
           <span className={styles.subtitle}>{t('auth.login.subtitle')}</span>
         </div>
 
+        {confirmed && !back && !failure && (
+          <InlineAlert tone="success">{t('auth.login.confirmed')}</InlineAlert>
+        )}
         {back && !failure && (
           <InlineAlert tone="info">
             {t('auth.login.expired.before')} <span className={styles.path}>{back}</span>.
@@ -99,6 +108,12 @@ export function LoginPage() {
           {t(sending ? 'auth.login.submitting' : 'auth.login.submit')}
         </Button>
       </form>
+      <span className={styles.hint}>
+        {t('auth.login.noAccount')}{' '}
+        <Link to="/registro" className={styles.inlineLink}>
+          {t('auth.login.signup')}
+        </Link>
+      </span>
       <span className={styles.hint}>{t('auth.login.invitationHint')}</span>
     </div>
   )

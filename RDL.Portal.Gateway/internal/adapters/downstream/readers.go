@@ -213,7 +213,7 @@ func (f *FiscalReader) FiscalStatusesBySource(ctx context.Context, ids []string)
 }
 
 // BalancesByInvoice: POST /internal/v1/receivables/by-invoice (getBalancesByInvoice).
-// TODO(P6): confirmar contra RDL.Receivables.API cuando exista; la ruta está propuesta, sin publicar, en contratos.
+// Implementada en RDL.Receivables.API (2026-09-28) con esta misma forma; en contratos sigue propuesta, sin publicar.
 func (r *ReceivablesReader) BalancesByInvoice(ctx context.Context, ids []string) (map[string]view.Balance, error) {
 	var dto struct {
 		Items []struct {

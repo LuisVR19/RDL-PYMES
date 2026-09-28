@@ -1,6 +1,20 @@
 # Estado del proyecto · Receivables API
 
-**Última actualización:** 2026-09-25
+**Última actualización:** 2026-09-28
+
+## Sesión del 2026-09-28 · saldos por lote para el BFF
+
+- `POST /internal/v1/receivables/by-invoice` (`getBalancesByInvoice` de `RDL.Contracts/openapi/bff-internal.yaml`,
+  propuesta sin publicar): de 1 a 100 ids distintos, 422 con el campo exacto (`ids`, `ids[3]`) si no; responde
+  `{items: [{invoiceId, receivableId, status, currency, balanceAmount, dueOn}]}` y omite las facturas sin cuenta o de
+  otra organización. Mismo permiso que la de a una (`InvoiceBalanceRead`, R10). Una sola consulta
+  (`ListReceivablesByInvoices`, ids como `text[]`).
+- Documentada en `api/openapi.yaml`; pruebas de caso de uso, de handler (forma y validación) y un caso nuevo en
+  `tests/isolation` (A no ve la cuenta de B por lote, A con el org_id de B → 403, B sí la ve).
+- `go build`, `go vet` (con y sin `integration`), `go test ./...` en verde. `golangci-lint` solo marca CRLF en
+  archivos no tocados. **La suite de aislamiento no se corrió**: no hay `.env` en esta máquina (hay que recrearlo con
+  `receivables_api` y `ISOLATION_ORG_A/B`).
+- El gateway ya tiene las 5 rutas de cobranza que le faltaban (seguimientos y promesas).
 **Punto de corte:** los 10 incrementos del plan terminados y probados contra dev. Nada está commiteado todavía. Queda la
 lista de TODOs del final para revisar en equipo.
 

@@ -7,26 +7,15 @@ import type {
   InvoiceListItem,
   InvoiceOverview,
   Page,
-  Payment,
   Product,
-  Receivable,
   StatusChange,
 } from '../billing-types'
-import type {
-  BranchesPort,
-  CatalogsPort,
-  CustomersPort,
-  InvoicesPort,
-  ProductsPort,
-  ReceivablesPort,
-} from '../ports'
+import type { BranchesPort, CatalogsPort, CustomersPort, InvoicesPort, ProductsPort } from '../ports'
 import { ApiError } from '../types'
 import type { GatewayHttp } from './http'
 
 /**
- * Facturación y cobranza contra el Portal Gateway. Clientes es paso directo a Billing (su OpenAPI); cobranza es
- * paso directo a Receivables, que hoy no existe: el gateway responde 503 `upstream-not-configured` y las
- * pantallas lo muestran como datos parciales.
+ * Facturación contra el Portal Gateway: paso directo a Billing (su OpenAPI). La cobranza está en `receivables.ts`.
  */
 
 const bool = (v: boolean | undefined) => (v === undefined ? undefined : String(v))
@@ -46,41 +35,6 @@ export function createCustomersPort(http: GatewayHttp): CustomersPort {
       http.send<Customer>('POST', '/portal/v1/customers', input, { idempotencyKey }),
     update: (id, patch) =>
       http.send<Customer>('PATCH', `/portal/v1/customers/${encodeURIComponent(id)}`, patch),
-  }
-}
-
-export function createReceivablesPort(http: GatewayHttp): ReceivablesPort {
-  return {
-    byCustomer: (customerId, q) =>
-      http.get<Page<Receivable>>('/portal/v1/receivables', {
-        customerId,
-        cursor: q?.cursor,
-        limit: num(q?.limit),
-      }),
-    paymentsByCustomer: (customerId, q) =>
-      http.get<Page<Payment>>('/portal/v1/payments', { customerId, cursor: q?.cursor, limit: num(q?.limit) }),
-    balancesByCustomer: async () => {
-      // TODO(api): sin ruta por lote de saldos por cliente en el contrato. No se hace una llamada por fila.
-      throw new ApiError({
-        status: 501,
-        type: 'urn:rdl:portal:problem:not-in-contract',
-        title: 'Saldo por cliente por lote',
-        correlationId: '',
-      })
-    },
-    payments: (q) =>
-      http.get<Page<Payment>>('/portal/v1/payments', { cursor: q?.cursor, limit: num(q?.limit) }),
-    summary: async () => {
-      // TODO(api): el contrato solo tiene `GET /v1/receivables/aging`, con los tramos por definir y sin cuántas
-      // cuentas hay. Hasta que Receivables (P6) defina un resumen, Inicio muestra estas cifras como no disponibles
-      // en vez de deducirlas de tramos que todavía no existen.
-      throw new ApiError({
-        status: 501,
-        type: 'urn:rdl:portal:problem:not-in-contract',
-        title: 'Resumen de cuentas por cobrar',
-        correlationId: '',
-      })
-    },
   }
 }
 

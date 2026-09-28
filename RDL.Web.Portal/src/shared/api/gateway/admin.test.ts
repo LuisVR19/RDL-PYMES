@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '../types'
 import { createInvitationsPort, createMembersPort, createOrganizationPort } from './admin'
-import { createBranchesPort, createReceivablesPort } from './billing'
+import { createBranchesPort } from './billing'
+import { createReceivablesPort } from './receivables'
 import type { GatewayHttp } from './http'
 
 function recorder(response: unknown = { items: [], nextCursor: null }) {

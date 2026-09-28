@@ -8,6 +8,7 @@ import {
   CircleSlash,
   Clock,
   Pause,
+  RotateCcw,
   TriangleAlert,
   X,
   type LucideIcon,
@@ -55,6 +56,18 @@ export const STATUS = {
   payment: {
     posted: { label: 'Registrado', tone: 'success', icon: Check },
     voided: { label: 'Anulado', tone: 'neutral', icon: CircleSlash },
+  },
+  // Aplicación de un pago a una cuenta (prototipo «24» y «27»): nunca se borra, se revierte.
+  application: {
+    applied: { label: 'Aplicada', tone: 'success', icon: Check },
+    reversed: { label: 'Revertida', tone: 'neutral', icon: RotateCcw },
+  },
+  // Promesa de pago (R8 de Receivables): pending → kept | broken | cancelled.
+  promise: {
+    pending: { label: 'Pendiente', tone: 'info', icon: Clock },
+    kept: { label: 'Cumplida', tone: 'success', icon: Check },
+    broken: { label: 'Incumplida', tone: 'danger', icon: CircleAlert },
+    cancelled: { label: 'Cancelada', tone: 'neutral', icon: CircleSlash },
   },
   // Clientes y productos (prototipo «07» y «10»): activo o dado de baja.
   record: {

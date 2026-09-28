@@ -432,3 +432,70 @@ func (q *Queries) ListReceivables(ctx context.Context, arg ListReceivablesParams
 	}
 	return items, nil
 }
+
+const listReceivablesByInvoices = `-- name: ListReceivablesByInvoices :many
+select id, source_invoice_id, customer_id, customer_legal_name, document_number,
+       currency_code::text as currency_code,
+       trim_scale(original_amount)::text as original_amount,
+       trim_scale(balance_amount)::text as balance_amount,
+       issued_on, due_on, status, settled_at, created_at
+from receivables.receivables
+where organization_id = $1
+  and source_invoice_id = any($2::text[]::uuid[])
+`
+
+type ListReceivablesByInvoicesParams struct {
+	OrganizationID   uuid.UUID
+	SourceInvoiceIds []string
+}
+
+type ListReceivablesByInvoicesRow struct {
+	ID                uuid.UUID
+	SourceInvoiceID   uuid.UUID
+	CustomerID        uuid.UUID
+	CustomerLegalName string
+	DocumentNumber    string
+	CurrencyCode      string
+	OriginalAmount    string
+	BalanceAmount     string
+	IssuedOn          pgtype.Date
+	DueOn             pgtype.Date
+	Status            string
+	SettledAt         pgtype.Timestamptz
+	CreatedAt         time.Time
+}
+
+// Lote del BFF: las cuentas de varias facturas en una sola consulta. Los ids viajan como text[] (Supavisor).
+func (q *Queries) ListReceivablesByInvoices(ctx context.Context, arg ListReceivablesByInvoicesParams) ([]ListReceivablesByInvoicesRow, error) {
+	rows, err := q.db.Query(ctx, listReceivablesByInvoices, arg.OrganizationID, arg.SourceInvoiceIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListReceivablesByInvoicesRow{}
+	for rows.Next() {
+		var i ListReceivablesByInvoicesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SourceInvoiceID,
+			&i.CustomerID,
+			&i.CustomerLegalName,
+			&i.DocumentNumber,
+			&i.CurrencyCode,
+			&i.OriginalAmount,
+			&i.BalanceAmount,
+			&i.IssuedOn,
+			&i.DueOn,
+			&i.Status,
+			&i.SettledAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

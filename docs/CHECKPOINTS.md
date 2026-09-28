@@ -2,7 +2,7 @@
 
 **Tablero de control del proyecto completo.** Una sola pregunta: qué está hecho, qué falta y quién lo destraba.
 
-**Última revisión:** 2026-09-27 (Billing F5)
+**Última revisión:** 2026-09-28 (Receivables detrás del gateway: rutas y saldos por lote)
 **Cómo se usa:** este archivo es el índice de estado. El detalle de cada módulo vive en su
 `<módulo>/docs/ESTADO.md`, que manda sobre este resumen. Al cerrar un incremento se actualizan los dos.
 
@@ -19,9 +19,9 @@ Leyenda: ✅ terminado y verificado · 🟡 hecho pero **sin verificar de punta 
 | P3 | `RDL.Platform.API` `:8080` | ✅ | Aislamiento 6/6 · E2E 69/69 contra dev |
 | P4 | `RDL.Billing.API` `:8081` | ✅ | F2, F3 y **F5** · `-race` · lint · aislamiento 6/6 · integración · E2E 33/33 contra dev (2026-09-27) |
 | P5 | `RDL.EInvoice.API` `:8082` | ⬜ | — |
-| P6 | `RDL.Receivables.API` `:8083` | ⬜ | — |
+| P6 | `RDL.Receivables.API` `:8083` | 🟡 | 10 incrementos · aislamiento y E2E contra dev (2026-09-25) · saldos por lote (2026-09-28) **sin correr contra dev**; eventos sin transporte (P2) |
 | P7 | `RDL.Portal.Gateway` `:8090` | 🟡 | Incrementos 1–5 y 8 · aislamiento 10/10 y E2E 33/33 **contra Platform y Billing reales** (2026-09-27); 6 y 7 bloqueados |
-| P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–3, 6 y 7 · 184 unit + 43 e2e · **acceso, facturación, inicio y administración probados en vivo** (2026-09-27) |
+| P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–3 y 5–7 · 193 unit + 53 e2e · acceso, facturación, inicio y administración probados en vivo (2026-09-27); **cobranza sin probar en vivo** (2026-09-28) |
 | P8c | `RDL.Landing` `:4321` | 🟡 | Construida (2026-09-27) · 29 e2e + axe · Lighthouse móvil 99–100 · **datos de prueba y legales en borrador** |
 
 **Dónde está realmente el proyecto:** hay dos APIs de dominio funcionando contra la base de dev y un gateway
@@ -78,16 +78,26 @@ siguen siendo marcadores provisionales.
       doc del API, política de firma y el CABYS del BCCR
 - [ ] Bloquea el módulo D del portal (4 pantallas) y la parte fiscal de la vista transversal
 
-### P6 · Receivables API — ⬜ no empezado
+### P6 · Receivables API — 🟡 V1 completa, sin conectar al resto
 
-- [ ] Bloquea el módulo E del portal (6 pantallas) y el saldo de la vista transversal
-- [ ] `receivables_app` no tiene `USAGE` en `core` pero necesita revalidar membresía → `database-platform`
+- [x] Incrementos 1–10 (2026-09-25): saldos, pagos, aplicaciones, reversos, notas y anulación, aging, cobranza,
+      consumidor de los 4 eventos de Billing, outbox, idempotencia. Aislamiento y E2E en verde contra dev
+- [x] `POST /internal/v1/receivables/by-invoice` (saldos por lote del listado del gateway) (2026-09-28). Pruebas
+      unitarias en verde; el caso nuevo de aislamiento está escrito, **sin correr** (falta el `.env` en esta máquina)
+- [ ] ⛔ Transporte de eventos (P2): el consumidor usa `events.NoSource` y no hay publicador del outbox; una factura
+      emitida no crea sola su cuenta por cobrar (hoy solo con `cmd/replay`)
+- [ ] ⏳ Levantarla en `:8083` detrás del gateway y correr aislamiento y E2E del gateway con `RECEIVABLES_API_URL`
+- [ ] PRs a contratos: `customer-mismatch`, completar `openapi/receivables.yaml` (promesas, seguimientos,
+      aplicaciones), transiciones `paid → open | cancelled | partially_paid`, facturas de total 0
+- [ ] database-platform: migraciones 0010/0011, revocaciones de R9, `USAGE` en `core` para `receivables_app`
+- [ ] Docker, JWT real de Supabase y baseline desde cero sin verificar (ver `RDL.Receivables.API/docs/ESTADO.md`)
 
 ### P7 · Portal Gateway — 🟡 incrementos 1–5 y 8
 
 - [x] Esqueleto, config validada, OTel, `/healthz`, `/readyz` (crítico vs degradable)
 - [x] JWT + propagación de identidad, correlación y trazas
-- [x] Tabla de rutas: **56 rutas**, las cuatro APIs declaradas
+- [x] Tabla de rutas: **60 rutas**, las cuatro APIs declaradas; las de Receivables confirmadas contra su repo, con
+      seguimientos y promesas agregados (2026-09-28)
 - [x] Vista transversal `GET /portal/v1/invoices/{id}/overview` con degradación
 - [x] `go build` · `go vet` · `golangci-lint` 0 issues · 66 pruebas · humo del binario
 - [ ] 🔴 **Confirmar ADR 0004**: usé `availability` aparte del `status`, en vez de la forma del prompt
@@ -114,7 +124,11 @@ siguen siendo marcadores provisionales.
 - [x] Incremento 7 · pulido (2026-09-27): login y acceso centrados como el prototipo, formularios centrados
       (decisión de Luis), rejillas de dos columnas, paginación solo si hay otra página, atajos ocultos en móvil,
       carga diferida por módulo (paquete inicial 483 → 316 kB). Pendiente: pruebas visuales
-- [ ] ⏳ Incrementos 4 y 5: Hacienda (⛔ P5), cobranza (⛔ P6)
+- [x] Incremento 5 · cobranza (2026-09-28): pantallas 22–27 cableadas contra Receivables por el gateway; 13 pruebas
+      y 10 e2e nuevas. **Falta en vivo** (Receivables detrás del gateway)
+- [x] Crear cuenta `/registro` (2026-09-28): Supabase `signUp` con el nombre para Platform; con o sin
+      confirmación de correo. Sin probar contra dev (revisar la configuración de Auth antes)
+- [ ] ⏳ Incremento 4: Hacienda (⛔ P5)
 - [ ] Propuestas a contratos: `GET /v1/invoices/summary` + `sort=-issuedAt` (Billing), resumen de saldos (Receivables),
       API de auditoría
 - [x] ~~`referencedInvoiceId`/`referenceReason` en `Invoice`~~ (F5). Queda: vencimiento propio de la nota de débito
@@ -130,7 +144,8 @@ siguen siendo marcadores provisionales.
 - [x] «Iniciar sesión» con UTM, «Crear cuenta · Próximamente», WhatsApp en lugar de formulario (ADR 0002), Umami (ADR 0003)
 - [x] SEO completo, CSP estricta sin `unsafe-inline`, Lighthouse móvil 99–100 en las cuatro categorías
 - [ ] ⏳ Datos reales en el `.env` (dominio, contacto, titular) · revisión legal · dónde vive Umami · hosting (P2)
-- [ ] ⛔ «Crear cuenta» espera el registro de cuentas en el portal (`/registro`)
+- [x] ~~«Crear cuenta» espera el registro de cuentas~~: el portal ya tiene `/registro` (2026-09-28). Falta poner
+      `PUBLIC_SIGNUP_ENABLED=true` en el ambiente donde el portal esté publicado
 
 ---
 
@@ -143,7 +158,7 @@ siguen siendo marcadores provisionales.
 | 3 | Aprobar las rutas por lote (propuestas sin publicar en contratos) | Listados sin N+1 → datos reales en la pantalla 12 | **Equipo (2 aprobaciones)** |
 | 4 | Adaptador `gateway/` en el portal | Quita los datos simulados de 24 pantallas | **Web Portal** |
 | 5 | Documentación oficial de Hacienda | Todo P5, y con él el módulo D | **Externo** |
-| 6 | Transporte de eventos | Notificaciones en tiempo real, workers | **P2** |
+| 6 | Transporte de eventos — planning en [`planning-transporte-eventos.md`](planning-transporte-eventos.md) | Billing → Receivables sin `cmd/replay`, notificaciones, workers, E-Invoice | **P2 · decidir D1–D5** |
 | 7 | Almacenamiento del read model | Incremento 7 del gateway | **Luis** |
 | 8 | Tags de contratos | Quitar los `replace` de los `go.mod` y el Dockerfile especial de Billing | **Luis** |
 
@@ -224,5 +239,7 @@ En este orden, porque cada uno destraba al siguiente:
    ~~Incremento 6 del portal (inicio + administración)~~ ✅ 2026-09-27.
    ~~Billing F5~~ ✅ 2026-09-27.
    ~~Incremento 7 del portal (pulido)~~ ✅ 2026-09-27.
-   Lo siguiente sin bloqueos: **P6 (Receivables)**, que destraba el incremento 5 del portal, las cifras de cobranza
-   de Inicio y el ajuste de saldo de las notas y la anulación.
+   ~~P6 (Receivables)~~ 🟡 V1 hecha; ~~rutas del gateway y saldos por lote~~ ✅ 2026-09-28.
+   ~~Incremento 5 del portal (cobranza)~~ ✅ 2026-09-28 con datos simulados.
+   Lo siguiente: **levantar Receivables detrás del gateway** y probar las pantallas 22–27 en vivo. Necesita
+   `RDL.Receivables.API/.env` (contraseña de `receivables_api` e `ISOLATION_ORG_A/B`): lo pone Luis.

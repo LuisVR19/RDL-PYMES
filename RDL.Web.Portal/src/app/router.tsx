@@ -7,6 +7,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { OrgCreatePage } from '@/features/auth/pages/OrgCreatePage'
 import { OrgSelectPage } from '@/features/auth/pages/OrgSelectPage'
 import { RecoverPage } from '@/features/auth/pages/RecoverPage'
+import { SignupPage } from '@/features/auth/pages/SignupPage'
 import { ScreenPlaceholder } from '@/features/system/pages/ScreenPlaceholder'
 import { isMockDataSource } from '@/shared/api/DataSourceProvider'
 import { RequireAuth, RequireCapability, RequireSession } from './guards'
@@ -21,6 +22,7 @@ import { SCREENS, type ScreenDef } from './screens'
  */
 const billing = () => import('@/features/billing/pages')
 const admin = () => import('@/features/admin/pages')
+const receivables = () => import('@/features/receivables/pages')
 const fromModule = <M,>(load: () => Promise<M>, pick: (m: M) => ComponentType) =>
   lazy(async () => ({ default: pick(await load()) }))
 
@@ -34,6 +36,12 @@ const DocumentsPage = fromModule(billing, (m) => m.DocumentsPage)
 const InvoiceDraftPage = fromModule(billing, (m) => m.InvoiceDraftPage)
 const InvoiceDetailPage = fromModule(billing, (m) => m.InvoiceDetailPage)
 const NotePage = fromModule(billing, (m) => m.NotePage)
+const ReceivablesPage = fromModule(receivables, (m) => m.ReceivablesPage)
+const AgingPage = fromModule(receivables, (m) => m.AgingPage)
+const ReceivableDetailPage = fromModule(receivables, (m) => m.ReceivableDetailPage)
+const PaymentsPage = fromModule(receivables, (m) => m.PaymentsPage)
+const PaymentNewPage = fromModule(receivables, (m) => m.PaymentNewPage)
+const PaymentDetailPage = fromModule(receivables, (m) => m.PaymentDetailPage)
 const ProfilePage = fromModule(admin, (m) => m.ProfilePage)
 const OrganizationPage = fromModule(admin, (m) => m.OrganizationPage)
 const UsersPage = fromModule(admin, (m) => m.UsersPage)
@@ -46,6 +54,7 @@ const AuditPage = fromModule(admin, (m) => m.AuditPage)
 const BUILT: Partial<Record<string, ComponentType>> = {
   login: LoginPage,
   recover: RecoverPage,
+  signup: SignupPage,
   orgSelect: OrgSelectPage,
   orgCreate: OrgCreatePage,
   invite: InvitePage,
@@ -69,6 +78,12 @@ const BUILT: Partial<Record<string, ComponentType>> = {
   invoiceDetail: InvoiceDetailPage,
   creditNote: NotePage,
   debitNote: NotePage,
+  receivables: ReceivablesPage,
+  aging: AgingPage,
+  receivableDetail: ReceivableDetailPage,
+  payments: PaymentsPage,
+  paymentNew: PaymentNewPage,
+  paymentDetail: PaymentDetailPage,
 }
 
 /** Fuera del armazón pero con sesión: elegir o crear organización, aceptar una invitación. */

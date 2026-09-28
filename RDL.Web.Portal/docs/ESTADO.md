@@ -1,6 +1,65 @@
 # Estado del proyecto
 
-Última actualización: 2026-09-27
+Última actualización: 2026-09-28
+
+## Crear cuenta · `/registro` (2026-09-28)
+- Pantalla nueva **sin diseño propio**: sigue la tarjeta de «01 Iniciar sesión». Nombre completo, correo, contraseña
+  (mínimo 8) y confirmación. Texto legal con enlaces a `/terminos` y `/privacidad` de la landing
+  (`VITE_LANDING_URL`). TODO(diseño): la pantalla en el prototipo y el texto legal definitivo.
+- `AuthPort.signUp` → `supabase.auth.signUp` con el nombre en `user_metadata.full_name`, que es de donde Platform lo
+  toma al dar de alta al usuario en su primera llamada (`GET /v1/me`). **Sin cambios en el backend.**
+- Dos salidas, según cómo esté Supabase: con confirmación de correo, «Revise su correo» (el enlace vuelve a
+  `/ingresar?cuenta=confirmada`, que avisa y borra los tokens del fragmento de la URL); sin confirmación, entra y va
+  a crear la organización (pantalla 3).
+- Errores de Supabase traducidos: correo con cuenta (con enlaces a ingresar y recuperar), contraseña débil en su
+  campo, registro deshabilitado, demasiados intentos y no disponible. Con la confirmación activa, Supabase responde
+  igual para un correo que ya tiene cuenta: el portal no revela quién está registrado.
+- La pantalla 1 enlaza a «Crear cuenta». La landing ya apuntaba a `/registro` (`PUBLIC_SIGNUP_ENABLED`).
+- Verificación: 8 pruebas nuevas (pantalla y adaptador de Supabase) · 1 e2e con axe en 1440 y 390 px · captura
+  revisada. Total: 201 pruebas y 55 e2e.
+- **Sin probar contra Supabase dev:** crear una cuenta real manda un correo. Antes hay que revisar en el dashboard
+  (Authentication): que el registro esté habilitado, «Confirm email», el largo mínimo de contraseña (8, igual que el
+  portal) y que `http://localhost:5173/ingresar` esté en *Redirect URLs*.
+
+## Incremento 5 · Cobranza (2026-09-28)
+Pantallas 22–27, fieles al prototipo y **cableadas contra `RDL.Receivables.API`** por el gateway (sus rutas ya están
+en la tabla del gateway). Probadas con datos simulados; **falta probarlas en vivo** (Receivables detrás del gateway).
+
+| # | Pantalla | Cableado |
+|---|---|---|
+| 22 | Cuentas por cobrar: filtros, cliente, atraso y «Vencida» contra el día de negocio, saldo de la página por moneda | `GET /receivables` (`status`, `overdue`, `customerId`) |
+| 23 | Aging: moneda y corte en la URL, gráfico de cinco tramos, tabla con participación, exportar CSV | `GET /receivables/aging` |
+| 24 📱 | Cuenta: tres cifras, pagos aplicados (revertir), ajustes, seguimientos y promesas con alta rápida y cierre | `GET /receivables/{id}`, `follow-ups`, `promises`, `payment-promises/{id}/status` |
+| 25 | Pagos: aplicado y sin aplicar por fila | `GET /payments` |
+| 26 📱 | Registrar pago en tres pasos: reparte de la más antigua a la más nueva, lo aplicado de más bloquea, lo que sobra queda sin aplicar; pago y aplicaciones en **una** llamada | `POST /payments` |
+| 27 | Pago: revertir aplicación, anular con motivo, aplicar lo pendiente | `payment-applications`, `.../reverse`, `.../void` |
+
+- Puerto `receivables` completo (`list`, `get`, `aging`, seguimientos, promesas, `payment`, `createPayment`,
+  `applyPayment`, `reverseApplication`, `voidPayment`); el adaptador pasa a `gateway/receivables.ts` y el simulado a
+  `mock/receivables.ts`, que aplica las reglas de Receivables (cliente, moneda, saldo, pago anulado, aplicación
+  revertida, misma clave = misma respuesta). Tipos alineados con `api/openapi.yaml` de Receivables.
+- **Medios de pago** (`shared/paymentMethods.ts`) de los **Anexos y Estructuras v4.4, Nota 6** (docs/Hacienda,
+  página 71), con `TODO(fiscal)`: el contrato todavía no tiene el catálogo.
+- Estados nuevos en `shared/status`: `application` (Aplicada / Revertida) y `promise` (Pendiente / Cumplida /
+  Incumplida / Cancelada). Revertir y anular usan `receivables.void` (owner, admin), como Receivables.
+- Datos simulados: pagos con sus aplicaciones cuadrados con los saldos, seguimientos y promesa de FAC-0000029, nota de
+  crédito de FAC-0000027 (su saldo pasa de 23 500 a 20 000) y `sourceInvoiceId` igual al id de la factura.
+
+### Desviaciones y huecos del contrato
+- **Filtros de la 22:** el prototipo tiene «Pendientes» con las de pago parcial; Receivables filtra por un estado, así
+  que «Pago parcial» es su propio filtro. Sin orden por vencimiento (Receivables ordena por creación).
+- **Aging por cliente** (tabla del prototipo) y **tramos configurables:** no están en el contrato. La 23 muestra los
+  cinco tramos de R6 y remite a Cuentas por cobrar filtrada por cliente. TODO(api).
+- **Número de pago:** Receivables no numera pagos; se identifican por fecha, cliente y referencia («Pago del …»).
+- **Resumen para Inicio:** sigue sin ruta (el aging no cuenta cuentas); Inicio conserva «no disponible».
+- **Colores del aging:** los del prototipo con 31–60 ajustado a `#d6ae3a` (con el original, 31–60 y 61–90 no se
+  distinguían: ΔE 14,7 con visión normal). Validados en modo claro; en **modo oscuro** cinco tonos vecinos no caben
+  en la banda de luminosidad y se usan los mismos (cada barra lleva etiqueta y la tabla repite las cifras).
+  TODO(diseño): pasos oscuros.
+- Verificación: `typecheck` y `lint` limpios · **193 pruebas** (13 nuevas) · **53 e2e** (10 nuevas: axe WCAG 2.1 AA y
+  ancho en 1440 y 390 px) · `build`. Revisadas con capturas en escritorio y móvil.
+- **Ojo en esta máquina:** `npm test` con los 14 hilos por defecto da falsos fallos por tiempo en el primer test de
+  cada archivo (pasan solos y con `npx vitest run --maxWorkers=4`). No es de este incremento.
 
 ## Incremento 7 · Pulido (2026-09-27)
 - **Centrado.** Las pantallas de acceso (1–4) quedan centradas también en la altura, como el prototipo («01»:

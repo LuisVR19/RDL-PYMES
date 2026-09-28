@@ -1,5 +1,5 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js'
-import type { AuthPort, AuthSession } from './auth'
+import { CONFIRMED_PARAM, type AuthPort, type AuthSession, type SignUpResult } from './auth'
 
 /**
  * Autenticación con Supabase Auth (correo y contraseña).
@@ -35,6 +35,19 @@ export function fromClient(client: Pick<SupabaseClient, 'auth'>): AuthPort {
       const status = (error as { status?: number }).status ?? 0
       return { ok: false, reason: status >= 400 && status < 500 ? 'invalid-credentials' : 'unavailable' }
     },
+    async signUp({ fullName, email, password }) {
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          // El enlace del correo vuelve a la pantalla 1 con un aviso de «cuenta confirmada».
+          emailRedirectTo: `${window.location.origin}/ingresar?${CONFIRMED_PARAM}=confirmada`,
+        },
+      })
+      if (error) return { ok: false, reason: signUpReason(error) }
+      return { ok: true, next: data.session ? 'signedIn' : 'confirmEmail' }
+    },
     async signOut() {
       await client.auth.signOut()
     },
@@ -53,4 +66,27 @@ export function fromClient(client: Pick<SupabaseClient, 'auth'>): AuthPort {
       return () => data.subscription.unsubscribe()
     },
   }
+}
+
+/** Errores de `auth.signUp` (códigos de Supabase Auth) → lo que la pantalla sabe explicar. */
+function signUpReason(error: {
+  status?: number
+  code?: string
+}): Extract<SignUpResult, { ok: false }>['reason'] {
+  switch (error.code) {
+    case 'user_already_exists':
+    case 'email_exists':
+      return 'exists'
+    case 'weak_password':
+      return 'weak-password'
+    case 'email_address_invalid':
+      return 'invalid-email'
+    case 'signup_disabled':
+    case 'email_provider_disabled':
+      return 'disabled'
+    case 'over_email_send_rate_limit':
+    case 'over_request_rate_limit':
+      return 'rate-limited'
+  }
+  return error.status === 429 ? 'rate-limited' : 'unavailable'
 }

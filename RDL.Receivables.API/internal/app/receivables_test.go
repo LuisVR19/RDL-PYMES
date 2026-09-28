@@ -125,6 +125,10 @@ func (f *fakeTx) GetByInvoice(context.Context, uuid.UUID, uuid.UUID) (Receivable
 	panic("no usado por el listado")
 }
 
+func (f *fakeTx) ListByInvoices(context.Context, uuid.UUID, []uuid.UUID) ([]ReceivableView, error) {
+	panic("no usado por el listado")
+}
+
 func (f *fakeTx) AgingByDueDate(context.Context, uuid.UUID, string) ([]AgingRow, error) {
 	panic("no usado por el listado")
 }

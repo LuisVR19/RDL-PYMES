@@ -210,13 +210,21 @@ paths:
   /portal/v1/receivables:
     get: { tags: [cobranza], operationId: listReceivables, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
   /portal/v1/receivables/aging:
-    get: { tags: [cobranza], operationId: getAging, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    get: { tags: [cobranza], operationId: getAging, summary: 'Paso directo → Receivables. La fecha de corte viaja en `X-Aging-As-Of`.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
   /portal/v1/receivables/{id}:
     parameters: [{ $ref: '#/components/parameters/Id' }]
     get: { tags: [cobranza], operationId: getReceivable, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
   /portal/v1/receivables/{id}/follow-ups:
     parameters: [{ $ref: '#/components/parameters/Id' }]
     get: { tags: [cobranza], operationId: listFollowUps, summary: 'Gestiones de cobro. Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [cobranza], operationId: createFollowUp, summary: 'Registra una gestión de cobro. Paso directo → Receivables. No lo reintenta el gateway.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/receivables/{id}/promises:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get: { tags: [cobranza], operationId: listPromises, summary: 'Promesas de pago. Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
+    post: { tags: [cobranza], operationId: createPromise, summary: 'Registra una promesa de pago. Paso directo → Receivables. No lo reintenta el gateway.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }
+  /portal/v1/payment-promises/{id}/status:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post: { tags: [cobranza], operationId: closePromise, summary: 'pending → kept | broken | cancelled. Paso directo → Receivables. No lo reintenta el gateway.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
   /portal/v1/payments:
     get: { tags: [cobranza], operationId: listPayments, summary: 'Paso directo → Receivables.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }
     post: { tags: [cobranza], operationId: createPayment, summary: 'Paso directo → Receivables.', responses: { '201': { $ref: '#/components/responses/Upstream' } } }

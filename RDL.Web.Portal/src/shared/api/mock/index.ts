@@ -2,9 +2,10 @@ import { INVITED_ORGANIZATION, NOTIFICATIONS, ORGANIZATIONS, USER } from '@/mock
 import type { DataSource } from '../ports'
 import { ApiError, type Organization } from '../types'
 import { mockBranches, mockInvitations, mockMembers, mockOrganization } from './admin'
-import { mockCustomers, mockReceivables } from './billing'
+import { mockCustomers } from './billing'
 import { mockInvoices } from './invoices'
 import { mockCatalogs, mockProducts } from './products'
+import { mockReceivables } from './receivables'
 import { fakeCorrelationId, simulate } from './simulate'
 
 // Las organizaciones simuladas cambian durante la revisión (crear una, aceptar una invitación).

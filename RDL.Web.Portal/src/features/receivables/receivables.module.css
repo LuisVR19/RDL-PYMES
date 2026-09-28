@@ -1,0 +1,738 @@
+/* Módulo E · Cobranza: design/referencias «22»–«27». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.narrow {
+  composes: page;
+  max-width: 980px;
+}
+
+.form {
+  composes: page;
+  max-width: 880px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.back {
+  font: var(--text-caption);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.number {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 500;
+}
+
+.heading {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+
+.customer {
+  font: var(--text-body);
+  font-weight: 500;
+}
+
+.meta,
+.muted {
+  font: var(--text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+button.danger {
+  color: var(--color-danger-fg);
+  border-color: var(--color-danger-border);
+}
+
+.filter {
+  width: 240px;
+  max-width: 100%;
+}
+
+.dateFilter {
+  width: 180px;
+  max-width: 100%;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-strong);
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.ellipsis {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dash {
+  color: var(--color-text-disabled, var(--color-text-secondary));
+}
+
+.late {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font: var(--text-caption);
+  font-weight: 600;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+  white-space: nowrap;
+}
+
+.warnText {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-warning-fg);
+}
+
+.footer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+/* Las tres cifras en una franja con separadores de 1 px (prototipo «24» y «27»). */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 1px;
+  background: var(--color-border-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 18px;
+  background: var(--color-bg-surface);
+}
+
+.figLabel {
+  font: var(--text-overline);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.figValue,
+.figValueDanger,
+.figValueWarning {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.figValueDanger {
+  color: var(--color-danger-fg);
+}
+
+.figValueWarning {
+  color: var(--color-warning-fg);
+}
+
+.figSub {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.main {
+  flex: 1 1 520px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.side {
+  flex: 1 1 300px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Panel sin relleno con encabezado (el de PanelHeader está pensado para paneles con relleno). */
+.listPanel > :first-child {
+  margin: 0;
+  padding: 14px 18px;
+  flex-wrap: wrap;
+}
+
+/* Listas dentro de un panel: filas con borde inferior (prototipo: 12 px 18 px). */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 18px;
+  border-top: 1px solid var(--color-border-subtle);
+  font: var(--text-body);
+}
+
+.rowMain {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rowAmount {
+  min-width: 120px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.link {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.textLink {
+  font: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.empty {
+  padding: 18px;
+  border-top: 1px solid var(--color-border-subtle);
+  font: var(--text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.chip {
+  padding: 1px 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font: var(--text-caption);
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.noteText {
+  font: var(--text-body);
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+/* Alta rápida dentro del panel (prototipo: fondo azul muy claro). */
+.quick {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 10px 14px;
+  padding: 14px 18px;
+  background: var(--color-bg-quick-form);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.quickStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px;
+  background: var(--color-bg-quick-form);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.quickActions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* 26 · Registrar pago */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--text-body);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+.stepCurrent {
+  composes: step;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.stepDone {
+  composes: step;
+  color: var(--color-text-primary);
+}
+
+.stepCircle {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font: var(--text-caption);
+  font-weight: 600;
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-bg-surface);
+}
+
+.stepCurrent .stepCircle {
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+}
+
+.stepDone .stepCircle {
+  border: none;
+  background: var(--color-success-fg);
+  color: var(--color-text-on-accent);
+}
+
+.stepLine {
+  flex: 1 1 24px;
+  min-width: 16px;
+  max-width: 64px;
+  height: 2px;
+  background: var(--color-border-default);
+}
+
+.stepLineDone {
+  composes: stepLine;
+  background: var(--color-success-fg);
+}
+
+@media (max-width: 767px) {
+  .step:not(.stepCurrent) .stepLabel {
+    display: none;
+  }
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) 18px;
+  padding: 20px;
+}
+
+@media (max-width: 767px) {
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Franja de montos del paso 2: queda fija arriba al desplazar. */
+.sums {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--color-border-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+
+.sum,
+.sumOk,
+.sumWarn,
+.sumDanger {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px 14px;
+  background: var(--color-bg-surface);
+}
+
+.sumOk {
+  background: var(--color-success-bg);
+  color: var(--color-success-fg);
+}
+
+.sumWarn {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.sumDanger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+
+.sumLabel {
+  font: var(--text-caption);
+}
+
+.sumValue {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+  .sumValue {
+    font-size: 15px;
+    line-height: 22px;
+  }
+}
+
+.applyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 18px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.applyDoc {
+  flex: 1 1 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.applyBalance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 110px;
+  font-variant-numeric: tabular-nums;
+}
+
+.applyInput {
+  flex: 0 1 170px;
+  min-width: 140px;
+}
+
+.applyInput input {
+  width: 100%;
+  height: var(--control-h-md);
+  padding: 0 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font: var(--text-body);
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+}
+
+.applyInput input[aria-invalid='true'] {
+  border-color: var(--color-danger-fg);
+}
+
+.rowError {
+  flex-basis: 100%;
+  text-align: right;
+  font: var(--text-caption);
+  color: var(--color-danger-fg);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 18px 20px;
+  font: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary dt {
+  color: var(--color-text-secondary);
+}
+
+.summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.appliesTo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 20px;
+  padding: 12px 0 18px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.appliesTitle {
+  font: var(--text-body-sm);
+  font-weight: 600;
+}
+
+.appliesRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.appliesTotal {
+  composes: appliesRow;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* 23 · Aging: columnas del prototipo, 5 tramos con la barra anclada a la base. */
+.chartHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chartTitle {
+  margin: 0;
+  font: var(--text-h3);
+}
+
+.chartTotal {
+  font: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+  height: 180px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.barSlot {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+.barPct {
+  font: var(--text-caption);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+}
+
+/* Barra delgada (≤ 24 px no aplica: el prototipo usa 64 px), extremo redondeado de 4 px y base recta. */
+.bar {
+  width: min(64px, 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+}
+
+.bucket-current {
+  background: var(--color-aging-current);
+}
+
+.bucket-1_30 {
+  background: var(--color-aging-1-30);
+}
+
+.bucket-31_60 {
+  background: var(--color-aging-31-60);
+}
+
+.bucket-61_90 {
+  background: var(--color-aging-61-90);
+}
+
+.bucket-90_plus {
+  background: var(--color-aging-90-plus);
+}
+
+.barLabels {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.barLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.barName {
+  font: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.barValue {
+  font: var(--text-body-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.table caption {
+  padding: 14px 18px;
+  text-align: left;
+  font: var(--text-h3);
+}
+
+.table th {
+  padding: 10px 18px;
+  text-align: left;
+  font: var(--text-caption);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  border-top: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.table tbody th {
+  font: var(--text-body);
+  color: var(--color-text-primary);
+  background: none;
+  border-top: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.table td {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.table .right {
+  text-align: right;
+}
+
+.table tfoot td {
+  font-weight: 600;
+  background: var(--color-bg-subtle);
+  border-bottom: none;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 2px;
+  vertical-align: baseline;
+}

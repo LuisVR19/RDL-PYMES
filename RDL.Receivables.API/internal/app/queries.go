@@ -51,6 +51,31 @@ func (uc *GetBalanceByInvoice) Execute(ctx context.Context, t tenancy.Context, i
 	return v, err
 }
 
+// MaxBalanceBatch es el tope de ids por llamada de GetBalancesByInvoice (IdBatch de bff-internal.yaml: el `limit`
+// máximo de una página).
+const MaxBalanceBatch = 100
+
+// GetBalancesByInvoice es la versión por lote de GetBalanceByInvoice, para los listados del BFF (sin N+1). Mismos
+// permisos (R10). La forma del lote (1 a 100 ids distintos) la valida el handler.
+type GetBalancesByInvoice struct{ tx TxManager }
+
+func NewGetBalancesByInvoice(tx TxManager) *GetBalancesByInvoice {
+	return &GetBalancesByInvoice{tx: tx}
+}
+
+func (uc *GetBalancesByInvoice) Execute(ctx context.Context, t tenancy.Context, invoiceIDs []uuid.UUID) ([]ReceivableView, error) {
+	if err := authorize(t, permission.InvoiceBalanceRead); err != nil {
+		return nil, err
+	}
+	var out []ReceivableView
+	err := uc.tx.WithinTenantTx(ctx, t, func(ctx context.Context, tx Tx) error {
+		var err error
+		out, err = tx.Receivables().ListByInvoices(ctx, t.OrganizationID(), invoiceIDs)
+		return err
+	})
+	return out, err
+}
+
 // GetAging agrupa el saldo cobrable por moneda y tramo (R6) a la fecha asOf, que por defecto es hoy en la zona de la
 // organización. Sin conversión entre monedas. Los saldos son los actuales: un asOf pasado reclasifica por
 // vencimiento, no reconstruye el saldo que había ese día.

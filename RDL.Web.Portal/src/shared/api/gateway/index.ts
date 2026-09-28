@@ -9,8 +9,8 @@ import {
   createCustomersPort,
   createInvoicesPort,
   createProductsPort,
-  createReceivablesPort,
 } from './billing'
+import { createReceivablesPort } from './receivables'
 import type { GatewayHttp } from './http'
 
 /**

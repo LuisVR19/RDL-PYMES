@@ -388,6 +388,10 @@ func TestReadUseCases(t *testing.T) {
 	if _, err := NewGetBalanceByInvoice(s).Execute(ctx, s.tenant("read_only"), uuid.New()); !errors.Is(err, ErrNotFound) {
 		t.Errorf("factura sin cuenta: %v", err)
 	}
+	// Por lote: la factura sin cuenta no viene (no es error), y los mismos permisos que la de a una.
+	if vs, err := NewGetBalancesByInvoice(s).Execute(ctx, s.tenant("biller"), []uuid.UUID{inv, uuid.New()}); err != nil || len(vs) != 1 || vs[0].ID != r {
+		t.Errorf("biller ve los saldos por lote: %+v, %v", vs, err)
+	}
 	for name, run := range map[string]func(string) error{
 		"detalle de la cuenta": func(role string) error {
 			_, err := NewGetReceivable(s).Execute(ctx, s.tenant(role), r)
