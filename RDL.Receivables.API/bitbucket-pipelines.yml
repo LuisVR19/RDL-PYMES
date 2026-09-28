@@ -1,0 +1,34 @@
+# CI de Receivables API. La suite de aislamiento y la integración necesitan la base de dev: corren en el paso manual.
+# TODO(P2): el pipeline definitivo (monorepo o repos separados, registro de imágenes, despliegue a staging) lo define infra.
+image: golang:1.27
+
+definitions:
+  caches:
+    gomod: /root/go/pkg/mod
+  steps:
+    - step: &check
+        name: build, vet, test y lint
+        caches: [gomod]
+        script:
+          - go build ./...
+          - go vet ./...
+          - go test -race -count=1 ./...
+          - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b "$(go env GOPATH)/bin"
+          - golangci-lint run --build-tags=integration ./...
+    - step: &isolation
+        name: integración, aislamiento y E2E contra dev
+        trigger: manual
+        caches: [gomod]
+        script:
+          # TEST_DATABASE_URL (+ TEST_DB_PASSWORD): variables seguras del repositorio (login receivables_api, nunca
+          # producción). ISOLATION_ORG_A/B: dos organizaciones de prueba de dev con owner activo (ADR 0008).
+          - go test -count=1 -tags=integration ./tests/...
+
+pipelines:
+  pull-requests:
+    '**':
+      - step: *check
+  branches:
+    main:
+      - step: *check
+      - step: *isolation
