@@ -4,7 +4,7 @@ import "testing"
 
 func TestMatrix(t *testing.T) {
 	all := []Permission{CustomersRead, CustomersManage, ProductsRead, ProductsManage, InvoicesRead,
-		InvoicesManage, InvoicesIssue, SequencesRead, SequencesManage}
+		InvoicesManage, InvoicesIssue, InvoicesCancel, SequencesRead, SequencesManage}
 	// Tabla escrita desde el prompt P4, no desde la implementación.
 	want := map[Role][]Permission{
 		RoleOwner:      all,

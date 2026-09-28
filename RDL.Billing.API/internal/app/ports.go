@@ -85,6 +85,8 @@ type InvoiceRepository interface {
 	// MarkIssued guarda la transición draft → issued (número, fecha, vencimiento y snapshot del cliente).
 	// ErrNotDraft si el documento ya no es un borrador.
 	MarkIssued(ctx context.Context, inv invoice.Invoice) (invoice.Invoice, error)
+	// MarkCancelled guarda la transición issued → cancelled con su motivo. ErrNotIssued si ya no está emitido.
+	MarkCancelled(ctx context.Context, inv invoice.Invoice) (invoice.Invoice, error)
 	List(ctx context.Context, organizationID uuid.UUID, q InvoiceQuery) ([]invoice.Invoice, error)
 	History(ctx context.Context, organizationID, id uuid.UUID) ([]StatusChange, error)
 	AddStatusChange(ctx context.Context, organizationID, id uuid.UUID, c StatusChange) error
@@ -95,6 +97,10 @@ type InvoiceRepository interface {
 // Publicarlo es trabajo del worker de infraestructura (P2), no de esta API.
 type EventOutbox interface {
 	InvoiceIssued(ctx context.Context, inv invoice.Invoice, issueDate string) error
+	// NoteIssued escribe CreditNoteIssued o DebitNoteIssued según el tipo de la nota. referencedNumber es el número
+	// visible de la factura que corrige.
+	NoteIssued(ctx context.Context, note invoice.Invoice, referencedNumber, issueDate string) error
+	InvoiceCancelled(ctx context.Context, inv invoice.Invoice) error
 }
 
 type InvoiceQuery struct {

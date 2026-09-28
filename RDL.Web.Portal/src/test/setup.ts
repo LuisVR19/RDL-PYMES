@@ -14,3 +14,11 @@ if (!('ResizeObserver' in globalThis)) {
     disconnect() {}
   }
 }
+
+// El router carga los módulos en diferido. En las pruebas se precargan: la primera transformación de un módulo tarda
+// más que la espera de `findBy…` y la prueba fallaría por tiempo, no por lo que verifica.
+await Promise.all([
+  import('@/features/billing/pages'),
+  import('@/features/admin/pages'),
+  import('@/features/home/pages/HomePage'),
+])

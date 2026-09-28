@@ -52,8 +52,8 @@ const REASON_MIN = 10
  * obligatorio. La de crédito elige líneas y cantidades de la factura; la de débito agrega cargos del catálogo y un
  * vencimiento. Se guarda y se emite como cualquier borrador: los totales son los de Billing.
  *
- * TODO(api): Billing implementa las notas en F5; hasta entonces crear una responde 422 y la pantalla lo muestra como
- * error del servidor. Mientras la nota no se emite, su id queda en `?borrador=` para retomarla.
+ * Mientras la nota no se emite, su id queda en `?borrador=` para retomarla; Billing devuelve su factura y su motivo
+ * (F5), así que se retoma igual desde Documentos.
  */
 export function NotePage() {
   const { id = '' } = useParams()
@@ -97,7 +97,7 @@ export function NotePage() {
   if (saved && saved.status !== 'draft') return <Navigate to={`/facturas/${saved.id}`} replace />
 
   // `key` por tipo y no por borrador: al guardar la primera vez, la nota recibe id (`?borrador=`) y el editor debe
-  // seguir montado, o se perdería el motivo escrito (Billing no lo devuelve).
+  // seguir montado, sin volver a leer lo que el usuario está escribiendo.
   return <NoteEditor key={type} type={type} reference={ref} overview={overview.data} initial={saved} />
 }
 
@@ -117,7 +117,7 @@ function NoteEditor({
   const tz = activeOrg?.timezone ?? DEFAULT_TZ
   const today = todayIn(tz)
   const credit = type === 'credit_note'
-  const [reason, setReason] = useState('')
+  const [reason, setReason] = useState(initial?.referenceReason ?? '')
   const [due, setDue] = useState(today)
   const [creditLines, setCreditLines] = useState<CreditLine[]>(() => initialCreditLines(reference, initial))
   const [debitLines, setDebitLines] = useState<DraftLine[]>(() =>

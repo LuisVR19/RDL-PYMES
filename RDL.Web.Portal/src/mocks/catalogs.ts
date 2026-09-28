@@ -5,8 +5,14 @@ import type { Branch, CabysItem, CatalogItem, Product, TaxOption } from '@/share
 
 // Sucursales del prototipo (SUCURSALES).
 export const BRANCHES: Branch[] = [
-  { id: 'b001', code: '001', name: 'Central (San José)', isActive: true },
-  { id: 'b002', code: '002', name: 'Escazú', isActive: true },
+  {
+    id: 'b001',
+    code: '001',
+    name: 'Central (San José)',
+    address: 'San José, Carmen, avenida 2',
+    isActive: true,
+  },
+  { id: 'b002', code: '002', name: 'Escazú', address: 'Escazú, San Rafael, Plaza del Sol', isActive: true },
 ]
 
 export const MOCK_TAX_OPTIONS: TaxOption[] = [

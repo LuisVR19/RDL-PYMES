@@ -1,23 +1,7 @@
-import { AxeBuilder } from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { expectNoAxeViolations, noHorizontalScroll } from './helpers'
 
 // Incremento 2 · pantallas de acceso, perfil y sesión vencida, con axe (WCAG 2.1 AA) en 1440 px y 390 px.
-const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
-
-async function expectNoAxeViolations(page: Page) {
-  const results = await new AxeBuilder({ page })
-    .withTags(WCAG)
-    .exclude('[aria-label^="Abrir barra de revisión"]')
-    .analyze()
-  expect(
-    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
-  ).toEqual([])
-}
-
-async function noHorizontalScroll(page: Page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
-  expect(overflow).toBeLessThanOrEqual(0)
-}
 
 test('pantalla 1 · recuperar contraseña', async ({ page }) => {
   await page.goto('/recuperar')

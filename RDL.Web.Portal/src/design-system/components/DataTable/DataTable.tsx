@@ -73,6 +73,7 @@ export function DataTable<R>({
   }
 
   const refCode = error instanceof ApiError ? error.correlationId : undefined
+  const paged = cursor && (cursor.hasPrev || cursor.hasNext)
 
   return (
     <div className={styles.wrap}>
@@ -145,10 +146,10 @@ export function DataTable<R>({
         {status === 'error' && <ErrorState onRetry={onRetry} refCode={refCode} />}
         {status === 'success' && (!rows || rows.length === 0) && empty}
       </div>
-      {status === 'success' && rows && rows.length > 0 && (footer || cursor) && (
+      {status === 'success' && rows && rows.length > 0 && (footer || paged) && (
         <div className={styles.footer}>
           <span>{footer}</span>
-          {cursor && (
+          {paged && (
             <div className={styles.pager}>
               <button
                 type="button"

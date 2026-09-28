@@ -28,6 +28,7 @@ type fakeInvoiceCommands struct {
 	result    invoice.Invoice
 	history   []app.StatusChange
 	gotKey    string
+	gotReason string
 	replayed  bool
 	err       error
 }
@@ -112,7 +113,17 @@ func newInvoiceRouter(f *fakeInvoiceCommands) http.Handler {
 			f.called, f.gotID = "summary", id
 			return f.result, f.err
 		}),
+		Cancel: invCancelFn(func(_ context.Context, _ tenancy.Context, k string, id uuid.UUID, reason string) (app.CancelResult, error) {
+			f.called, f.gotID, f.gotKey, f.gotReason = "cancel", id, k, reason
+			return app.CancelResult{Invoice: f.result, Replayed: f.replayed}, f.err
+		}),
 	}})
+}
+
+type invCancelFn func(context.Context, tenancy.Context, string, uuid.UUID, string) (app.CancelResult, error)
+
+func (fn invCancelFn) Execute(ctx context.Context, t tenancy.Context, k string, id uuid.UUID, r string) (app.CancelResult, error) {
+	return fn(ctx, t, k, id, r)
 }
 
 type getInvoiceFn func(context.Context, tenancy.Context, uuid.UUID) (invoice.Invoice, error)
@@ -181,8 +192,6 @@ func TestCreateInvoiceValidationHTTP(t *testing.T) {
 		{"sin moneda", `{` + base + `}`, http.StatusUnprocessableEntity, "validation", "currency"},
 		{"tipo de cambio inválido", `{` + base + `,"currency":"USD","exchangeRate":"0"}`,
 			http.StatusUnprocessableEntity, "validation", "exchangeRate"},
-		{"nota (F5)", `{` + base + `,"currency":"CRC","referencedInvoiceId":"` + uuid.NewString() + `"}`,
-			http.StatusUnprocessableEntity, "validation", "referencedInvoiceId"},
 		{"organizationId en el cuerpo", `{` + base + `,"currency":"CRC","organizationId":"` + orgB.String() + `"}`,
 			http.StatusBadRequest, "malformed-request", ""},
 	}
@@ -310,9 +319,80 @@ func TestUpdateInvoiceNullableFields(t *testing.T) {
 		t.Fatal("un campo ausente no cambia")
 	}
 
-	rec = doBody(h, http.MethodPatch, "/v1/invoices/"+id, "tok-a", `{"documentType":"credit_note"}`)
-	if p := problemOf(t, rec); rec.Code != http.StatusUnprocessableEntity || p.Errors[0].Field != "documentType" {
-		t.Fatalf("cambiar el tipo: status=%d %+v", rec.Code, p)
+	// El tipo, la factura referenciada y el motivo viajan al caso de uso: el dominio decide si cambian.
+	ref := uuid.New()
+	doBody(h, http.MethodPatch, "/v1/invoices/"+id, "tok-a",
+		`{"documentType":"credit_note","referencedInvoiceId":"`+ref.String()+`","referenceReason":"Devolución"}`)
+	p = f.gotPatch
+	if p.DocumentType == nil || *p.DocumentType != invoice.TypeCreditNote || p.ReferencedInvoiceID == nil ||
+		*p.ReferencedInvoiceID != ref || p.ReferenceReason == nil || *p.ReferenceReason != "Devolución" {
+		t.Fatalf("patch = %+v", p)
+	}
+}
+
+func TestCreateNoteHTTP(t *testing.T) {
+	f := &fakeInvoiceCommands{result: sampleDraft()}
+	ref, cust := uuid.New(), uuid.New()
+	rec := doBody(newInvoiceRouter(f), http.MethodPost, "/v1/invoices", "tok-a",
+		`{"documentType":"credit_note","customerId":"`+cust.String()+`","referencedInvoiceId":"`+ref.String()+
+			`","referenceReason":"Devolución parcial","saleConditionCode":"01","currency":"CRC"}`, "Idempotency-Key", "k-n")
+	h := f.gotHeader
+	if rec.Code != http.StatusCreated || h.DocumentType != invoice.TypeCreditNote || h.ReferencedInvoiceID == nil ||
+		*h.ReferencedInvoiceID != ref || h.ReferenceReason != "Devolución parcial" {
+		t.Fatalf("status=%d header=%+v", rec.Code, h)
+	}
+}
+
+func TestCancelInvoiceHTTP(t *testing.T) {
+	cancelled := sampleDraft()
+	issuedAt, cancelledAt, by := time.Date(2026, 9, 24, 18, 0, 0, 0, time.UTC), time.Date(2026, 9, 25, 16, 0, 0, 0, time.UTC), userID
+	cancelled.Status, cancelled.Number, cancelled.IssuedAt, cancelled.IssuedByUserID = invoice.StatusCancelled, "00000001", &issuedAt, &by
+	cancelled.Customer = invoice.CustomerSnapshot{IdentificationTypeCode: "02", IdentificationNumber: "3101123456", LegalName: "Cliente S.A."}
+	cancelled.CancellationReason, cancelled.CancelledAt, cancelled.CancelledByUserID = "Cliente equivocado", &cancelledAt, &by
+	f := &fakeInvoiceCommands{result: cancelled}
+	id := uuid.New()
+	rec := doBody(newInvoiceRouter(f), http.MethodPost, "/v1/invoices/"+id.String()+"/cancel", "tok-a",
+		`{"reason":"Cliente equivocado"}`, "Idempotency-Key", "k-c")
+	if rec.Code != http.StatusOK || f.gotID != id || f.gotKey != "k-c" || f.gotReason != "Cliente equivocado" {
+		t.Fatalf("status=%d cuerpo=%s", rec.Code, rec.Body)
+	}
+	var out map[string]any
+	_ = json.NewDecoder(rec.Body).Decode(&out)
+	if out["status"] != "cancelled" || out["cancellationReason"] != "Cliente equivocado" ||
+		out["cancelledAt"] != "2026-09-25T16:00:00Z" || out["cancelledByUserId"] != userID.String() {
+		t.Fatalf("respuesta = %v", out)
+	}
+}
+
+func TestCancelAndNoteErrorsHTTP(t *testing.T) {
+	cancel := "/v1/invoices/" + uuid.NewString() + "/cancel"
+	for name, tc := range map[string]struct {
+		path, body, key string
+		err             error
+		status          int
+		problemType     string
+	}{
+		"sin Idempotency-Key":  {cancel, `{"reason":"x"}`, "", nil, http.StatusBadRequest, "idempotency-key-required"},
+		"campo desconocido":    {cancel, `{"reason":"x","organizationId":"x"}`, "k", nil, http.StatusBadRequest, "malformed-request"},
+		"sin motivo":           {cancel, `{}`, "k", invoice.FieldError{Field: "reason", Message: "es obligatorio"}, http.StatusUnprocessableEntity, "validation"},
+		"no emitida":           {cancel, `{"reason":"x"}`, "k", invoice.ErrNotIssued, http.StatusConflict, "invoice-not-issued"},
+		"una nota":             {cancel, `{"reason":"x"}`, "k", invoice.ErrNoteNotCancellable, http.StatusConflict, "conflict"},
+		"rol sin permiso":      {cancel, `{"reason":"x"}`, "k", app.ErrForbidden, http.StatusForbidden, "forbidden"},
+		"de otra organización": {cancel, `{"reason":"x"}`, "k", app.ErrNotFound, http.StatusNotFound, "not-found"},
+		"referencia inválida": {"/v1/invoices", `{"documentType":"debit_note","customerId":"` + uuid.NewString() +
+			`","saleConditionCode":"01","currency":"CRC"}`, "k", app.ErrInvalidReference, http.StatusUnprocessableEntity, "invalid-reference"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := &fakeInvoiceCommands{err: tc.err}
+			var headers []string
+			if tc.key != "" {
+				headers = []string{"Idempotency-Key", tc.key}
+			}
+			rec := doBody(newInvoiceRouter(f), http.MethodPost, tc.path, "tok-a", tc.body, headers...)
+			if p := problemOf(t, rec); rec.Code != tc.status || p.Type != problem.TypeBase+tc.problemType {
+				t.Fatalf("status=%d type=%s", rec.Code, p.Type)
+			}
+		})
 	}
 }
 

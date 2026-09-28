@@ -567,3 +567,122 @@ func TestIssueEndToEndSQL(t *testing.T) {
 		return nil
 	})
 }
+
+// F5 contra la base real: notas de crédito y débito sobre una factura emitida y la anulación de esa factura. Todo en
+// una transacción revertida: no deja datos.
+func TestNotesAndCancelEndToEndSQL(t *testing.T) {
+	orgEnv := os.Getenv("TEST_MEMBER_ORG")
+	if orgEnv == "" {
+		t.Skip("defina TEST_MEMBER_ORG (organización de prueba de Platform) para probar notas y anulación")
+	}
+	org := uuid.MustParse(orgEnv)
+	inRolledBackTx(t, org, func(ctx context.Context, ptx pgx.Tx, r *tx) error {
+		tm := SavepointTxManager{Outer: ptx}
+		owner := tenancy.NewContext(uuid.New(), "sub", org, []string{"owner"})
+		ctx = correlation.WithID(ctx, uuid.New())
+		crc := money.MustCurrencyForTest("CRC")
+
+		c, err := app.NewCreateCustomer(tm).Execute(ctx, owner, uuid.NewString(), customer.NewInput{
+			IdentificationTypeCode: "02", IdentificationNumber: "3101" + uuid.NewString()[:6], LegalName: "Cliente F5 S.A.",
+		})
+		if err != nil {
+			return fmt.Errorf("cliente: %w", err)
+		}
+		p, err := app.NewCreateProduct(tm).Execute(ctx, owner, uuid.NewString(), product.NewInput{
+			Code: "F5-" + uuid.NewString()[:8], Description: "Servicio F5", CabysCode: "8314100000100",
+			UnitOfMeasureCode: "Sp", UnitPrice: money.MustAmountForTest("1000"), Currency: crc, IsService: true,
+		})
+		if err != nil {
+			return fmt.Errorf("producto: %w", err)
+		}
+		line := []app.LineRequest{{ProductID: p.Product.ID, Quantity: money.MustQuantityForTest("1")}}
+		issue := func(h app.HeaderInput) (invoice.Invoice, error) {
+			d, err := app.NewCreateInvoiceDraft(tm).Execute(ctx, owner, uuid.NewString(), h, line)
+			if err != nil {
+				return invoice.Invoice{}, fmt.Errorf("borrador %s: %w", h.DocumentType, err)
+			}
+			res, err := app.NewIssueInvoice(tm).Execute(ctx, owner, uuid.NewString(), d.Invoice.ID)
+			return res.Invoice, err
+		}
+		base := app.HeaderInput{DocumentType: invoice.TypeInvoice, CustomerID: c.Customer.ID, SaleConditionCode: "01", Currency: crc}
+		fac, err := issue(base)
+		if err != nil {
+			return fmt.Errorf("factura: %w", err)
+		}
+
+		v, _ := cevents.DefaultValidator()
+		checkEvent := func(aggregate uuid.UUID, spec cevents.Spec) error {
+			var payload string
+			if err := ptx.QueryRow(ctx, `select payload::text from integration.outbox_messages
+			                             where aggregate_id = $1 and event_type = $2`, aggregate, spec.Type).Scan(&payload); err != nil {
+				return fmt.Errorf("outbox %s: %w", spec.Type, err)
+			}
+			if err := v.Validate(spec.SchemaFile, []byte(payload)); err != nil {
+				return fmt.Errorf("%s guardado no valida: %w", spec.Type, err)
+			}
+			return nil
+		}
+
+		credit := base
+		credit.DocumentType, credit.ReferencedInvoiceID, credit.ReferenceReason = invoice.TypeCreditNote, &fac.ID, "Devolución"
+		nc, err := issue(credit)
+		if err != nil {
+			return fmt.Errorf("nota de crédito: %w", err)
+		}
+		stored, err := r.Invoices().Get(ctx, org, nc.ID)
+		if err != nil || stored.ReferencedInvoiceID == nil || *stored.ReferencedInvoiceID != fac.ID || stored.ReferenceReason != "Devolución" {
+			return fmt.Errorf("nota guardada = %+v (err %w)", stored, err)
+		}
+		if err := checkEvent(nc.ID, cevents.CreditNoteIssuedSpec); err != nil {
+			return err
+		}
+
+		debit := base
+		ten := 10
+		debit.DocumentType, debit.ReferencedInvoiceID, debit.ReferenceReason, debit.CreditTermDays = invoice.TypeDebitNote, &fac.ID, "Intereses", &ten
+		nd, err := issue(debit)
+		if err != nil {
+			return fmt.Errorf("nota de débito: %w", err)
+		}
+		if err := checkEvent(nd.ID, cevents.DebitNoteIssuedSpec); err != nil {
+			return err
+		}
+
+		// Anular la factura: estado, motivo, historial y evento, en la misma transacción.
+		res, err := app.NewCancelInvoice(tm).Execute(ctx, owner, uuid.NewString(), fac.ID, "Cliente equivocado")
+		if err != nil {
+			return fmt.Errorf("anulación: %w", err)
+		}
+		got, err := r.Invoices().Get(ctx, org, fac.ID)
+		if err != nil || got.Status != invoice.StatusCancelled || got.CancellationReason != "Cliente equivocado" ||
+			got.CancelledAt == nil || !got.CancelledAt.Equal(*res.Invoice.CancelledAt) || got.Number != fac.Number {
+			return fmt.Errorf("anulada guardada = %+v (err %w)", got, err)
+		}
+		if h, _ := r.Invoices().History(ctx, org, fac.ID); len(h) != 2 || h[1].To != invoice.StatusCancelled || h[1].Reason != "Cliente equivocado" {
+			return fmt.Errorf("historial = %+v", h)
+		}
+		if err := checkEvent(fac.ID, cevents.InvoiceCancelledSpec); err != nil {
+			return err
+		}
+		// La base no deja anular dos veces ni cambiar el motivo de una anulación.
+		if _, err := r.Invoices().MarkCancelled(ctx, res.Invoice); !errors.Is(err, invoice.ErrNotIssued) {
+			return fmt.Errorf("segunda anulación en la base: err = %w", err)
+		}
+		if _, err := ptx.Exec(ctx, `savepoint guard_motivo`); err != nil {
+			return err
+		}
+		_, err = ptx.Exec(ctx, `update billing.invoices set cancellation_reason = 'otro' where organization_id = $1 and id = $2`, org, fac.ID)
+		if _, rbErr := ptx.Exec(ctx, `rollback to savepoint guard_motivo`); rbErr != nil {
+			return rbErr
+		}
+		if err == nil {
+			return errors.New("invoices_guard dejó cambiar el motivo de una anulación")
+		}
+		// Una factura anulada ya no admite notas.
+		late := credit
+		if _, err := app.NewCreateInvoiceDraft(tm).Execute(ctx, owner, uuid.NewString(), late, line); !errors.Is(err, invoice.ErrNotIssued) {
+			return fmt.Errorf("nota sobre anulada: err = %w", err)
+		}
+		return nil
+	})
+}

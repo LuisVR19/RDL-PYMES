@@ -68,6 +68,19 @@ export function createReceivablesPort(http: GatewayHttp): ReceivablesPort {
         correlationId: '',
       })
     },
+    payments: (q) =>
+      http.get<Page<Payment>>('/portal/v1/payments', { cursor: q?.cursor, limit: num(q?.limit) }),
+    summary: async () => {
+      // TODO(api): el contrato solo tiene `GET /v1/receivables/aging`, con los tramos por definir y sin cuántas
+      // cuentas hay. Hasta que Receivables (P6) defina un resumen, Inicio muestra estas cifras como no disponibles
+      // en vez de deducirlas de tramos que todavía no existen.
+      throw new ApiError({
+        status: 501,
+        type: 'urn:rdl:portal:problem:not-in-contract',
+        title: 'Resumen de cuentas por cobrar',
+        correlationId: '',
+      })
+    },
   }
 }
 
@@ -87,7 +100,6 @@ export function createInvoicesPort(http: GatewayHttp): InvoicesPort {
     get: (id) => http.get<Invoice>(`/portal/v1/invoices/${encodeURIComponent(id)}`),
     overview: (id) => http.get<InvoiceOverview>(`/portal/v1/invoices/${encodeURIComponent(id)}/overview`),
     history: (id) => http.get<StatusChange[]>(`/portal/v1/invoices/${encodeURIComponent(id)}/history`),
-    // TODO(api): Billing implementa `cancel` en F5 y el gateway todavía no declara la ruta: hoy responde 404.
     cancel: (id, reason, idempotencyKey) =>
       http.send<Invoice>(
         'POST',
@@ -113,8 +125,17 @@ export function createBranchesPort(http: GatewayHttp): BranchesPort {
     list: (q) =>
       http.get<Page<Branch>>('/portal/v1/organizations/current/branches', {
         active: bool(q?.active),
-        limit: '100',
+        cursor: q?.cursor,
+        limit: num(q?.limit ?? 100),
       }),
+    create: (input, idempotencyKey) =>
+      http.send<Branch>('POST', '/portal/v1/organizations/current/branches', input, { idempotencyKey }),
+    update: (id, patch) =>
+      http.send<Branch>(
+        'PATCH',
+        `/portal/v1/organizations/current/branches/${encodeURIComponent(id)}`,
+        patch,
+      ),
   }
 }
 

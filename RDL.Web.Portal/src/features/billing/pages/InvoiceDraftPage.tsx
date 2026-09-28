@@ -79,6 +79,11 @@ export function InvoiceDraftPage() {
   }
   const inv = invoice.data
   if (inv && inv.status !== 'draft') return <Navigate to={`/facturas/${inv.id}`} replace />
+  // Un borrador de nota se edita en la pantalla 16, desde su factura.
+  if (inv && inv.documentType !== 'invoice' && inv.referencedInvoiceId) {
+    const kind = inv.documentType === 'credit_note' ? 'nota-credito' : 'nota-debito'
+    return <Navigate to={`/facturas/${inv.referencedInvoiceId}/${kind}?borrador=${inv.id}`} replace />
+  }
   if (inv && inv.documentType !== 'invoice') {
     return (
       <div className={styles.page}>

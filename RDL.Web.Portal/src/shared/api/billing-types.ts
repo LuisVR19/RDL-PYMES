@@ -80,6 +80,15 @@ export interface Receivable {
   status: ReceivableStatus
 }
 
+/**
+ * Saldos para Inicio (pantalla 6): lo abierto y lo vencido a una fecha de corte, por moneda (nunca se convierte
+ * de una a otra) y con cuántas cuentas.
+ */
+export interface ReceivablesSummary {
+  open: { totals: Partial<Record<Currency, string>>; count: number }
+  overdue: { totals: Partial<Record<Currency, string>>; count: number }
+}
+
 export type PaymentStatus = 'posted' | 'voided'
 
 export interface Payment {
@@ -157,6 +166,9 @@ export interface Branch {
   id: string
   code: string
   name: string
+  address?: string
+  phone?: string
+  email?: string
   isActive: boolean
 }
 
@@ -266,6 +278,13 @@ export interface Invoice {
   status: InvoiceStatus
   requiresCorrection: boolean
   fiscalRejectionReason?: string
+  /** Solo notas: la factura que corrige y el motivo. */
+  referencedInvoiceId?: string
+  referenceReason?: string
+  /** Solo anuladas. */
+  cancellationReason?: string
+  cancelledAt?: string
+  cancelledByUserId?: string
   customerId: string
   customerSnapshot?: CustomerSnapshot
   branchId?: string

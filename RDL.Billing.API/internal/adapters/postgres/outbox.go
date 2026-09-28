@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	cevents "bitbucket.org/rdl/contracts/pkg/events"
 	"github.com/google/uuid"
 
 	"rdl/billing-api/internal/adapters/events"
@@ -17,14 +18,33 @@ type outbox struct{ q *db.Queries }
 // InvoiceIssued arma InvoiceIssued v1, lo valida contra su JSON Schema y lo escribe en el outbox. Si el evento no
 // valida, devuelve error y la transacción de la emisión se revierte entera: no queda factura emitida sin evento.
 func (o outbox) InvoiceIssued(ctx context.Context, inv invoice.Invoice, issueDate string) error {
-	cid, ok := correlation.FromContext(ctx)
-	if !ok {
-		cid = uuid.New()
-	}
-	e, err := events.InvoiceIssued(inv, issueDate, cid)
+	e, err := events.InvoiceIssued(inv, issueDate, correlationID(ctx))
 	if err != nil {
 		return err
 	}
+	return o.write(ctx, e)
+}
+
+// NoteIssued escribe CreditNoteIssued o DebitNoteIssued v1, con la misma garantía que InvoiceIssued.
+func (o outbox) NoteIssued(ctx context.Context, note invoice.Invoice, referencedNumber, issueDate string) error {
+	e, err := events.NoteIssued(note, referencedNumber, issueDate, correlationID(ctx))
+	if err != nil {
+		return err
+	}
+	return o.write(ctx, e)
+}
+
+// InvoiceCancelled escribe InvoiceCancelled v1 en la transacción de la anulación.
+func (o outbox) InvoiceCancelled(ctx context.Context, inv invoice.Invoice) error {
+	e, err := events.InvoiceCancelled(inv, correlationID(ctx))
+	if err != nil {
+		return err
+	}
+	return o.write(ctx, e)
+}
+
+// write valida el evento contra su schema y solo entonces lo inserta en integration.outbox_messages.
+func (o outbox) write(ctx context.Context, e cevents.Event) error {
 	row, err := events.OutboxRow(e)
 	if err != nil {
 		return err
@@ -38,4 +58,12 @@ func (o outbox) InvoiceIssued(ctx context.Context, inv invoice.Invoice, issueDat
 		return fmt.Errorf("escribiendo outbox: %w", err)
 	}
 	return nil
+}
+
+// correlationID es el del request; sin él (un proceso interno), uno nuevo.
+func correlationID(ctx context.Context) uuid.UUID {
+	if cid, ok := correlation.FromContext(ctx); ok {
+		return cid
+	}
+	return uuid.New()
 }

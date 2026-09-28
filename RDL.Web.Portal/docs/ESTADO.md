@@ -2,6 +2,85 @@
 
 Última actualización: 2026-09-27
 
+## Incremento 7 · Pulido (2026-09-27)
+- **Centrado.** Las pantallas de acceso (1–4) quedan centradas también en la altura, como el prototipo («01»:
+  `justify-content: safe center`); con contenido más alto que la ventana arrancan arriba y se desplazan. Los
+  formularios del armazón (cliente, producto, organización, perfil, auditoría) y el marcador provisional se centran
+  en el área de contenido. **Decisión de producto (Luis):** el prototipo los deja alineados a la izquierda.
+- **Rejilla de formularios** de dos columnas fijas (una en móvil) en cliente, organización y auditoría: con
+  `auto-fit` de 240 px salían tres columnas a 820 px y los campos quedaban cortos con un hueco a la derecha.
+  Producto conserva sus tres columnas (su última fila tiene tres campos).
+- **Tablas:** «Anterior / Siguiente» solo si hay otra página (con una sola, se apretaban contra el pie en móvil); el
+  pie se ajusta en varias líneas. En móvil se ocultan el correo en Miembros y «Creada» en Invitaciones.
+- **Atajos:** `<Kbd hint>` no se muestra en móvil (N en Nueva factura, Ctrl S en Guardar borrador), como el
+  `isDesktop` del prototipo.
+- **Carga diferida por módulo:** facturación, administración e Inicio bajan la primera vez que se usan; el acceso
+  sigue en el paquete inicial. Paquete inicial: **483 → 316 kB** (85 kB gzip). `src/test/setup.ts` precarga los
+  módulos para que las pruebas no fallen por tiempo.
+- **e2e:** los tres specs usan `e2e/helpers.ts` (axe y el ancho contra el viewport configurado, que sí detecta
+  desbordes en móvil); el ayudante de axe ya no espera las animaciones infinitas de los esqueletos. Prueba nueva: el
+  login y un formulario quedan centrados.
+- Verificación: `typecheck` y `lint` limpios · **184 pruebas** · **43 e2e** · `build`.
+- Pendiente del pulido: pruebas visuales (capturas comparadas) y revisar el ancho de «Total · saldo» en la
+  referencia de la nota de crédito, que parte la línea en escritorio.
+
+## Notas y anulación contra Billing F5 (2026-09-27)
+- Las pantallas 16 y 17 ya funcionan contra Billing real: nota de crédito creada, guardada, **recargada con su motivo**
+  y emitida; factura anulada con motivo (probado en vivo por el gateway).
+- `Invoice` trae `referencedInvoiceId`, `referenceReason` y la anulación: un borrador de nota abierto por
+  `/facturas/:id/editar` (por ejemplo desde Documentos) redirige a la pantalla 16 de su factura, y el aviso de
+  anulada lee el motivo y la fecha del documento.
+- Textos: «La cuenta por cobrar se ajustó» decía algo que el portal no sabe (lo hace Receivables al consumir
+  `InvoiceCancelled`). Ahora: «Cobranza ajustará la cuenta por cobrar».
+- Verificación: 184 pruebas (1 nueva: borrador de nota → su editor con el motivo) · 41 e2e.
+
+## Incremento 6 · Inicio y administración — terminado (2026-09-27)
+Pantallas 6 y 28–32, fieles al prototipo y **cableadas** (probadas en vivo contra Supabase dev + gateway + Platform +
+Billing).
+
+| # | Pantalla | Cableado |
+|---|---|---|
+| 6 📱 | Inicio: cuatro cifras y dos paneles; cada bloque carga, falla y se reintenta solo; aviso de datos parciales; lo que se ve sale de la matriz de permisos | Billing (facturado del mes, últimas facturas) · Receivables y E-Invoice **no disponibles hasta P5/P6** |
+| 28 | Organización: nombre comercial, correo, teléfono y zona horaria; razón social, identificación y moneda de solo lectura | `GET/PATCH /organizations/current` |
+| 29 | Sucursales (pestaña con ruta propia): alta en línea con código de 3 dígitos, editar nombre, activar/desactivar | `GET/POST/PATCH .../branches` |
+| 30 | Usuarios y roles: cambiar rol y suspender/reactivar con las reglas de propietario anticipadas | `GET/PATCH .../users` |
+| 31 | Invitaciones (pestaña): alta con enlace visible una sola vez, revocar con confirmación | `GET/POST/DELETE .../invitations` |
+| 32 | Exportar auditoría: la propuesta del diseño con el formulario deshabilitado | **sin API** (TODO(api)) |
+
+- Puertos nuevos: `organization`, `members`, `invitations`; `branches` suma `create`/`update` y cursor; `receivables`
+  suma `payments` y `summary`. Tipos en `shared/api/admin-types.ts`, simulados en `mock/admin.ts` + `mocks/admin.ts`.
+- **Inicio suma en el portal** (`features/home/monthInvoices.ts`): Billing no tiene resumen por periodo y ordena por
+  `createdAt` ascendente, así que se recorren las facturas emitidas del mes (páginas de 100, tope 2 000: más que eso
+  es error, no una cifra a medias) y las «últimas» se ordenan por `issuedAt`. Por eso el panel dice «No hay facturas
+  emitidas este mes» en vez de «Todavía no hay facturas».
+- Con el gateway, «Saldo por cobrar», «Saldo vencido», «Rechazados o en contingencia» y «Últimos pagos» muestran su
+  error con reintento y el aviso de datos parciales: Receivables y E-Invoice no existen. `receivables.summary` no
+  llama al gateway (el contrato solo tiene `aging` con tramos por definir y sin conteo de cuentas).
+- Las reglas de propietario las hace cumplir Platform; el portal las anticipa (nadie se cambia a sí mismo, un
+  administrador no toca propietarios ni ofrece ese rol, no se degrada ni suspende al único propietario) y traduce
+  `last-owner` / `owner-required` a su mensaje.
+- `ReadOnlyField` sale del perfil a `features/admin/` (lo usan las pantallas 28 y 33). Estado `branch` (Activa /
+  Inactiva) en `shared/status`. Zonas horarias en `shared/timezones.ts`. Ayudantes de e2e en `e2e/helpers.ts`.
+- `wiring.test.tsx`: `pickOrg` buscaba cualquier botón en un `<li>` con el nombre de la organización y ahora Inicio
+  tiene filas con nombres de empresas; se acota al menú «Sus organizaciones».
+- Verificación: `typecheck` y `lint` limpios · **183 pruebas** (25 nuevas: Inicio, administración, adaptador) ·
+  **41 e2e** (8 nuevas: axe WCAG 2.1 AA y ancho en 1440 y 390 px) · `build`. **En vivo:** Inicio con lo facturado
+  real del mes y las últimas facturas, PATCH de la organización (y vuelta al valor anterior), miembros, invitación
+  creada con enlace `/invitacion/<token>` y revocada (204). Todas las llamadas 2xx salvo el 503 esperado de
+  `/payments`. La organización de prueba no tiene sucursales: activar/desactivar solo se probó con datos simulados.
+
+### Desviaciones y huecos del contrato
+- **Razón social y moneda por defecto:** el prototipo las deja editar; `PATCH /v1/organizations/current` no las
+  acepta. De solo lectura con su explicación.
+- **Código de sucursal:** el diseño pide 3 dígitos; Platform acepta `^[A-Za-z0-9_-]{1,20}$`. El portal exige el
+  subconjunto del diseño al crear y muestra cualquier código existente.
+- **Revocar** pide confirmación (el prototipo revoca directo): no se puede deshacer.
+- **Invitación repetida:** Platform responde el mismo 409 si ya es miembro o ya tiene una pendiente; el portal lo
+  distingue antes de enviar con las listas cargadas, y si no, un solo mensaje.
+- **Propuestas a contratos:** `GET /v1/invoices/summary?issuedFrom&issuedTo` y `sort=-issuedAt` en Billing; un
+  resumen de cuentas por cobrar (abierto y vencido por moneda, con conteo) en Receivables; la API de auditoría.
+- Pagos en Inicio: `Payment` no trae número ni cliente; la fila muestra la referencia.
+
 ## Incremento 3 · Facturación — terminado (2026-09-27)
 Pantallas 7–17. Las 7–12, 15 y 17 ya estaban en el repositorio (cableadas, con pruebas) sin registrar aquí; en esta
 sesión se construyeron la **13 (borrador)**, la **14 (emitir)** y la **16 (notas)**, y se cerró el incremento.
@@ -13,8 +92,8 @@ sesión se construyeron la **13 (borrador)**, la **14 (emitir)** y la **16 (nota
 | 13 | Borrador de factura: cliente con buscador y alta rápida (panel), sucursal, moneda y tipo de cambio, condición de venta y plazo, líneas del catálogo con descuento y motivo, notas, descartar | `POST/PATCH/DELETE /invoices` · `GET branches` |
 | 14 | Emitir: resumen, error con reintento seguro (misma `Idempotency-Key`), va al detalle | `POST /invoices/{id}/issue` |
 | 15 | Detalle con las tres cifras | Billing + `overview` |
-| 16 | Nota de crédito (líneas y cantidades de la factura) y de débito (cargos del catálogo y vencimiento) | `POST /invoices` con referencia · **Billing responde 422 hasta F5** |
-| 17 | Anular | `POST /cancel` · **404 hasta F5** (el gateway no declara la ruta) |
+| 16 | Nota de crédito (líneas y cantidades de la factura) y de débito (cargos del catálogo y vencimiento) | `POST /invoices` con referencia · ✅ con F5 |
+| 17 | Anular | `POST /cancel` · ✅ con F5 |
 
 - **Los totales son siempre de Billing.** Billing no tiene «calcular sin guardar»: el primer guardado lo pide el
   usuario (botón o Ctrl S) y desde ahí cada cambio válido se guarda solo tras 700 ms de pausa y trae los totales. Nunca
@@ -48,9 +127,7 @@ sesión se construyeron la **13 (borrador)**, la **14 (emitir)** y la **16 (nota
 - **Vencimiento** en el borrador: estimado «si emite hoy»; lo fija Billing al emitir.
 - **Nota de crédito parcial con descuento**: el descuento de la factura solo se repite si se acredita la cantidad
   completa; con cantidad parcial el portal no lo reparte (lo definirá F5).
-- **Contrato:** el `Invoice` no trae `referencedInvoiceId` ni `referenceReason`. Una nota guardada se retoma solo desde
-  su factura (`?borrador=`), el motivo no vuelve al recargar, y un borrador de nota abierto desde Documentos muestra un
-  aviso en vez del editor. Propuesta: agregar ambos campos a `Invoice`.
+- ~~**Contrato:** el `Invoice` no trae `referencedInvoiceId` ni `referenceReason`~~: resuelto con F5 (arriba).
 - **Contrato:** la nota de débito no tiene fecha de vencimiento propia; se manda como plazo (`creditTermDays`).
 
 ## Incremento 2 · Acceso y transversales — terminado (2026-09-25)
@@ -150,10 +227,10 @@ Sin funcionalidad ni cableado: solo diseño y arquitectura.
 | 3 | Facturación | ✅ 7–17 (arriba) |
 | 4 | Hacienda | 18–21 |
 | 5 | Cobranza | 22–27 (aging con gráfico) |
-| 6 | Inicio + administración | 6, 28–32 |
-| 7 | Pulido | revisión visual contra el prototipo, rendimiento, `lazy` por módulo, pruebas visuales |
+| 6 | Inicio + administración | ✅ 6, 28–32 (arriba) |
+| 7 | Pulido | ✅ centrado, rejillas, tablas, atajos, `lazy` por módulo (arriba) · pendiente: pruebas visuales |
 | — | Cableado (otra etapa) | ✅ sesión (arriba) · cada pantalla se cablea en su incremento · Realtime espera P2 |
 
 ## Decisiones abiertas
 - Separador de miles U+202F (README del diseño) vs U+00A0 (prototipo). Ver ADR 0001.
-- Pantalla 32 depende de una API de auditoría no definida.
+- Pantalla 32 depende de una API de auditoría no definida (hoy: formulario deshabilitado).

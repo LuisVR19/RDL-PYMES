@@ -13,6 +13,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const cancelInvoice = `-- name: CancelInvoice :one
+update billing.invoices
+set status = 'cancelled', cancellation_reason = $1::text,
+    cancelled_at = $2::timestamptz, cancelled_by_user_id = $3::uuid
+where organization_id = $4 and id = $5 and status = 'issued'
+returning updated_at
+`
+
+type CancelInvoiceParams struct {
+	CancellationReason string
+	CancelledAt        time.Time
+	CancelledByUserID  uuid.UUID
+	OrganizationID     uuid.UUID
+	ID                 uuid.UUID
+}
+
+// issued → cancelled con motivo (CHECK invoices_cancelled_ck). El WHERE status = 'issued' y invoices_guard impiden
+// anular dos veces o tocar algo más que el estado y los campos de la anulación.
+func (q *Queries) CancelInvoice(ctx context.Context, arg CancelInvoiceParams) (time.Time, error) {
+	row := q.db.QueryRow(ctx, cancelInvoice,
+		arg.CancellationReason,
+		arg.CancelledAt,
+		arg.CancelledByUserID,
+		arg.OrganizationID,
+		arg.ID,
+	)
+	var updated_at time.Time
+	err := row.Scan(&updated_at)
+	return updated_at, err
+}
+
 const deleteInvoiceDraft = `-- name: DeleteInvoiceDraft :execrows
 delete from billing.invoices where organization_id = $1 and id = $2 and status = 'draft'
 `
@@ -53,8 +84,9 @@ select id, organization_id, document_type, coalesce(number, '')::text as number,
        subtotal_amount::text as subtotal, discount_amount::text as discount, tax_amount::text as tax,
        exoneration_amount::text as exoneration, total_amount::text as total, coalesce(notes, '')::text as notes,
        referenced_invoice_id, coalesce(reference_reason, '')::text as reference_reason, requires_correction,
-       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason, created_by_user_id, issued_by_user_id,
-       created_at, updated_at
+       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason,
+       coalesce(cancellation_reason, '')::text as cancellation_reason, cancelled_at, cancelled_by_user_id,
+       created_by_user_id, issued_by_user_id, created_at, updated_at
 from billing.invoices where organization_id = $1 and id = $2
 `
 
@@ -93,6 +125,9 @@ type GetInvoiceRow struct {
 	ReferenceReason                string
 	RequiresCorrection             bool
 	FiscalRejectionReason          string
+	CancellationReason             string
+	CancelledAt                    pgtype.Timestamptz
+	CancelledByUserID              uuid.NullUUID
 	CreatedByUserID                uuid.UUID
 	IssuedByUserID                 uuid.NullUUID
 	CreatedAt                      time.Time
@@ -132,6 +167,9 @@ func (q *Queries) GetInvoice(ctx context.Context, arg GetInvoiceParams) (GetInvo
 		&i.ReferenceReason,
 		&i.RequiresCorrection,
 		&i.FiscalRejectionReason,
+		&i.CancellationReason,
+		&i.CancelledAt,
+		&i.CancelledByUserID,
 		&i.CreatedByUserID,
 		&i.IssuedByUserID,
 		&i.CreatedAt,
@@ -148,8 +186,9 @@ select id, organization_id, document_type, coalesce(number, '')::text as number,
        subtotal_amount::text as subtotal, discount_amount::text as discount, tax_amount::text as tax,
        exoneration_amount::text as exoneration, total_amount::text as total, coalesce(notes, '')::text as notes,
        referenced_invoice_id, coalesce(reference_reason, '')::text as reference_reason, requires_correction,
-       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason, created_by_user_id, issued_by_user_id,
-       created_at, updated_at
+       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason,
+       coalesce(cancellation_reason, '')::text as cancellation_reason, cancelled_at, cancelled_by_user_id,
+       created_by_user_id, issued_by_user_id, created_at, updated_at
 from billing.invoices where organization_id = $1 and id = $2
 for update
 `
@@ -189,6 +228,9 @@ type GetInvoiceForUpdateRow struct {
 	ReferenceReason                string
 	RequiresCorrection             bool
 	FiscalRejectionReason          string
+	CancellationReason             string
+	CancelledAt                    pgtype.Timestamptz
+	CancelledByUserID              uuid.NullUUID
 	CreatedByUserID                uuid.UUID
 	IssuedByUserID                 uuid.NullUUID
 	CreatedAt                      time.Time
@@ -228,6 +270,9 @@ func (q *Queries) GetInvoiceForUpdate(ctx context.Context, arg GetInvoiceForUpda
 		&i.ReferenceReason,
 		&i.RequiresCorrection,
 		&i.FiscalRejectionReason,
+		&i.CancellationReason,
+		&i.CancelledAt,
+		&i.CancelledByUserID,
 		&i.CreatedByUserID,
 		&i.IssuedByUserID,
 		&i.CreatedAt,
@@ -238,33 +283,37 @@ func (q *Queries) GetInvoiceForUpdate(ctx context.Context, arg GetInvoiceForUpda
 
 const insertInvoice = `-- name: InsertInvoice :one
 
-insert into billing.invoices (organization_id, document_type, status, branch_id, customer_id, sale_condition_code,
-                              credit_term_days, currency_code, exchange_rate, notes, created_by_user_id,
+insert into billing.invoices (organization_id, document_type, status, branch_id, customer_id, referenced_invoice_id,
+                              reference_reason, sale_condition_code, credit_term_days, currency_code, exchange_rate,
+                              notes, created_by_user_id,
                               subtotal_amount, discount_amount, tax_amount, exoneration_amount, total_amount)
 values ($1, $2, 'draft', $3, $4,
-        $5, $6, $7::text,
-        $8::text::numeric, nullif($9::text, ''), $10,
-        $11::text::numeric, $12::text::numeric, $13::text::numeric,
-        $14::text::numeric, $15::text::numeric)
+        $5, nullif($6::text, ''),
+        $7, $8, $9::text,
+        $10::text::numeric, nullif($11::text, ''), $12,
+        $13::text::numeric, $14::text::numeric, $15::text::numeric,
+        $16::text::numeric, $17::text::numeric)
 returning id, created_at, updated_at
 `
 
 type InsertInvoiceParams struct {
-	OrganizationID    uuid.UUID
-	DocumentType      string
-	BranchID          uuid.NullUUID
-	CustomerID        uuid.UUID
-	SaleConditionCode string
-	CreditTermDays    pgtype.Int4
-	CurrencyCode      string
-	ExchangeRate      string
-	Notes             string
-	CreatedByUserID   uuid.UUID
-	Subtotal          string
-	Discount          string
-	Tax               string
-	Exoneration       string
-	Total             string
+	OrganizationID      uuid.UUID
+	DocumentType        string
+	BranchID            uuid.NullUUID
+	CustomerID          uuid.UUID
+	ReferencedInvoiceID uuid.NullUUID
+	ReferenceReason     string
+	SaleConditionCode   string
+	CreditTermDays      pgtype.Int4
+	CurrencyCode        string
+	ExchangeRate        string
+	Notes               string
+	CreatedByUserID     uuid.UUID
+	Subtotal            string
+	Discount            string
+	Tax                 string
+	Exoneration         string
+	Total               string
 }
 
 type InsertInvoiceRow struct {
@@ -282,6 +331,8 @@ func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (I
 		arg.DocumentType,
 		arg.BranchID,
 		arg.CustomerID,
+		arg.ReferencedInvoiceID,
+		arg.ReferenceReason,
 		arg.SaleConditionCode,
 		arg.CreditTermDays,
 		arg.CurrencyCode,
@@ -655,8 +706,9 @@ select id, organization_id, document_type, coalesce(number, '')::text as number,
        subtotal_amount::text as subtotal, discount_amount::text as discount, tax_amount::text as tax,
        exoneration_amount::text as exoneration, total_amount::text as total, coalesce(notes, '')::text as notes,
        referenced_invoice_id, coalesce(reference_reason, '')::text as reference_reason, requires_correction,
-       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason, created_by_user_id, issued_by_user_id,
-       created_at, updated_at
+       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason,
+       coalesce(cancellation_reason, '')::text as cancellation_reason, cancelled_at, cancelled_by_user_id,
+       created_by_user_id, issued_by_user_id, created_at, updated_at
 from billing.invoices
 where organization_id = $1
   and ($2::text is null or document_type = $2::text)
@@ -717,6 +769,9 @@ type ListInvoicesRow struct {
 	ReferenceReason                string
 	RequiresCorrection             bool
 	FiscalRejectionReason          string
+	CancellationReason             string
+	CancelledAt                    pgtype.Timestamptz
+	CancelledByUserID              uuid.NullUUID
 	CreatedByUserID                uuid.UUID
 	IssuedByUserID                 uuid.NullUUID
 	CreatedAt                      time.Time
@@ -775,6 +830,9 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 			&i.ReferenceReason,
 			&i.RequiresCorrection,
 			&i.FiscalRejectionReason,
+			&i.CancellationReason,
+			&i.CancelledAt,
+			&i.CancelledByUserID,
 			&i.CreatedByUserID,
 			&i.IssuedByUserID,
 			&i.CreatedAt,
@@ -793,19 +851,21 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]L
 const updateInvoiceDraft = `-- name: UpdateInvoiceDraft :one
 update billing.invoices
 set branch_id = $1, customer_id = $2,
-    sale_condition_code = $3, credit_term_days = $4,
-    currency_code = $5::text, exchange_rate = $6::text::numeric,
-    notes = nullif($7::text, ''),
-    subtotal_amount = $8::text::numeric, discount_amount = $9::text::numeric,
-    tax_amount = $10::text::numeric, exoneration_amount = $11::text::numeric,
-    total_amount = $12::text::numeric
-where organization_id = $13 and id = $14 and status = 'draft'
+    reference_reason = nullif($3::text, ''),
+    sale_condition_code = $4, credit_term_days = $5,
+    currency_code = $6::text, exchange_rate = $7::text::numeric,
+    notes = nullif($8::text, ''),
+    subtotal_amount = $9::text::numeric, discount_amount = $10::text::numeric,
+    tax_amount = $11::text::numeric, exoneration_amount = $12::text::numeric,
+    total_amount = $13::text::numeric
+where organization_id = $14 and id = $15 and status = 'draft'
 returning updated_at
 `
 
 type UpdateInvoiceDraftParams struct {
 	BranchID          uuid.NullUUID
 	CustomerID        uuid.UUID
+	ReferenceReason   string
 	SaleConditionCode string
 	CreditTermDays    pgtype.Int4
 	CurrencyCode      string
@@ -824,6 +884,7 @@ func (q *Queries) UpdateInvoiceDraft(ctx context.Context, arg UpdateInvoiceDraft
 	row := q.db.QueryRow(ctx, updateInvoiceDraft,
 		arg.BranchID,
 		arg.CustomerID,
+		arg.ReferenceReason,
 		arg.SaleConditionCode,
 		arg.CreditTermDays,
 		arg.CurrencyCode,

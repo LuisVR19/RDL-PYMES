@@ -210,6 +210,8 @@ func billingRoutes() []Route {
 			Upstream: "/v1/invoices/{id}/lines", Why: "Pantalla 13 · Líneas del borrador"},
 		{Method: "POST", Path: "/portal/v1/invoices/{id}/issue", Kind: Passthrough, Service: s,
 			Upstream: "/v1/invoices/{id}/issue", Why: "Pantalla 14 · Emitir"},
+		{Method: "POST", Path: "/portal/v1/invoices/{id}/cancel", Kind: Passthrough, Service: s,
+			Upstream: "/v1/invoices/{id}/cancel", Why: "Pantalla 17 · Anular factura"},
 		{Method: "GET", Path: "/portal/v1/invoices/{id}/history", Kind: Passthrough, Service: s,
 			Upstream: "/v1/invoices/{id}/history", Why: "Pantalla 15 · Historial de estados"},
 

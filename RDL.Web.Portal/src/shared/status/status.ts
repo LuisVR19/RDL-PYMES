@@ -61,6 +61,11 @@ export const STATUS = {
     active: { label: 'Activo', tone: 'success', icon: Check },
     inactive: { label: 'Inactivo', tone: 'neutral', icon: Circle },
   },
+  // Sucursales (prototipo «29»): en femenino.
+  branch: {
+    active: { label: 'Activa', tone: 'success', icon: Check },
+    inactive: { label: 'Inactiva', tone: 'neutral', icon: Circle },
+  },
   membership: {
     active: { label: 'Activo', tone: 'success', icon: Check },
     suspended: { label: 'Suspendido', tone: 'neutral', icon: Pause },

@@ -37,8 +37,9 @@ export function Tag({ children }: { children: ReactNode }) {
   return <span className={styles.tag}>{children}</span>
 }
 
-export function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className={styles.kbd}>{children}</kbd>
+/** Tecla. `hint`: el atajo junto a un botón, que en móvil no se muestra (no hay teclado). */
+export function Kbd({ children, hint }: { children: ReactNode; hint?: boolean }) {
+  return <kbd className={clsx(styles.kbd, hint && styles.kbdHint)}>{children}</kbd>
 }
 
 export function Tooltip({ content, children }: { content: ReactNode; children: ReactNode }) {

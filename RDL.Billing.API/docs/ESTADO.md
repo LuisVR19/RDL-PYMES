@@ -2,7 +2,43 @@
 
 Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 
-## Última actualización: 2026-09-27 — **P4 cerrado en dev**: migración 00003, aislamiento 6/6, integración 11/11, E2E 33/33.
+## Última actualización: 2026-09-27 — **F5 hecho**: notas de crédito y débito y anulación, probadas en dev.
+
+### F5 · notas y anulación (2026-09-27)
+- **Sin migraciones**: la baseline ya tenía `referenced_invoice_id`, `reference_reason`, las columnas de anulación,
+  `invoices_reference_ck`, `invoices_cancelled_ck` y `invoices_guard` (deja pasar solo issued → cancelled).
+- Dominio: `Header` lleva la referencia de la nota (obligatoria con motivo de hasta 500 caracteres en las notas,
+  prohibida en la factura); `ApplyHeader` no deja cambiar el tipo ni la factura referenciada, sí el motivo.
+  `Invoice.Cancel`: solo una factura emitida (`ErrNotIssued`, `ErrNoteNotCancellable`), motivo obligatorio.
+- Casos de uso: la referencia se valida al crear, al editar (si cambian cliente o moneda) y **otra vez al emitir**.
+  Inexistente, de otra organización, borrador, otra nota u otro cliente → 422 `invalid-reference`; factura anulada
+  → 409 `invoice-not-issued`; otra moneda → 422 en `currency`. `CancelInvoice` (owner, admin, permiso nuevo
+  `invoices.cancel`): anulación, historial con el motivo, audit `invoice.cancelled` e `InvoiceCancelled` en una
+  transacción; idempotente.
+- Eventos: `CreditNoteIssued`, `DebitNoteIssued` (con su `dueDate` = emisión + plazo) e `InvoiceCancelled` v1,
+  validados contra su schema antes del outbox. La numeración de cada tipo es independiente (primera NC: 00000001).
+- HTTP: `POST /v1/invoices/{id}/cancel`; POST y PATCH aceptan `referencedInvoiceId`/`referenceReason`; el
+  `Invoice` devuelve la referencia y la anulación. `api/openapi.yaml` → 0.10.0; propuesta en contratos (CHANGELOG
+  `[Sin publicar]`).
+- Verificación: build, vet, **golangci-lint 0**, `go test -race` · **integración** con `TestNotesAndCancelEndToEndSQL`
+  (notas, anulación, eventos validados y el trigger que impide cambiar el motivo) · **aislamiento 6/6** con los casos
+  cruzados de anular y de una nota que referencia un documento de otra organización · **E2E 33/33** · **en vivo** por
+  el portal y el gateway: nota de crédito guardada, recargada con su motivo, emitida (00000001) y la factura 00000004
+  anulada; en el outbox de dev quedaron `CreditNoteIssued` (con `referencedInvoiceNumber` 00000004) e
+  `InvoiceCancelled`.
+- El E2E necesita `python3`: en esta máquina el alias de la Microsoft Store lo tapa; se corrió con un envoltorio a
+  `%LOCALAPPDATA%\Programs\Python\Python312\python.exe`.
+
+### Para decidir en equipo (F5)
+- **Misma moneda que la factura** en la nota: regla nueva del portal/Billing, no del contrato (Receivables no convierte).
+- **Tope de lo acreditado**: Billing no impide que las notas de crédito sumen más que la factura. ¿Se limita?
+- **Anular una factura con notas emitidas**: hoy se permite. ¿Se bloquea?
+- **¿Se anulan notas?** (TODO(fiscal) de la máquina de estados): hoy 409 `conflict`.
+- **Anulación ante Hacienda** (ESTADO §3 de contratos): Billing solo emite `InvoiceCancelled`; si la nota de crédito
+  código 01 la genera fiscal desde el evento, falta decidirlo.
+- **Código de referencia de Hacienda** en las notas: hoy solo el motivo en texto (TODO(fiscal)).
+
+## 2026-09-27 — P4 cerrado en dev: migración 00003, aislamiento 6/6, integración 11/11, E2E 33/33.
 
 ### Cierre en dev (2026-09-27)
 - SQL Editor (Luis): `grant usage on schema core to billing_migrator`, contraseñas nuevas de `billing_api` y
@@ -127,10 +163,10 @@ Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 - CHECKs de longitud en las columnas `text` de billing (hoy los valida la app).
 - Consolidar `pkg/tenancy` y compañía en un módulo *building-blocks* versionado y borrar las copias (ADR 0003).
 
-### Fuera de alcance (F4 y F5; el diseño ya los admite)
+### Fuera de alcance (F4; el diseño ya lo admite)
 - F4: condiciones de venta y medios de pago completos, exoneraciones de entrada, campos del XML, consumir
   `ElectronicDocumentRejected` para `requires_correction`.
-- F5: notas de crédito y débito, anulación con motivo, `CreditNoteIssued`, `DebitNoteIssued`, `InvoiceCancelled`.
+- ~~F5~~ hecho el 2026-09-27 (arriba).
 
 ### Hecho en el incremento 8
 - `Invoice.Issue` (dominio): solo `draft`, al menos una línea, cada línea cuadra y los totales son la suma exacta de
@@ -174,7 +210,7 @@ Handoff entre sesiones. Se actualiza al cerrar cada incremento.
   modificar un documento emitido** aunque la app lo intente. Base dev: 0 filas de Billing después.
 
 ### Alcance acotado (para revisar / PR al contrato)
-- Solo `documentType: invoice`; las notas son F5.
+- ~~Solo `documentType: invoice`~~: las notas llegaron con F5.
 - Solo líneas con `productId`. Las líneas libres necesitan campos (CABYS, descripción, unidad, impuestos) que el
   esqueleto del contrato no define todavía.
 - Sin exoneraciones de entrada (F4); el cálculo ya las soporta.

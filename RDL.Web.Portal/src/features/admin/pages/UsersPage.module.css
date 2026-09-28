@@ -1,0 +1,6 @@
+/* design/referencias «30 Usuarios y roles». */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

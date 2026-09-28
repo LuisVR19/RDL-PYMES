@@ -12,7 +12,7 @@ repo de contratos (por ejemplo con `oapi-codegen`).
 
 **A mano**, por ahora.
 
-El paso directo —54 de las 55 rutas— **no decodifica nada**: copia método, cuerpo, headers declarados y
+El paso directo —55 de las 56 rutas— **no decodifica nada**: copia método, cuerpo, headers declarados y
 respuesta. Un cliente generado no aporta nada ahí, y traería tipos para cada operación de cuatro APIs.
 
 Las composiciones sí decodifican, pero solo los pocos campos de `openapi/bff-internal.yaml`: ocho del resumen

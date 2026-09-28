@@ -4,6 +4,10 @@ Handoff entre sesiones. Se actualiza al cerrar cada incremento.
 
 **Última actualización:** 2026-09-27 — probado de punta a punta contra Platform **y Billing** reales.
 
+### Ruta de anulación (2026-09-27)
+- `POST /portal/v1/invoices/{id}/cancel` → Billing (paso directo, pantalla 17), ahora que Billing implementa F5. Sin
+  reintentos, como emitir. En `api/openapi.yaml` y la tabla: **56 rutas**. Probada en vivo desde el portal (200).
+
 ### Verificación contra Billing real (2026-09-27)
 - Las tres APIs corriendo en local contra Supabase dev: `/readyz` con `billing`, `platform` y `jwks` en `ok`.
 - `go vet` + `go test -race` (con gcc de WinLibs) · `golangci-lint` 0 issues · **aislamiento 10/10** (los 8
@@ -29,7 +33,7 @@ alcance.
 |---|---|---|
 | 1 | Esqueleto: config validada, logger JSON, OpenTelemetry, `/healthz`, `/readyz`, Dockerfile, Makefile | ✅ |
 | 2 | Verificación del JWT (JWKS de Supabase) y propagación de identidad, correlación y trazas | ✅ |
-| 3 | Tabla de rutas y paso directo de las cuatro APIs (55 rutas) | ✅ |
+| 3 | Tabla de rutas y paso directo de las cuatro APIs (56 rutas) | ✅ |
 | 4 | Vista transversal `GET /portal/v1/invoices/{id}/overview` con degradación | ✅ |
 | 5 | Listados enriquecidos sin N+1 | 🟡 hecho contra las rutas por lote **propuestas** (sin publicar) en contratos |
 | 6 | Notificaciones en tiempo real | ⛔ bloqueado (P2) |

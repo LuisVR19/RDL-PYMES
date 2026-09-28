@@ -42,6 +42,9 @@ type (
 	issueInvoice interface {
 		Execute(ctx context.Context, t tenancy.Context, key string, id uuid.UUID) (app.IssueResult, error)
 	}
+	cancelInvoice interface {
+		Execute(ctx context.Context, t tenancy.Context, key string, id uuid.UUID, reason string) (app.CancelResult, error)
+	}
 )
 
 type InvoiceHandlers struct {
@@ -53,6 +56,7 @@ type InvoiceHandlers struct {
 	Discard      discardInvoice
 	History      invoiceHistory
 	Issue        issueInvoice
+	Cancel       cancelInvoice
 	// Summary sirve la ruta interna que compone el Portal Gateway (openapi/bff-internal.yaml del contrato).
 	Summary getInvoice
 }
@@ -95,6 +99,11 @@ type updateInvoiceRequest struct {
 	ExchangeRate        *string               `json:"exchangeRate"`
 	Notes               *string               `json:"notes"`
 	Lines               *[]invoiceLineRequest `json:"lines" validate:"omitnil,dive"`
+}
+
+// cancelInvoiceRequest es el cuerpo de cancelInvoice del contrato. El motivo lo valida el dominio.
+type cancelInvoiceRequest struct {
+	Reason string `json:"reason"`
 }
 
 // linesBody envuelve el arreglo de PUT /lines para validarlo; con nombre, los errores salen como lines[i].campo.
@@ -177,6 +186,11 @@ type invoiceResponse struct {
 	Status                string               `json:"status"`
 	RequiresCorrection    bool                 `json:"requiresCorrection"`
 	FiscalRejectionReason string               `json:"fiscalRejectionReason,omitempty"`
+	ReferencedInvoiceID   *uuid.UUID           `json:"referencedInvoiceId,omitempty"`
+	ReferenceReason       string               `json:"referenceReason,omitempty"`
+	CancellationReason    string               `json:"cancellationReason,omitempty"`
+	CancelledAt           *time.Time           `json:"cancelledAt,omitempty"`
+	CancelledByUserID     *uuid.UUID           `json:"cancelledByUserId,omitempty"`
 	CustomerID            uuid.UUID            `json:"customerId"`
 	CustomerSnapshot      *customerSnapshotDTO `json:"customerSnapshot,omitempty"`
 	BranchID              *uuid.UUID           `json:"branchId,omitempty"`
@@ -246,9 +260,6 @@ func (h *InvoiceHandlers) register(rt *routes, fail func(http.ResponseWriter, *h
 			return
 		}
 		var fields []problem.FieldError
-		if req.ReferencedInvoiceID != nil || req.ReferenceReason != "" {
-			fields = append(fields, problem.FieldError{Field: "referencedInvoiceId", Message: "solo aplica a notas de crédito y débito (F5)"})
-		}
 		currency := parseCurrencyField(req.Currency, "currency", &fields)
 		var rate *money.ExchangeRate
 		if req.ExchangeRate != nil {
@@ -262,6 +273,7 @@ func (h *InvoiceHandlers) register(rt *routes, fail func(http.ResponseWriter, *h
 		t, _ := tenancy.From(r.Context())
 		res, err := h.Create.Execute(r.Context(), t, key, app.HeaderInput{
 			DocumentType: invoice.DocumentType(req.DocumentType), CustomerID: *req.CustomerID, BranchID: req.BranchID,
+			ReferencedInvoiceID: req.ReferencedInvoiceID, ReferenceReason: req.ReferenceReason,
 			SaleConditionCode: req.SaleConditionCode, CreditTermDays: req.CreditTermDays, Currency: *currency,
 			ExchangeRate: rate, Notes: req.Notes,
 		}, lines)
@@ -302,16 +314,16 @@ func (h *InvoiceHandlers) register(rt *routes, fail func(http.ResponseWriter, *h
 			return
 		}
 		var fields []problem.FieldError
-		// El tipo no cambia: una nota es otro documento. Mandar el mismo tipo (cuerpo completo del contrato) es válido.
-		if req.DocumentType != nil && invoice.DocumentType(*req.DocumentType) != invoice.TypeInvoice {
-			fields = append(fields, problem.FieldError{Field: "documentType", Message: "no se puede cambiar"})
-		}
-		if req.ReferencedInvoiceID != nil || req.ReferenceReason != nil && *req.ReferenceReason != "" {
-			fields = append(fields, problem.FieldError{Field: "referencedInvoiceId", Message: "solo aplica a notas de crédito y débito (F5)"})
-		}
+		// El tipo y la factura referenciada no cambian: mandarlos iguales (cuerpo completo del contrato) es válido;
+		// distintos, el dominio los rechaza. El motivo de una nota sí se corrige en borrador.
 		p := invoice.HeaderPatch{
+			ReferencedInvoiceID: req.ReferencedInvoiceID, ReferenceReason: req.ReferenceReason,
 			CustomerID: req.CustomerID, SaleConditionCode: req.SaleConditionCode, Notes: req.Notes,
 			Currency: parseCurrencyField(req.Currency, "currency", &fields),
+		}
+		if req.DocumentType != nil {
+			dt := invoice.DocumentType(*req.DocumentType)
+			p.DocumentType = &dt
 		}
 		if req.BranchID.Set {
 			p.BranchID = &req.BranchID.Value
@@ -410,6 +422,36 @@ func (h *InvoiceHandlers) register(rt *routes, fail func(http.ResponseWriter, *h
 			w.Header().Set("Idempotent-Replayed", "true")
 		}
 		writeJSON(w, http.StatusCreated, toInvoiceResponse(res.Invoice))
+	})
+
+	// Anulación: issued → cancelled con motivo. Exige Idempotency-Key; el reintento con la misma clave responde el
+	// mismo 200.
+	rt.handle("POST /v1/invoices/{id}/cancel", func(w http.ResponseWriter, r *http.Request) {
+		id, err := pathID(r)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		key, err := idempotencyKey(r)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		var req cancelInvoiceRequest
+		if err := decodeJSON(w, r, &req); err != nil {
+			fail(w, r, err)
+			return
+		}
+		t, _ := tenancy.From(r.Context())
+		res, err := h.Cancel.Execute(r.Context(), t, key, id, req.Reason)
+		if err != nil {
+			fail(w, r, err)
+			return
+		}
+		if res.Replayed {
+			w.Header().Set("Idempotent-Replayed", "true")
+		}
+		writeJSON(w, http.StatusOK, toInvoiceResponse(res.Invoice))
 	})
 
 	rt.handle("GET /internal/v1/invoices/{id}/summary", func(w http.ResponseWriter, r *http.Request) {
@@ -552,6 +594,8 @@ func toInvoiceResponse(inv invoice.Invoice) invoiceResponse {
 	out := invoiceResponse{
 		ID: inv.ID, DocumentType: string(inv.DocumentType), Status: string(inv.Status),
 		RequiresCorrection: inv.RequiresCorrection, FiscalRejectionReason: inv.FiscalRejectionReason,
+		ReferencedInvoiceID: inv.ReferencedInvoiceID, ReferenceReason: inv.ReferenceReason,
+		CancellationReason: inv.CancellationReason, CancelledByUserID: inv.CancelledByUserID,
 		CustomerID: inv.CustomerID, BranchID: inv.BranchID, SaleConditionCode: inv.SaleConditionCode,
 		CreditTermDays: inv.CreditTermDays, DueDate: inv.DueDate, Currency: inv.Currency.String(),
 		ExchangeRate: inv.ExchangeRate.String(), Notes: inv.Notes, Lines: make([]invoiceLineDTO, 0, len(inv.Lines)),
@@ -566,6 +610,10 @@ func toInvoiceResponse(inv invoice.Invoice) invoiceResponse {
 	if inv.IssuedAt != nil {
 		at := inv.IssuedAt.UTC()
 		out.IssuedAt = &at
+	}
+	if inv.CancelledAt != nil {
+		at := inv.CancelledAt.UTC()
+		out.CancelledAt = &at
 	}
 	// El snapshot existe desde la emisión; en borrador el cliente se identifica solo por customerId.
 	if inv.Customer.LegalName != "" {

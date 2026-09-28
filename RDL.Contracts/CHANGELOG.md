@@ -4,7 +4,7 @@ Todo cambio de contrato se registra aquí. Formato: [Keep a Changelog](https://k
 
 ## [Sin publicar]
 
-Propuesta para el Portal Gateway (P7) y OpenAPI de Billing F2/F3 (P4). **Pendiente de las 2 aprobaciones**; al aprobarse sale como v0.3.0.
+Propuesta para el Portal Gateway (P7) y OpenAPI de Billing F2/F3 y F5 (P4). **Pendiente de las 2 aprobaciones**; al aprobarse sale como v0.3.0.
 Todo compatible: `contractsctl breaking` contra v0.2.0 da OK.
 
 ### Agregado
@@ -38,8 +38,19 @@ Todo compatible: `contractsctl breaking` contra v0.2.0 da OK.
     `updatedAt`.
   - Respuestas de error (400/401/403/404/409/422) por operación y descripciones de reglas: validación de ids contra
     la organización, snapshots, dueDate, Idempotent-Replayed. Billing v1 exige `productId` en cada línea.
-- `problems/billing.yaml`: códigos confirmados por la implementación, salvo `invoice-not-issued` e
-  `invalid-reference` (F5).
+- `problems/billing.yaml`: códigos confirmados por la implementación, incluidos `invoice-not-issued` e
+  `invalid-reference` (F5, 2026-09-27).
+- `openapi/billing.yaml` · **F5** (RDL.Billing.API, 2026-09-27). Compatible: todo lo nuevo es opcional o una ruta
+  que ya existía como esqueleto.
+  - `cancelInvoice` deja de ser esqueleto: 200 con el `Invoice` anulado; 400/403/404/409/422. Solo facturas
+    emitidas; una nota responde 409 `conflict`.
+  - `InvoiceDraftInput`: `credit_note` y `debit_note` ya se aceptan; `referencedInvoiceId` y `referenceReason`
+    obligatorios en las notas, con sus errores. **Regla nueva para revisar:** la nota debe tener la moneda de su
+    factura (Receivables ajusta el saldo de esa factura y no convierte monedas).
+  - `InvoiceDraftPatch` admite `referencedInvoiceId` (igual al del documento) y `referenceReason` (se corrige en
+    borrador), como ya admitía un `InvoiceDraftInput` completo.
+  - `Invoice` agrega `referencedInvoiceId`, `referenceReason`, `cancellationReason`, `cancelledAt` y
+    `cancelledByUserId` (opcionales).
 
 ## [0.2.0] - 2026-09-24
 

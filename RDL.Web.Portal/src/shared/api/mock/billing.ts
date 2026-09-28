@@ -1,5 +1,7 @@
 import { CUSTOMERS, PAYMENTS, RECEIVABLES } from '@/mocks/billing'
-import type { Customer, Page, PageQuery } from '../billing-types'
+import { daysOverdue } from '@/shared/dates/dates'
+import { sumMoney, type Currency } from '@/shared/money/money'
+import type { Customer, Page, PageQuery, Receivable, ReceivablesSummary } from '../billing-types'
 import type { CustomersPort, ReceivablesPort } from '../ports'
 import { ApiError } from '../types'
 import { fakeCorrelationId, simulate, simulateSecondary } from './simulate'
@@ -105,4 +107,34 @@ export const mockReceivables: ReceivablesPort = {
       Object.fromEntries(ids.map((id) => [id, RECEIVABLES.filter((x) => x.customerId === id)])),
       {},
     ),
+  payments: (q) =>
+    simulateSecondary(
+      paginate(
+        PAYMENTS.toSorted(
+          (a, b) => b.receivedOn.localeCompare(a.receivedOn) || b.createdAt.localeCompare(a.createdAt),
+        ),
+        q,
+      ),
+      empty,
+    ),
+  summary: (asOf) => {
+    const open = RECEIVABLES.filter((r) => r.status === 'open' || r.status === 'partially_paid')
+    const overdue = open.filter((r) => daysOverdue(r.dueOn, asOf) > 0)
+    return simulateSecondary<ReceivablesSummary>(
+      {
+        open: { totals: byCurrency(open), count: open.length },
+        overdue: { totals: byCurrency(overdue), count: overdue.length },
+      },
+      { open: { totals: {}, count: 0 }, overdue: { totals: {}, count: 0 } },
+    )
+  },
+}
+
+function byCurrency(rs: Receivable[]): Partial<Record<Currency, string>> {
+  const out: Partial<Record<Currency, string>> = {}
+  for (const cur of ['CRC', 'USD'] as const) {
+    const amounts = rs.filter((r) => r.currency === cur).map((r) => r.balanceAmount)
+    if (amounts.length > 0) out[cur] = sumMoney(amounts)
+  }
+  return out
 }

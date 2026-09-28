@@ -26,6 +26,7 @@ func TestCriterion1CrossTenantEndpoints(t *testing.T) {
 		{"PUT", "/v1/invoices/" + b.draftID + "/lines", `[{"productId":"` + b.productID + `","quantity":"9"}]`},
 		{"DELETE", "/v1/invoices/" + b.draftID, ""},
 		{"POST", "/v1/invoices/" + b.draftID + "/issue", ""},
+		{"POST", "/v1/invoices/" + b.draftID + "/cancel", `{"reason":"Anulación ajena"}`},
 		{"GET", "/v1/invoices/" + b.draftID + "/history", ""},
 		{"GET", "/internal/v1/invoices/" + b.draftID + "/summary", ""},
 		// Referencias a recursos de B desde documentos de A.
@@ -47,6 +48,14 @@ func TestCriterion1CrossTenantEndpoints(t *testing.T) {
 	r := e.call("POST", "/v1/invoices", a, `{"documentType":"invoice","customerId":"`+aCustomer+`","saleConditionCode":"01","currency":"CRC",
 		"lines":[{"productId":"`+b.productID+`","quantity":"1"}]}`, "Idempotency-Key", uuid.NewString())
 	e.must(404, r, "línea con producto de B")
+
+	// Una nota de A que referencia un documento de B: para A no existe, igual que uno inexistente (422
+	// invalid-reference, sin distinguir los dos casos).
+	r = e.call("POST", "/v1/invoices", a, `{"documentType":"credit_note","customerId":"`+aCustomer+`","referencedInvoiceId":"`+
+		b.draftID+`","referenceReason":"Robo de referencia","saleConditionCode":"01","currency":"CRC"}`, "Idempotency-Key", uuid.NewString())
+	if p := e.must(422, r, "nota con referencia a B"); p.str("type") != "urn:rdl:billing:problem:invalid-reference" {
+		t.Fatalf("nota con referencia a B: %v", p.Body)
+	}
 
 	// Los listados de A no muestran nada de B.
 	for _, path := range []string{"/v1/customers", "/v1/products", "/v1/invoices", "/v1/invoices?customerId=" + b.customerID} {

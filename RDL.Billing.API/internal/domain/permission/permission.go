@@ -28,7 +28,8 @@ const (
 	ProductsManage  Permission = "products.manage"
 	InvoicesRead    Permission = "invoices.read"
 	InvoicesManage  Permission = "invoices.manage" // crear, editar, reemplazar líneas y descartar borradores
-	InvoicesIssue   Permission = "invoices.issue"
+	InvoicesIssue   Permission = "invoices.issue"  // emitir facturas y notas
+	InvoicesCancel  Permission = "invoices.cancel" // anular una factura emitida (contrato: owner, admin)
 	SequencesRead   Permission = "sequences.read"
 	SequencesManage Permission = "sequences.manage"
 )
@@ -45,6 +46,7 @@ var matrix = map[Permission][]Role{
 	InvoicesRead:    AllRoles,
 	InvoicesManage:  writers,
 	InvoicesIssue:   writers,
+	InvoicesCancel:  {RoleOwner, RoleAdmin},
 	SequencesRead:   {RoleOwner, RoleAdmin},
 	SequencesManage: {RoleOwner, RoleAdmin},
 }

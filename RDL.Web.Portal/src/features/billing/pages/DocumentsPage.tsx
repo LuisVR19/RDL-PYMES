@@ -101,7 +101,7 @@ export function DocumentsPage() {
         actions={
           canEdit && (
             <Button variant="primary" onClick={() => navigate('/facturas/nueva')}>
-              {t('docs.new')} <Kbd>N</Kbd>
+              {t('docs.new')} <Kbd hint>N</Kbd>
             </Button>
           )
         }

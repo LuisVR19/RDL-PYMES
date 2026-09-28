@@ -2,6 +2,7 @@ import type { Currency } from '@/shared/money/money'
 import { isRole } from '@/shared/permissions/permissions'
 import { ApiError, type Memberships, type Organization } from '../types'
 import type { DataSource } from '../ports'
+import { createInvitationsPort, createMembersPort, createOrganizationPort } from './admin'
 import {
   createBranchesPort,
   createCatalogsPort,
@@ -106,6 +107,9 @@ export function createGatewayDataSource(http: GatewayHttp): DataSource {
     receivables: createReceivablesPort(http),
     invoices: createInvoicesPort(http),
     branches: createBranchesPort(http),
+    organization: createOrganizationPort(http),
+    members: createMembersPort(http),
+    invitations: createInvitationsPort(http),
 
     notifications: {
       // TODO(api): /portal/v1/notifications es el incremento 6 del gateway, bloqueado por el transporte de

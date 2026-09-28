@@ -21,6 +21,10 @@ var (
 	ErrProductCodeTaken = errors.New("código de producto ya usado")
 	// ErrCustomerInactive: el documento es para un cliente desactivado (422 customer-inactive).
 	ErrCustomerInactive = errors.New("el cliente está desactivado")
+	// ErrInvalidReference: la nota referencia algo que no es una factura emitida de su mismo cliente: inexistente
+	// (o de otra organización, que es lo mismo), un borrador, otra nota o la factura de otro cliente
+	// (422 invalid-reference). Una factura anulada es ErrNotIssued del dominio (409 invoice-not-issued).
+	ErrInvalidReference = errors.New("la nota no referencia una factura emitida de su cliente")
 )
 
 // authorize consulta la matriz de permisos del dominio con los roles revalidados del TenantContext.

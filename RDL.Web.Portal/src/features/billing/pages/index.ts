@@ -1,0 +1,10 @@
+// Módulo C · Facturación: un solo punto de entrada para que el router lo cargue en diferido como un bloque.
+export { ClientDetailPage } from './ClientDetailPage'
+export { ClientFormPage } from './ClientFormPage'
+export { ClientsPage } from './ClientsPage'
+export { DocumentsPage } from './DocumentsPage'
+export { InvoiceDetailPage } from './InvoiceDetailPage'
+export { InvoiceDraftPage } from './InvoiceDraftPage'
+export { NotePage } from './NotePage'
+export { ProductFormPage } from './ProductFormPage'
+export { ProductsPage } from './ProductsPage'

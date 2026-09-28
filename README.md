@@ -33,7 +33,7 @@ flowchart LR
     end
 
     subgraph BFF["Borde"]
-        gw["RDL.Portal.Gateway :8090<br/>/portal/v1 · 55 rutas<br/>verifica JWT · reenvía · compone<br/><i>sin base de datos</i>"]
+        gw["RDL.Portal.Gateway :8090<br/>/portal/v1 · 56 rutas<br/>verifica JWT · reenvía · compone<br/><i>sin base de datos</i>"]
     end
 
     subgraph APIS["APIs de dominio (Go, hexagonal)"]

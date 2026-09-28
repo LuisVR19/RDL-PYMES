@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { mockDataSource } from '@/shared/api/mock'
@@ -8,8 +8,9 @@ import { renderApp } from '@/test/renderApp'
 
 // El selector de organización existe dos veces (escritorio y móvil): se usa el primero.
 const orgButton = async (name: RegExp) => (await screen.findAllByRole('button', { name }))[0]!
+// Dentro del menú de organizaciones: Inicio también tiene filas con nombres de empresas.
 const pickOrg = async (name: RegExp) =>
-  (await screen.findAllByRole('button', { name })).find((b) => b.closest('li'))!
+  within(await screen.findByRole('dialog', { name: 'Sus organizaciones' })).getByRole('button', { name })
 
 describe('acceso', () => {
   it('sin sesión, el armazón manda a la pantalla 1 recordando la ruta', async () => {

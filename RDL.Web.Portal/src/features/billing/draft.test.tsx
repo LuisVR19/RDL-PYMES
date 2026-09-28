@@ -206,4 +206,25 @@ describe('pantalla 16 · notas', () => {
     renderApp('/facturas/d12/nota-credito')
     expect(await screen.findByText('Solo se crean notas sobre una factura emitida.')).toBeInTheDocument()
   })
+
+  it('un borrador de nota abierto desde Documentos vuelve a su editor con el motivo guardado', async () => {
+    const inv = await issuedInvoice()
+    const note = await mockInvoices.createDraft(
+      {
+        documentType: 'debit_note',
+        customerId: 'c1',
+        referencedInvoiceId: inv.id,
+        referenceReason: 'Intereses por pago tardío de la factura',
+        saleConditionCode: '01',
+        currency: 'CRC',
+      },
+      'k-note',
+    )
+    // La ruta del borrador de factura lleva a la pantalla 16, sobre su factura.
+    const { router } = renderApp(`/facturas/${note.id}/editar`)
+    expect(await screen.findByRole('heading', { level: 1, name: 'Nota de débito' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(`/facturas/${inv.id}/nota-debito`)
+    expect(router.state.location.search).toBe(`?borrador=${note.id}`)
+    expect(screen.getByRole('textbox', { name: /Motivo/ })).toHaveValue('Intereses por pago tardío de la factura')
+  })
 })

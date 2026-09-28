@@ -160,6 +160,15 @@ paths:
         **Emite** la factura. Paso directo → Billing. El gateway NUNCA reintenta este comando: si no llega
         respuesta, el cliente reintenta con la misma `Idempotency-Key`.
       responses: { '201': { $ref: '#/components/responses/Upstream' } }
+  /portal/v1/invoices/{id}/cancel:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      tags: [facturación]
+      operationId: cancelInvoice
+      summary: |
+        **Anula** una factura emitida con su motivo. Paso directo → Billing (owner, admin). Como emitir, el gateway
+        NUNCA reintenta este comando: el cliente reintenta con la misma `Idempotency-Key`.
+      responses: { '200': { $ref: '#/components/responses/Upstream' } }
   /portal/v1/invoices/{id}/history:
     parameters: [{ $ref: '#/components/parameters/Id' }]
     get: { tags: [facturación], operationId: getInvoiceHistory, summary: 'Paso directo → Billing.', responses: { '200': { $ref: '#/components/responses/Upstream' } } }

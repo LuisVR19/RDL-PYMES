@@ -3,6 +3,7 @@
   gap: var(--space-4);
   align-items: flex-start;
   max-width: 760px;
+  margin-inline: auto;
 }
 
 .icon {

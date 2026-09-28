@@ -196,7 +196,6 @@ export function resetMockInvoices(): void {
   docs = INVOICES.map(fromListItem)
   createdByKey.clear()
   issuedByKey.clear()
-  references.clear()
 }
 
 export const mockDocs = {
@@ -219,6 +218,14 @@ export const notFound = () =>
     title: 'Recurso no encontrado',
     correlationId: fakeCorrelationId(),
   })
+
+/** Como Billing: las fechas de emisión se comparan en la zona de la organización y un borrador nunca entra. */
+function issuedWithin(issuedAt: string | undefined, from?: string, to?: string): boolean {
+  if (!from && !to) return true
+  if (!issuedAt) return false
+  const day = todayIn(DEFAULT_TZ, new Date(issuedAt))
+  return (!from || day >= from) && (!to || day <= to)
+}
 
 function toListItem(d: MockDoc): InvoiceListItem {
   const i = d.invoice
@@ -251,7 +258,8 @@ export const mockInvoices: InvoicesPort = {
           (!q.documentType || d.invoice.documentType === q.documentType) &&
           (!q.status || d.invoice.status === q.status) &&
           (!q.customerId || d.invoice.customerId === q.customerId) &&
-          (q.requiresCorrection === undefined || d.invoice.requiresCorrection === q.requiresCorrection),
+          (q.requiresCorrection === undefined || d.invoice.requiresCorrection === q.requiresCorrection) &&
+          issuedWithin(d.invoice.issuedAt, q.issuedFrom, q.issuedTo),
       )
       .map(toListItem)
     return simulate(paginate(rows, q), { items: [], nextCursor: null })
@@ -301,7 +309,15 @@ export const mockInvoices: InvoicesPort = {
     const now = new Date().toISOString()
     const next: MockDoc = {
       ...d,
-      invoice: { ...d.invoice, status: 'cancelled', requiresCorrection: false, updatedAt: now },
+      invoice: {
+        ...d.invoice,
+        status: 'cancelled',
+        requiresCorrection: false,
+        cancellationReason: reason,
+        cancelledAt: now,
+        cancelledByUserId: 'u1',
+        updatedAt: now,
+      },
       // Simula lo que haría Receivables al recibir InvoiceCancelled: la cuenta queda anulada en cero.
       receivable: d.receivable.balance
         ? {
@@ -336,6 +352,7 @@ export const mockInvoices: InvoicesPort = {
         status: 'draft',
         requiresCorrection: false,
         customerId: input.customerId,
+        ...(input.referencedInvoiceId ? { referencedInvoiceId: input.referencedInvoiceId } : {}),
         saleConditionCode: input.saleConditionCode,
         currency: input.currency,
         exchangeRate: input.exchangeRate ?? '1',
@@ -350,7 +367,6 @@ export const mockInvoices: InvoicesPort = {
       },
       input,
     )
-    if (input.referencedInvoiceId) references.set(draft.id, input.referencedInvoiceId)
     mockDocs.put({ invoice: draft, ...NO_PARTS, history: [] })
     createdByKey.set(idempotencyKey, draft)
     return structuredClone(draft)
@@ -434,14 +450,6 @@ const NO_PARTS = {
 /** La misma Idempotency-Key responde lo mismo, como en Billing. */
 const createdByKey = new Map<string, Invoice>()
 const issuedByKey = new Map<string, Invoice>()
-/** Factura de referencia de cada nota (el `Invoice` del contrato no la trae). */
-const references = new Map<string, string>()
-
-/** Solo pruebas y revisión: la factura de referencia de una nota simulada. */
-export function mockReferenceOf(noteId: string): string | undefined {
-  return references.get(noteId)
-}
-
 const PREFIX = { invoice: 'FAC', credit_note: 'NC', debit_note: 'ND' } as const
 
 function nextNumber(type: Invoice['documentType']): string {
@@ -488,6 +496,7 @@ function draftFrom(base: Invoice, change: InvoiceDraftInput | InvoiceDraftPatch)
   if (!customer.isActive) throw problem(422, 'customer-inactive', 'Cliente inactivo')
 
   const next: Invoice = { ...base, customerId }
+  if (change.referenceReason !== undefined) next.referenceReason = change.referenceReason
   if (change.saleConditionCode !== undefined) next.saleConditionCode = change.saleConditionCode
   if (change.currency !== undefined) next.currency = change.currency
   if (change.exchangeRate !== undefined) next.exchangeRate = change.exchangeRate

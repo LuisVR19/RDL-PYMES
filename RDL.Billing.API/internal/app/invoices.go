@@ -17,15 +17,18 @@ import (
 )
 
 // HeaderInput es el encabezado que llega en POST. ExchangeRate nil = 1 si la moneda es la local (obligatorio si no).
+// En una nota, ReferencedInvoiceID y ReferenceReason son la factura que corrige y el motivo.
 type HeaderInput struct {
-	DocumentType      invoice.DocumentType
-	CustomerID        uuid.UUID
-	BranchID          *uuid.UUID
-	SaleConditionCode string
-	CreditTermDays    *int
-	Currency          money.Currency
-	ExchangeRate      *money.ExchangeRate
-	Notes             string
+	DocumentType        invoice.DocumentType
+	CustomerID          uuid.UUID
+	BranchID            *uuid.UUID
+	ReferencedInvoiceID *uuid.UUID
+	ReferenceReason     string
+	SaleConditionCode   string
+	CreditTermDays      *int
+	Currency            money.Currency
+	ExchangeRate        *money.ExchangeRate
+	Notes               string
 }
 
 // LineRequest es una línea tal como la pide el usuario: producto, cantidad y, opcionalmente, precio y descuento.
@@ -304,6 +307,7 @@ func (b builder) header(ctx context.Context, in HeaderInput) (invoice.Header, er
 	}
 	h := invoice.Header{
 		DocumentType: in.DocumentType, CustomerID: in.CustomerID, BranchID: in.BranchID,
+		ReferencedInvoiceID: in.ReferencedInvoiceID, ReferenceReason: in.ReferenceReason,
 		SaleConditionCode: in.SaleConditionCode, CreditTermDays: in.CreditTermDays, Currency: in.Currency, Notes: in.Notes,
 	}
 	switch {
@@ -321,13 +325,54 @@ func (b builder) header(ctx context.Context, in HeaderInput) (invoice.Header, er
 	if err := b.checkCustomer(ctx, h.CustomerID); err != nil {
 		return invoice.Header{}, err
 	}
-	return h, b.checkBranch(ctx, h.BranchID)
+	if err := b.checkBranch(ctx, h.BranchID); err != nil {
+		return invoice.Header{}, err
+	}
+	// El formato de la referencia lo valida NewDraft; aquí, solo si viene, que apunte a algo válido.
+	if h.DocumentType.IsNote() && h.ReferencedInvoiceID != nil {
+		if _, err := b.reference(ctx, h); err != nil {
+			return invoice.Header{}, err
+		}
+	}
+	return h, nil
 }
 
-// checkHeader revalida lo que cambió en un PATCH: el cliente, la sucursal y el tipo de cambio.
+// reference comprueba la factura que corrige una nota (requisitos de la transición en state-machines/invoice.yaml y
+// el problem invalid-reference): existe en la organización activa, es una factura (no otra nota), está emitida y es
+// del mismo cliente y la misma moneda que la nota. Devuelve la factura referenciada.
+//
+// La moneda igual no la dice el contrato: la nota ajusta el saldo de esa factura en Receivables, que no convierte
+// monedas. Queda para confirmar con el equipo.
+func (b builder) reference(ctx context.Context, h invoice.Header) (invoice.Invoice, error) {
+	ref, err := b.tx.Invoices().GetHeader(ctx, b.org, *h.ReferencedInvoiceID)
+	if errors.Is(err, ErrNotFound) {
+		return invoice.Invoice{}, ErrInvalidReference
+	}
+	if err != nil {
+		return invoice.Invoice{}, err
+	}
+	switch {
+	case ref.DocumentType != invoice.TypeInvoice, ref.Status == invoice.StatusDraft, ref.CustomerID != h.CustomerID:
+		return invoice.Invoice{}, ErrInvalidReference
+	case ref.Status != invoice.StatusIssued:
+		return invoice.Invoice{}, invoice.ErrNotIssued // anulada: ya no admite notas
+	case ref.Currency != h.Currency:
+		return invoice.Invoice{}, invoice.FieldError{Field: "currency",
+			Message: "debe ser la de la factura referenciada (" + ref.Currency.String() + ")"}
+	}
+	return ref, nil
+}
+
+// checkHeader revalida lo que cambió en un PATCH: el cliente, la sucursal, el tipo de cambio y, en una nota, que
+// siga siendo del cliente y la moneda de su factura.
 func (b builder) checkHeader(ctx context.Context, before, after invoice.Header) error {
 	if after.CustomerID != before.CustomerID {
 		if err := b.checkCustomer(ctx, after.CustomerID); err != nil {
+			return err
+		}
+	}
+	if after.DocumentType.IsNote() && (after.CustomerID != before.CustomerID || after.Currency != before.Currency) {
+		if _, err := b.reference(ctx, after); err != nil {
 			return err
 		}
 	}
@@ -456,8 +501,13 @@ func invoiceAudit(inv invoice.Invoice) map[string]any {
 	if inv.CreditTermDays != nil {
 		credit = fmt.Sprint(*inv.CreditTermDays)
 	}
+	ref := ""
+	if inv.ReferencedInvoiceID != nil {
+		ref = inv.ReferencedInvoiceID.String()
+	}
 	return map[string]any{
 		"documentType": string(inv.DocumentType), "status": string(inv.Status), "customerId": inv.CustomerID.String(),
+		"referencedInvoiceId": ref, "referenceReason": inv.ReferenceReason,
 		"branchId": branch, "saleConditionCode": inv.SaleConditionCode, "creditTermDays": credit,
 		"currency": inv.Currency.String(), "exchangeRate": inv.ExchangeRate.String(), "notes": inv.Notes,
 		"lines": len(inv.Lines), "subtotal": inv.Totals.Subtotal.String(), "tax": inv.Totals.Tax.String(),

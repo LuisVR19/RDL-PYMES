@@ -1,30 +1,7 @@
-import { AxeBuilder } from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
+import { expectNoAxeViolations, noHorizontalScroll } from './helpers'
 
 // Incremento 3 · borrador, emitir y notas, con axe (WCAG 2.1 AA) en 1440 px y 390 px.
-const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
-
-async function expectNoAxeViolations(page: Page) {
-  // Con una animación de entrada en curso (diálogos), axe mide colores a media opacidad y reporta contraste falso.
-  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'))
-  const results = await new AxeBuilder({ page })
-    .withTags(WCAG)
-    .exclude('[aria-label^="Abrir barra de revisión"]')
-    .analyze()
-  expect(
-    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
-  ).toEqual([])
-}
-
-/**
- * Contra el ancho configurado y no contra `innerWidth`: en un navegador móvil el viewport de diseño crece con el
- * contenido que desborda, así que `scrollWidth - innerWidth` da 0 aunque la página se salga de los 390 px.
- */
-async function noHorizontalScroll(page: Page) {
-  const width = page.viewportSize()?.width ?? 0
-  const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
-  expect(scrollWidth).toBeLessThanOrEqual(width)
-}
 
 /** Navega dentro del portal sin recargar: los datos simulados viven en memoria. */
 async function navigateInApp(page: Page, path: string) {

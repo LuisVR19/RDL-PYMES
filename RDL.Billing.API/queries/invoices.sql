@@ -3,10 +3,12 @@
 -- guard_draft_children.
 
 -- name: InsertInvoice :one
-insert into billing.invoices (organization_id, document_type, status, branch_id, customer_id, sale_condition_code,
-                              credit_term_days, currency_code, exchange_rate, notes, created_by_user_id,
+insert into billing.invoices (organization_id, document_type, status, branch_id, customer_id, referenced_invoice_id,
+                              reference_reason, sale_condition_code, credit_term_days, currency_code, exchange_rate,
+                              notes, created_by_user_id,
                               subtotal_amount, discount_amount, tax_amount, exoneration_amount, total_amount)
 values (sqlc.arg(organization_id), sqlc.arg(document_type), 'draft', sqlc.narg(branch_id), sqlc.arg(customer_id),
+        sqlc.narg(referenced_invoice_id), nullif(sqlc.arg(reference_reason)::text, ''),
         sqlc.arg(sale_condition_code), sqlc.narg(credit_term_days), sqlc.arg(currency_code)::text,
         sqlc.arg(exchange_rate)::text::numeric, nullif(sqlc.arg(notes)::text, ''), sqlc.arg(created_by_user_id),
         sqlc.arg(subtotal)::text::numeric, sqlc.arg(discount)::text::numeric, sqlc.arg(tax)::text::numeric,
@@ -16,6 +18,7 @@ returning id, created_at, updated_at;
 -- name: UpdateInvoiceDraft :one
 update billing.invoices
 set branch_id = sqlc.narg(branch_id), customer_id = sqlc.arg(customer_id),
+    reference_reason = nullif(sqlc.arg(reference_reason)::text, ''),
     sale_condition_code = sqlc.arg(sale_condition_code), credit_term_days = sqlc.narg(credit_term_days),
     currency_code = sqlc.arg(currency_code)::text, exchange_rate = sqlc.arg(exchange_rate)::text::numeric,
     notes = nullif(sqlc.arg(notes)::text, ''),
@@ -36,8 +39,9 @@ select id, organization_id, document_type, coalesce(number, '')::text as number,
        subtotal_amount::text as subtotal, discount_amount::text as discount, tax_amount::text as tax,
        exoneration_amount::text as exoneration, total_amount::text as total, coalesce(notes, '')::text as notes,
        referenced_invoice_id, coalesce(reference_reason, '')::text as reference_reason, requires_correction,
-       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason, created_by_user_id, issued_by_user_id,
-       created_at, updated_at
+       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason,
+       coalesce(cancellation_reason, '')::text as cancellation_reason, cancelled_at, cancelled_by_user_id,
+       created_by_user_id, issued_by_user_id, created_at, updated_at
 from billing.invoices where organization_id = $1 and id = $2;
 
 -- name: GetInvoiceForUpdate :one
@@ -48,8 +52,9 @@ select id, organization_id, document_type, coalesce(number, '')::text as number,
        subtotal_amount::text as subtotal, discount_amount::text as discount, tax_amount::text as tax,
        exoneration_amount::text as exoneration, total_amount::text as total, coalesce(notes, '')::text as notes,
        referenced_invoice_id, coalesce(reference_reason, '')::text as reference_reason, requires_correction,
-       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason, created_by_user_id, issued_by_user_id,
-       created_at, updated_at
+       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason,
+       coalesce(cancellation_reason, '')::text as cancellation_reason, cancelled_at, cancelled_by_user_id,
+       created_by_user_id, issued_by_user_id, created_at, updated_at
 from billing.invoices where organization_id = $1 and id = $2
 for update;
 
@@ -62,8 +67,9 @@ select id, organization_id, document_type, coalesce(number, '')::text as number,
        subtotal_amount::text as subtotal, discount_amount::text as discount, tax_amount::text as tax,
        exoneration_amount::text as exoneration, total_amount::text as total, coalesce(notes, '')::text as notes,
        referenced_invoice_id, coalesce(reference_reason, '')::text as reference_reason, requires_correction,
-       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason, created_by_user_id, issued_by_user_id,
-       created_at, updated_at
+       coalesce(fiscal_rejection_reason, '')::text as fiscal_rejection_reason,
+       coalesce(cancellation_reason, '')::text as cancellation_reason, cancelled_at, cancelled_by_user_id,
+       created_by_user_id, issued_by_user_id, created_at, updated_at
 from billing.invoices
 where organization_id = sqlc.arg(organization_id)
   and (sqlc.narg(document_type)::text is null or document_type = sqlc.narg(document_type)::text)
@@ -146,3 +152,12 @@ returning updated_at;
 insert into billing.invoice_status_history (organization_id, invoice_id, from_status, to_status, reason, changed_by_user_id, changed_at)
 values (sqlc.arg(organization_id), sqlc.arg(invoice_id), sqlc.narg(from_status), sqlc.arg(to_status),
         nullif(sqlc.arg(reason)::text, ''), sqlc.narg(changed_by_user_id), sqlc.arg(changed_at));
+
+-- issued → cancelled con motivo (CHECK invoices_cancelled_ck). El WHERE status = 'issued' y invoices_guard impiden
+-- anular dos veces o tocar algo más que el estado y los campos de la anulación.
+-- name: CancelInvoice :one
+update billing.invoices
+set status = 'cancelled', cancellation_reason = sqlc.arg(cancellation_reason)::text,
+    cancelled_at = sqlc.arg(cancelled_at)::timestamptz, cancelled_by_user_id = sqlc.arg(cancelled_by_user_id)::uuid
+where organization_id = sqlc.arg(organization_id) and id = sqlc.arg(id) and status = 'issued'
+returning updated_at;

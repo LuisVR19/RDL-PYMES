@@ -4,6 +4,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* safe: si el contenido es más alto que la ventana (lista larga de organizaciones), arranca arriba y se desplaza. */
+  justify-content: center;
+  justify-content: safe center;
   gap: var(--space-6);
   padding: var(--space-12) var(--space-4);
   background: var(--color-bg-canvas);

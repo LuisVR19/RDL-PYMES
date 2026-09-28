@@ -21,7 +21,8 @@ type invoices struct{ q *db.Queries }
 func (r invoices) Create(ctx context.Context, inv invoice.Invoice) (invoice.Invoice, error) {
 	row, err := r.q.InsertInvoice(ctx, db.InsertInvoiceParams{
 		OrganizationID: inv.OrganizationID, DocumentType: string(inv.DocumentType), BranchID: optUUID(inv.BranchID),
-		CustomerID: inv.CustomerID, SaleConditionCode: inv.SaleConditionCode, CreditTermDays: optInt(inv.CreditTermDays),
+		CustomerID: inv.CustomerID, ReferencedInvoiceID: optUUID(inv.ReferencedInvoiceID), ReferenceReason: inv.ReferenceReason,
+		SaleConditionCode: inv.SaleConditionCode, CreditTermDays: optInt(inv.CreditTermDays),
 		CurrencyCode: inv.Currency.String(), ExchangeRate: inv.ExchangeRate.String(), Notes: inv.Notes,
 		CreatedByUserID: inv.CreatedByUserID, Subtotal: inv.Totals.Subtotal.String(), Discount: inv.Totals.Discount.String(),
 		Tax: inv.Totals.Tax.String(), Exoneration: inv.Totals.Exoneration.String(), Total: inv.Totals.Total.String(),
@@ -39,7 +40,7 @@ func (r invoices) Create(ctx context.Context, inv invoice.Invoice) (invoice.Invo
 func (r invoices) SaveDraft(ctx context.Context, inv invoice.Invoice) (invoice.Invoice, error) {
 	updated, err := r.q.UpdateInvoiceDraft(ctx, db.UpdateInvoiceDraftParams{
 		OrganizationID: inv.OrganizationID, ID: inv.ID, BranchID: optUUID(inv.BranchID), CustomerID: inv.CustomerID,
-		SaleConditionCode: inv.SaleConditionCode, CreditTermDays: optInt(inv.CreditTermDays),
+		ReferenceReason: inv.ReferenceReason, SaleConditionCode: inv.SaleConditionCode, CreditTermDays: optInt(inv.CreditTermDays),
 		CurrencyCode: inv.Currency.String(), ExchangeRate: inv.ExchangeRate.String(), Notes: inv.Notes,
 		Subtotal: inv.Totals.Subtotal.String(), Discount: inv.Totals.Discount.String(), Tax: inv.Totals.Tax.String(),
 		Exoneration: inv.Totals.Exoneration.String(), Total: inv.Totals.Total.String(),
@@ -80,6 +81,26 @@ func (r invoices) MarkIssued(ctx context.Context, inv invoice.Invoice) (invoice.
 	}
 	if err != nil {
 		return invoice.Invoice{}, guardErr("emitiendo documento", err)
+	}
+	inv.UpdatedAt = updated
+	return inv, nil
+}
+
+// MarkCancelled guarda issued → cancelled con su motivo. ErrNotIssued si el documento ya no está emitido (otra
+// anulación ganó la carrera); la base rechaza además cualquier otro cambio a lo emitido (invoices_guard).
+func (r invoices) MarkCancelled(ctx context.Context, inv invoice.Invoice) (invoice.Invoice, error) {
+	if inv.CancelledAt == nil || inv.CancelledByUserID == nil {
+		return invoice.Invoice{}, fmt.Errorf("anulando %s: faltan fecha o usuario", inv.ID)
+	}
+	updated, err := r.q.CancelInvoice(ctx, db.CancelInvoiceParams{
+		OrganizationID: inv.OrganizationID, ID: inv.ID, CancellationReason: inv.CancellationReason,
+		CancelledAt: *inv.CancelledAt, CancelledByUserID: *inv.CancelledByUserID,
+	})
+	if isNoRows(err) {
+		return invoice.Invoice{}, invoice.ErrNotIssued
+	}
+	if err != nil {
+		return invoice.Invoice{}, fmt.Errorf("anulando documento: %w", err)
 	}
 	inv.UpdatedAt = updated
 	return inv, nil
@@ -355,6 +376,7 @@ func toInvoice(r db.GetInvoiceRow) (invoice.Invoice, error) {
 		ID: r.ID, OrganizationID: r.OrganizationID,
 		Header: invoice.Header{
 			DocumentType: invoice.DocumentType(r.DocumentType), CustomerID: r.CustomerID, BranchID: ptrUUID(r.BranchID),
+			ReferencedInvoiceID: ptrUUID(r.ReferencedInvoiceID), ReferenceReason: r.ReferenceReason,
 			SaleConditionCode: r.SaleConditionCode, CreditTermDays: ptrInt(r.CreditTermDays),
 			Currency: currency, ExchangeRate: rate, Notes: r.Notes,
 		},
@@ -368,14 +390,18 @@ func toInvoice(r db.GetInvoiceRow) (invoice.Invoice, error) {
 			Subtotal: p.amount(r.Subtotal, "subtotal"), Discount: p.amount(r.Discount, "descuento"),
 			Tax: p.amount(r.Tax, "impuesto"), Exoneration: p.amount(r.Exoneration, "exoneración"), Total: p.amount(r.Total, "total"),
 		},
-		ReferencedInvoiceID: ptrUUID(r.ReferencedInvoiceID), ReferenceReason: r.ReferenceReason,
 		RequiresCorrection: r.RequiresCorrection, FiscalRejectionReason: r.FiscalRejectionReason,
+		CancellationReason: r.CancellationReason, CancelledByUserID: ptrUUID(r.CancelledByUserID),
 		CreatedByUserID: r.CreatedByUserID, IssuedByUserID: ptrUUID(r.IssuedByUserID),
 		CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
 	if r.IssuedAt.Valid {
 		t := r.IssuedAt.Time
 		inv.IssuedAt = &t
+	}
+	if r.CancelledAt.Valid {
+		t := r.CancelledAt.Time
+		inv.CancelledAt = &t
 	}
 	if p.err != nil {
 		return invoice.Invoice{}, fmt.Errorf("documento %s: %w", r.ID, p.err)

@@ -45,21 +45,36 @@ func InvoiceIssued(inv invoice.Invoice, issueDate string, correlationID uuid.UUI
 		SaleConditionCode: inv.SaleConditionCode,
 		Currency:          inv.Currency,
 		ExchangeRate:      inv.ExchangeRate,
-		CustomerSnapshot: cevents.CustomerSnapshot{
-			CustomerID: inv.CustomerID,
-			Identification: cevents.Identification{
-				TypeCode: inv.Customer.IdentificationTypeCode, Number: inv.Customer.IdentificationNumber,
-			},
-			LegalName: inv.Customer.LegalName, Email: inv.Customer.Email, Phone: inv.Customer.Phone,
-			Address: inv.Customer.Address,
-		},
-		Lines: make([]cevents.DocumentLine, 0, len(inv.Lines)),
-		Totals: cevents.Totals{
-			Subtotal: inv.Totals.Subtotal, Discount: inv.Totals.Discount, Tax: inv.Totals.Tax,
-			Exoneration: inv.Totals.Exoneration, Total: inv.Totals.Total,
-		},
-		Notes: inv.Notes,
+		CustomerSnapshot:  customerSnapshot(inv),
+		Lines:             documentLines(inv),
+		Totals:            totals(inv),
+		Notes:             inv.Notes,
 	}
+	return e, nil
+}
+
+// customerSnapshot es el snapshot copiado al emitir (el mismo en la factura y en sus notas).
+func customerSnapshot(inv invoice.Invoice) cevents.CustomerSnapshot {
+	return cevents.CustomerSnapshot{
+		CustomerID: inv.CustomerID,
+		Identification: cevents.Identification{
+			TypeCode: inv.Customer.IdentificationTypeCode, Number: inv.Customer.IdentificationNumber,
+		},
+		LegalName: inv.Customer.LegalName, Email: inv.Customer.Email, Phone: inv.Customer.Phone,
+		Address: inv.Customer.Address,
+	}
+}
+
+func totals(inv invoice.Invoice) cevents.Totals {
+	return cevents.Totals{
+		Subtotal: inv.Totals.Subtotal, Discount: inv.Totals.Discount, Tax: inv.Totals.Tax,
+		Exoneration: inv.Totals.Exoneration, Total: inv.Totals.Total,
+	}
+}
+
+// documentLines copia las líneas tal como quedaron en el documento (DocumentLine v1): el evento no recalcula.
+func documentLines(inv invoice.Invoice) []cevents.DocumentLine {
+	out := make([]cevents.DocumentLine, 0, len(inv.Lines))
 	for _, l := range inv.Lines {
 		dl := cevents.DocumentLine{
 			LineNumber: l.Number, ProductID: l.ProductID, ProductCode: l.ProductCode, CabysCode: l.CabysCode,
@@ -79,9 +94,9 @@ func InvoiceIssued(inv invoice.Invoice, issueDate string, correlationID uuid.UUI
 			}
 			dl.Taxes = append(dl.Taxes, lt)
 		}
-		e.Lines = append(e.Lines, dl)
+		out = append(out, dl)
 	}
-	return e, nil
+	return out
 }
 
 // OutboxRow serializa el evento y lo valida contra su JSON Schema (el embebido en el módulo de contratos, la misma

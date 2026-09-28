@@ -296,12 +296,14 @@ function FiscalAlert({
   onRetry: () => void
 }) {
   if (inv.status === 'cancelled') {
+    // El documento trae la anulación (F5); el historial queda de respaldo.
     const change = history?.find((h) => h.toStatus === 'cancelled')
+    const at = inv.cancelledAt ?? change?.changedAt
     return (
       <InlineAlert tone="neutral" title={t('invoice.alert.cancelled.title')}>
         {t('invoice.alert.cancelled.body', {
-          date: change ? formatInstant(change.changedAt, tz) : '—',
-          reason: change?.reason ?? '—',
+          date: at ? formatInstant(at, tz) : '—',
+          reason: inv.cancellationReason ?? change?.reason ?? '—',
         })}
       </InlineAlert>
     )

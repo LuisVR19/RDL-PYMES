@@ -15,9 +15,10 @@ import (
 )
 
 // IssueInvoice es draft → issued (POST /v1/invoices/{id}/issue), el corazón de Billing. En UNA transacción:
-// revalida cliente, sucursal y productos; asigna el número visible bajo candado; copia el snapshot del cliente; guarda
-// la transición, el historial, el audit y InvoiceIssued v1 (validado contra su schema) en el outbox. Responde sin
-// llamar a ningún otro servicio: emite aunque E-Invoice esté caída (criterio 2). Idempotente por Idempotency-Key.
+// revalida cliente, sucursal y productos (y, en una nota, su factura referenciada); asigna el número visible bajo
+// candado; copia el snapshot del cliente; guarda la transición, el historial, el audit y el evento del tipo de
+// documento (InvoiceIssued, CreditNoteIssued o DebitNoteIssued v1, validado contra su schema) en el outbox. Responde
+// sin llamar a ningún otro servicio: emite aunque E-Invoice esté caída (criterio 2). Idempotente por Idempotency-Key.
 type IssueInvoice struct {
 	tx  TxManager
 	now func() time.Time
@@ -67,6 +68,13 @@ func (uc *IssueInvoice) Execute(ctx context.Context, t tenancy.Context, idempote
 		if err != nil {
 			return err
 		}
+		// Una nota exige su factura emitida al momento de emitir: pudo anularse después de armar el borrador.
+		var referenced invoice.Invoice
+		if draft.DocumentType.IsNote() {
+			if referenced, err = (builder{tx: tx, org: t.OrganizationID()}).reference(ctx, draft.Header); err != nil {
+				return err
+			}
+		}
 		settings, err := tx.Catalog().Organization(ctx, t.OrganizationID())
 		if err != nil {
 			return err
@@ -103,13 +111,19 @@ func (uc *IssueInvoice) Execute(ctx context.Context, t tenancy.Context, idempote
 			Action: "invoice.issued", EntityType: "invoice", EntityID: id,
 			Before: map[string]any{"status": string(invoice.StatusDraft)},
 			After: map[string]any{
-				"status": string(invoice.StatusIssued), "number": issued.Number, "issuedAt": issuedAt.Format(time.RFC3339Nano),
-				"dueDate": issued.DueDate, "total": issued.Totals.Total.String(), "currency": issued.Currency.String(),
+				"status": string(invoice.StatusIssued), "documentType": string(issued.DocumentType), "number": issued.Number,
+				"issuedAt": issuedAt.Format(time.RFC3339Nano), "dueDate": issued.DueDate,
+				"total": issued.Totals.Total.String(), "currency": issued.Currency.String(),
 			},
 		}); err != nil {
 			return err
 		}
-		if err := tx.Outbox().InvoiceIssued(ctx, issued, issueDate); err != nil {
+		if issued.DocumentType.IsNote() {
+			err = tx.Outbox().NoteIssued(ctx, issued, referenced.Number, issueDate)
+		} else {
+			err = tx.Outbox().InvoiceIssued(ctx, issued, issueDate)
+		}
+		if err != nil {
 			return err
 		}
 		if err := tx.Idempotency().Complete(ctx, t.OrganizationID(), idempotencyKey, IdempotencyRecord{

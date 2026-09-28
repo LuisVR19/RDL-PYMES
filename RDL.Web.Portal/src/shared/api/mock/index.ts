@@ -1,11 +1,11 @@
-import { BRANCHES } from '@/mocks/catalogs'
 import { INVITED_ORGANIZATION, NOTIFICATIONS, ORGANIZATIONS, USER } from '@/mocks/session'
 import type { DataSource } from '../ports'
 import { ApiError, type Organization } from '../types'
+import { mockBranches, mockInvitations, mockMembers, mockOrganization } from './admin'
 import { mockCustomers, mockReceivables } from './billing'
 import { mockInvoices } from './invoices'
 import { mockCatalogs, mockProducts } from './products'
-import { fakeCorrelationId, simulate, simulateSecondary } from './simulate'
+import { fakeCorrelationId, simulate } from './simulate'
 
 // Las organizaciones simuladas cambian durante la revisión (crear una, aceptar una invitación).
 let organizations: Organization[] = [...ORGANIZATIONS]
@@ -76,16 +76,10 @@ export const mockDataSource: DataSource = {
   catalogs: mockCatalogs,
   receivables: mockReceivables,
   invoices: mockInvoices,
-  branches: {
-    list: (q) =>
-      simulateSecondary(
-        {
-          items: BRANCHES.filter((b) => q?.active === undefined || b.isActive === q.active),
-          nextCursor: null,
-        },
-        { items: [], nextCursor: null },
-      ),
-  },
+  branches: mockBranches,
+  organization: mockOrganization,
+  members: mockMembers,
+  invitations: mockInvitations,
   notifications: {
     list: () => simulate(NOTIFICATIONS, []),
   },

@@ -33,6 +33,12 @@ var (
 				WithDetail("Solo un borrador se edita, cambia de líneas o se descarta. Lo emitido se corrige con notas o anulación.")
 	problemInvoiceWithoutLines = problem.New(http.StatusUnprocessableEntity, "invoice-without-lines", "Documento sin líneas").
 					WithDetail("Agregue al menos una línea antes de emitir.")
+	problemInvoiceNotIssued = problem.New(http.StatusConflict, "invoice-not-issued", "El documento no está emitido").
+				WithDetail("Solo se anula una factura emitida, y una nota solo corrige una factura emitida y no anulada.")
+	problemInvalidReference = problem.New(http.StatusUnprocessableEntity, "invalid-reference", "Referencia inválida").
+				WithDetail("La nota debe referenciar una factura emitida del mismo cliente.")
+	problemNoteNotCancellable = problem.New(http.StatusConflict, "conflict", "Conflicto con el estado actual").
+					WithDetail("Solo se anula una factura. Una nota de crédito o débito se corrige con otra nota.")
 	problemCustomerInactive = problem.New(http.StatusUnprocessableEntity, "customer-inactive", "Cliente inactivo").
 				WithDetail("Reactive el cliente o elija otro.")
 	problemSequenceInUse = problem.New(http.StatusConflict, "sequence-in-use", "Secuencia en uso").
@@ -96,6 +102,12 @@ func (e errorResponder) write(w http.ResponseWriter, r *http.Request, err error)
 		problem.Write(w, r, problemPrefixTaken)
 	case errors.Is(err, invoice.ErrNotDraft):
 		problem.Write(w, r, problemInvoiceNotDraft)
+	case errors.Is(err, invoice.ErrNotIssued):
+		problem.Write(w, r, problemInvoiceNotIssued)
+	case errors.Is(err, invoice.ErrNoteNotCancellable):
+		problem.Write(w, r, problemNoteNotCancellable)
+	case errors.Is(err, app.ErrInvalidReference):
+		problem.Write(w, r, problemInvalidReference)
 	case errors.Is(err, invoice.ErrWithoutLines):
 		problem.Write(w, r, problemInvoiceWithoutLines)
 	case errors.Is(err, app.ErrCustomerInactive):

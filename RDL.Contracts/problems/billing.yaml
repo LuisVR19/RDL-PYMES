@@ -1,6 +1,6 @@
 # Problem types de billing: type = urn:rdl:billing:problem:<code> (docs/convenciones.md §6).
-# Billing API. Confirmados por la implementación de F2/F3 (2026-09-26), salvo invoice-not-issued e invalid-reference,
-# que siguen propuestos hasta F5 (anulación y notas).
+# Billing API. Confirmados por la implementación de F2/F3 (2026-09-26) y de F5 (2026-09-27): invoice-not-issued e
+# invalid-reference los usan la anulación y las notas.
 # Un type que no está aquí no se usa. `contractsctl lint` exige los tipos comunes y valida el formato.
 version: 1
 service: billing

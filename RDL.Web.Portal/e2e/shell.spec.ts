@@ -1,18 +1,5 @@
-import { AxeBuilder } from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-
-const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
-
-async function expectNoAxeViolations(page: import('@playwright/test').Page) {
-  // La barra de revisión de diseño no es producto: se excluye del análisis.
-  const results = await new AxeBuilder({ page })
-    .withTags(WCAG)
-    .exclude('[aria-label^="Abrir barra de revisión"]')
-    .analyze()
-  expect(
-    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
-  ).toEqual([])
-}
+import { expectNoAxeViolations, noHorizontalScroll } from './helpers'
 
 test('inicio carga el armazón sin violaciones de accesibilidad', async ({ page }) => {
   await page.goto('/')
@@ -59,11 +46,12 @@ test('móvil: menú de hamburguesa navega y se cierra', async ({ page }, info) =
   await page.getByRole('link', { name: /Documentos/ }).click()
   await expect(page).toHaveURL(/\/documentos$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Documentos' })).toBeVisible()
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
-  expect(overflow).toBe(false)
+  await noHorizontalScroll(page)
 })
 
-test('pantalla 1 · iniciar sesión sin violaciones de accesibilidad, también con errores', async ({ page }) => {
+test('pantalla 1 · iniciar sesión sin violaciones de accesibilidad, también con errores', async ({
+  page,
+}) => {
   await page.goto('/ingresar?volver=%2Fclientes')
   await expect(page.getByRole('heading', { level: 1, name: 'Iniciar sesión' })).toBeVisible()
   await expectNoAxeViolations(page)
@@ -84,4 +72,26 @@ test('la CSP del build está activa y no bloquea nada del portal', async ({ page
   const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')
   expect(csp).toContain("script-src 'self'")
   expect(blocked).toEqual([])
+})
+
+test('el login y los formularios quedan centrados', async ({ page }) => {
+  const viewport = page.viewportSize()
+  if (!viewport) throw new Error('sin viewport')
+
+  // Login: centrado en ancho y en alto (prototipo «01»: justify-content: safe center).
+  await page.goto('/ingresar')
+  const card = await page.locator('main').boundingBox()
+  if (!card) throw new Error('sin tarjeta de login')
+  expect(Math.abs(card.x + card.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2)
+  expect(card.y).toBeGreaterThan(viewport.height * 0.15)
+
+  // Un formulario del armazón: centrado en el área de contenido (a la derecha del menú).
+  await page.goto('/clientes/nuevo')
+  await expect(page.getByRole('heading', { level: 1, name: 'Nuevo cliente' })).toBeVisible()
+  const form = await page
+    .locator('form', { has: page.getByRole('heading', { name: 'Nuevo cliente' }) })
+    .boundingBox()
+  const content = await page.getByRole('main').boundingBox()
+  if (!form || !content) throw new Error('sin formulario')
+  expect(Math.abs(form.x + form.width / 2 - (content.x + content.width / 2))).toBeLessThanOrEqual(2)
 })

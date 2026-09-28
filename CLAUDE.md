@@ -53,7 +53,7 @@ cd RDL.Billing.API && make test-integration   # SQL real de los adapters (tag in
 
 # Portal Gateway (sin base de datos: no usa sqlc ni migraciones)
 make run              # :8090
-make routes           # imprime las 55 rutas públicas que expone
+make routes           # imprime las 56 rutas públicas que expone
 make test / make lint
 
 # Una sola prueba en Go

@@ -1,6 +1,8 @@
 /* design/referencias «33 Mi perfil»: columna de 680 px, tarjetas con radio 6. */
 .page {
+  width: 100%;
   max-width: 680px;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -58,36 +60,6 @@
 
 .email {
   font: var(--text-body-sm);
-  color: var(--color-text-secondary);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.label {
-  font: var(--text-body-sm);
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-
-.readOnly {
-  min-height: var(--control-h-md);
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font: var(--text-body);
-  color: var(--color-text-primary);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  overflow-wrap: anywhere;
-}
-
-.help {
-  font: var(--text-caption);
   color: var(--color-text-secondary);
 }
 

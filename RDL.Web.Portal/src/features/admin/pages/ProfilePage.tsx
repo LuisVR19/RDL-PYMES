@@ -7,6 +7,7 @@ import { useAuth } from '@/shared/auth/AuthProvider'
 import { t } from '@/shared/i18n/t'
 import { ROLE_LABEL } from '@/shared/permissions/permissions'
 import { useSession } from '@/shared/session/SessionProvider'
+import { ReadOnlyField } from '../ReadOnlyField'
 import styles from './ProfilePage.module.css'
 
 /**
@@ -57,8 +58,8 @@ export function ProfilePage() {
             <span className={styles.email}>{user.email}</span>
           </div>
         </div>
-        <ReadOnly label={t('profile.name')} value={user.fullName} help={t('profile.nameHelp')} />
-        <ReadOnly label={t('profile.email')} value={user.email} help={t('profile.emailHelp')} />
+        <ReadOnlyField label={t('profile.name')} value={user.fullName} help={t('profile.nameHelp')} />
+        <ReadOnlyField label={t('profile.email')} value={user.email} help={t('profile.emailHelp')} />
       </section>
 
       <section className={styles.card} aria-labelledby="perfil-orgs">
@@ -97,17 +98,6 @@ export function ProfilePage() {
           {t('user.logout')}
         </Button>
       </div>
-    </div>
-  )
-}
-
-/** Campo de solo lectura con la forma de un campo deshabilitado del prototipo (fondo gris, sin borde activo). */
-function ReadOnly({ label, value, help }: { label: string; value: string; help: string }) {
-  return (
-    <div className={styles.field}>
-      <span className={styles.label}>{label}</span>
-      <div className={styles.readOnly}>{value}</div>
-      <span className={styles.help}>{help}</span>
     </div>
   )
 }

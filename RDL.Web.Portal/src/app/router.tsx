@@ -1,17 +1,8 @@
-import type { ComponentType } from 'react'
+import { lazy, Suspense, type ComponentType } from 'react'
 import { createBrowserRouter, type RouteObject } from 'react-router'
+import { SkeletonRows } from '@/design-system/components/Feedback/Feedback'
 import { SystemScreen } from '@/design-system/components/SystemScreen/SystemScreen'
-import { ProfilePage } from '@/features/admin/pages/ProfilePage'
 import { InvitePage } from '@/features/auth/pages/InvitePage'
-import { ClientDetailPage } from '@/features/billing/pages/ClientDetailPage'
-import { ClientFormPage } from '@/features/billing/pages/ClientFormPage'
-import { ClientsPage } from '@/features/billing/pages/ClientsPage'
-import { DocumentsPage } from '@/features/billing/pages/DocumentsPage'
-import { InvoiceDetailPage } from '@/features/billing/pages/InvoiceDetailPage'
-import { InvoiceDraftPage } from '@/features/billing/pages/InvoiceDraftPage'
-import { NotePage } from '@/features/billing/pages/NotePage'
-import { ProductFormPage } from '@/features/billing/pages/ProductFormPage'
-import { ProductsPage } from '@/features/billing/pages/ProductsPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { OrgCreatePage } from '@/features/auth/pages/OrgCreatePage'
 import { OrgSelectPage } from '@/features/auth/pages/OrgSelectPage'
@@ -25,6 +16,30 @@ import { ForbiddenPage, RootFrame } from './RouteFrames'
 import { SCREENS, type ScreenDef } from './screens'
 
 /**
+ * Carga diferida por módulo: cada uno baja su bloque la primera vez que se entra a una de sus pantallas. Las de
+ * acceso (1–4) van en el paquete inicial: el login es lo primero que se ve.
+ */
+const billing = () => import('@/features/billing/pages')
+const admin = () => import('@/features/admin/pages')
+const fromModule = <M,>(load: () => Promise<M>, pick: (m: M) => ComponentType) =>
+  lazy(async () => ({ default: pick(await load()) }))
+
+const HomePage = lazy(async () => ({ default: (await import('@/features/home/pages/HomePage')).HomePage }))
+const ClientsPage = fromModule(billing, (m) => m.ClientsPage)
+const ClientFormPage = fromModule(billing, (m) => m.ClientFormPage)
+const ClientDetailPage = fromModule(billing, (m) => m.ClientDetailPage)
+const ProductsPage = fromModule(billing, (m) => m.ProductsPage)
+const ProductFormPage = fromModule(billing, (m) => m.ProductFormPage)
+const DocumentsPage = fromModule(billing, (m) => m.DocumentsPage)
+const InvoiceDraftPage = fromModule(billing, (m) => m.InvoiceDraftPage)
+const InvoiceDetailPage = fromModule(billing, (m) => m.InvoiceDetailPage)
+const NotePage = fromModule(billing, (m) => m.NotePage)
+const ProfilePage = fromModule(admin, (m) => m.ProfilePage)
+const OrganizationPage = fromModule(admin, (m) => m.OrganizationPage)
+const UsersPage = fromModule(admin, (m) => m.UsersPage)
+const AuditPage = fromModule(admin, (m) => m.AuditPage)
+
+/**
  * Pantallas ya construidas. Mientras una pantalla no está aquí, su ruta muestra el marcador provisional con su
  * número, permiso y referencia del prototipo. Cada incremento de módulo agrega sus pantallas a este mapa.
  */
@@ -34,7 +49,13 @@ const BUILT: Partial<Record<string, ComponentType>> = {
   orgSelect: OrgSelectPage,
   orgCreate: OrgCreatePage,
   invite: InvitePage,
+  home: HomePage,
   profile: ProfilePage,
+  organization: OrganizationPage,
+  branches: OrganizationPage,
+  users: UsersPage,
+  invitations: UsersPage,
+  audit: AuditPage,
   clients: ClientsPage,
   clientNew: ClientFormPage,
   clientEdit: ClientFormPage,
@@ -58,7 +79,13 @@ export const builtScreenIds = new Set(Object.keys(BUILT))
 
 function screenElement(s: ScreenDef) {
   const Built = BUILT[s.id]
-  const page = Built ? <Built /> : <ScreenPlaceholder screen={s} />
+  const page = Built ? (
+    <Suspense fallback={<SkeletonRows rows={6} columns={4} />}>
+      <Built />
+    </Suspense>
+  ) : (
+    <ScreenPlaceholder screen={s} />
+  )
   if (s.outsideShell) return NEEDS_SESSION.has(s.id) ? <RequireSession>{page}</RequireSession> : page
   return <RequireCapability capability={s.capability}>{page}</RequireCapability>
 }

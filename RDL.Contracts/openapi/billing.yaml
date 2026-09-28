@@ -222,8 +222,12 @@ paths:
     post:
       tags: [invoices]
       operationId: cancelInvoice
-      summary: 'ESQUELETO (F5, sin implementar): issued → cancelled con motivo obligatorio. Emite InvoiceCancelled. owner, admin.'
-      description: 'Pendiente de decisión (ESTADO §3): ante Hacienda un comprobante válido se corrige con nota de crédito código 01.'
+      summary: issued → cancelled con motivo obligatorio. Emite InvoiceCancelled en el outbox, en la misma transacción. owner, admin.
+      description: >
+        Solo una factura emitida: un borrador o una factura ya anulada es 409 invoice-not-issued; una nota es 409
+        conflict (TODO(fiscal) de la máquina de estados: si una nota se puede anular). No llama a ningún servicio:
+        Receivables ajusta la cuenta al consumir InvoiceCancelled y fiscal decide la corrección ante Hacienda (ESTADO
+        §3: si genera la nota de crédito código 01 desde el evento). La misma Idempotency-Key responde el mismo 200.
       parameters: [{ $ref: 'components/common.yaml#/components/parameters/IdempotencyKey' }]
       requestBody:
         required: true
@@ -232,7 +236,11 @@ paths:
             schema: { type: object, additionalProperties: false, required: [reason], properties: { reason: { type: string, minLength: 1, maxLength: 500 } } }
       responses:
         '200': { description: Anulado, content: { application/json: { schema: { $ref: '#/components/schemas/Invoice' } } } }
+        '400': { $ref: 'components/common.yaml#/components/responses/BadRequest' }
+        '403': { $ref: 'components/common.yaml#/components/responses/Forbidden' }
+        '404': { $ref: 'components/common.yaml#/components/responses/NotFound' }
         '409': { $ref: 'components/common.yaml#/components/responses/Conflict' }
+        '422': { $ref: 'components/common.yaml#/components/responses/UnprocessableEntity' }
   /v1/invoices/{id}/history:
     parameters: [{ $ref: 'components/common.yaml#/components/parameters/Id' }]
     get:
@@ -416,11 +424,16 @@ components:
       additionalProperties: false
       required: [documentType, customerId, saleConditionCode, currency]
       properties:
-        documentType: { $ref: 'components/common.yaml#/components/schemas/DocumentType', description: 'F3: solo invoice (credit_note y debit_note responden 422 hasta F5).' }
+        documentType: { $ref: 'components/common.yaml#/components/schemas/DocumentType' }
         customerId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
         branchId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
-        referencedInvoiceId: { $ref: 'components/common.yaml#/components/schemas/Uuid', description: Solo notas (F5). }
-        referenceReason: { type: string, maxLength: 500, description: Solo notas (F5). }
+        referencedInvoiceId:
+          $ref: 'components/common.yaml#/components/schemas/Uuid'
+          description: >
+            Obligatorio en credit_note y debit_note; prohibido en invoice. Una factura emitida del mismo cliente y la
+            misma moneda (inexistente, de otra organización, borrador, otra nota u otro cliente: 422 invalid-reference;
+            anulada: 409 invoice-not-issued; otra moneda: 422 validation en currency).
+        referenceReason: { type: string, minLength: 1, maxLength: 500, description: 'Obligatorio en las notas. TODO(fiscal): código de referencia de Hacienda.' }
         saleConditionCode: { $ref: 'components/common.yaml#/components/schemas/FiscalCode' }
         creditTermDays: { type: integer, minimum: 0, maximum: 3650 }
         currency: { $ref: 'components/common.yaml#/components/schemas/CurrencyCode' }
@@ -432,10 +445,13 @@ components:
       additionalProperties: false
       description: >
         Campo ausente = no cambia; branchId o creditTermDays en null los quitan; lines presente reemplaza las líneas.
-        Un InvoiceDraftInput completo también es válido. documentType no cambia. Cambiar la moneda de un borrador con
-        líneas exige reenviar las líneas.
+        Un InvoiceDraftInput completo también es válido. documentType y referencedInvoiceId no cambian (si vienen, iguales
+        a los del documento); el motivo de una nota sí. Cambiar la moneda de un borrador con líneas exige reenviar las
+        líneas.
       properties:
         documentType: { $ref: 'components/common.yaml#/components/schemas/DocumentType' }
+        referencedInvoiceId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
+        referenceReason: { type: string, minLength: 1, maxLength: 500 }
         customerId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
         branchId: { oneOf: [{ $ref: 'components/common.yaml#/components/schemas/Uuid' }, { type: 'null' }] }
         saleConditionCode: { $ref: 'components/common.yaml#/components/schemas/FiscalCode' }
@@ -458,6 +474,11 @@ components:
         status: { $ref: '#/components/schemas/InvoiceStatus' }
         requiresCorrection: { type: boolean }
         fiscalRejectionReason: { type: string }
+        referencedInvoiceId: { $ref: 'components/common.yaml#/components/schemas/Uuid', description: Solo notas. }
+        referenceReason: { type: string, description: Solo notas. }
+        cancellationReason: { type: string, description: Solo anuladas (CHECK invoices_cancelled_ck). }
+        cancelledAt: { $ref: 'components/common.yaml#/components/schemas/UtcDateTime', description: Solo anuladas. }
+        cancelledByUserId: { $ref: 'components/common.yaml#/components/schemas/Uuid', description: Solo anuladas. }
         customerId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }
         customerSnapshot: { $ref: '../schemas/common/customer-snapshot.json' }
         branchId: { $ref: 'components/common.yaml#/components/schemas/Uuid' }

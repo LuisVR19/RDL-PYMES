@@ -31,12 +31,23 @@ const (
 	TypeDebitNote  DocumentType = "debit_note"
 )
 
-// supported: las notas llegan en F5. Agregar un tipo aquí (con sus reglas de referencia) no toca handlers.
-var supported = map[DocumentType]bool{TypeInvoice: true}
+// IsNote: las notas de crédito y débito corrigen una factura emitida y llevan su referencia y motivo
+// (CHECK invoices_reference_ck).
+func (t DocumentType) IsNote() bool { return t == TypeCreditNote || t == TypeDebitNote }
+
+func (t DocumentType) valid() bool { return t == TypeInvoice || t.IsNote() }
+
+// MaxReasonLength: motivo de referencia de una nota y motivo de anulación (issued-note.v1, invoice-cancelled.v1).
+const MaxReasonLength = 500
 
 var (
 	// ErrNotDraft: la operación exige un borrador (409 invoice-not-draft). Lo emitido no se edita (arquitectura 7.4).
 	ErrNotDraft = errors.New("invoice: el documento no es un borrador")
+	// ErrNotIssued: anular, o emitir una nota sobre, un documento que no está emitido (409 invoice-not-issued).
+	ErrNotIssued = errors.New("invoice: el documento no está emitido")
+	// ErrNoteNotCancellable: solo una factura se anula (state-machines/invoice.yaml). TODO(fiscal): el contrato no
+	// define si una nota se puede anular ni tiene evento para eso.
+	ErrNoteNotCancellable = errors.New("invoice: una nota de crédito o débito no se anula")
 	// ErrInvalid agrupa los errores de validación; FieldError indica el campo con su nombre JSON.
 	ErrInvalid = errors.New("invoice: datos inválidos")
 )
@@ -51,16 +62,19 @@ var fiscalCodePattern = regexp.MustCompile(`^[0-9A-Za-z._-]{1,20}$`)
 // MaxLines acota un documento: evita que un borrador crezca sin límite en una sola petición.
 const MaxLines = 1000
 
-// Header son los datos del encabezado que el usuario edita en borrador.
+// Header son los datos del encabezado que el usuario edita en borrador. En una nota, ReferencedInvoiceID es la
+// factura que corrige (fija desde que se crea) y ReferenceReason su motivo; en una factura los dos van vacíos.
 type Header struct {
-	DocumentType      DocumentType
-	CustomerID        uuid.UUID
-	BranchID          *uuid.UUID
-	SaleConditionCode string
-	CreditTermDays    *int
-	Currency          money.Currency
-	ExchangeRate      money.ExchangeRate
-	Notes             string
+	DocumentType        DocumentType
+	CustomerID          uuid.UUID
+	BranchID            *uuid.UUID
+	ReferencedInvoiceID *uuid.UUID
+	ReferenceReason     string
+	SaleConditionCode   string
+	CreditTermDays      *int
+	Currency            money.Currency
+	ExchangeRate        money.ExchangeRate
+	Notes               string
 }
 
 // CustomerSnapshot se copia al emitir (arquitectura 4.4). Vacío en borrador.
@@ -86,14 +100,16 @@ type Invoice struct {
 	DueDate               string // YYYY-MM-DD en la zona de la organización; vacío en borrador
 	Lines                 []Line
 	Totals                Totals
-	ReferencedInvoiceID   *uuid.UUID
-	ReferenceReason       string
 	RequiresCorrection    bool
 	FiscalRejectionReason string
-	CreatedByUserID       uuid.UUID
-	IssuedByUserID        *uuid.UUID
-	CreatedAt             time.Time
-	UpdatedAt             time.Time
+	// Anulación (CHECK invoices_cancelled_ck): solo en status cancelled.
+	CancellationReason string
+	CancelledAt        *time.Time
+	CancelledByUserID  *uuid.UUID
+	CreatedByUserID    uuid.UUID
+	IssuedByUserID     *uuid.UUID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 // Line es una línea con su snapshot del producto y sus montos ya calculados.
@@ -179,15 +195,19 @@ func NewDraft(organizationID, createdBy uuid.UUID, h Header) (Invoice, error) {
 	return inv, nil
 }
 
-// HeaderPatch: nil = no cambia. El tipo de documento no se cambia: una nota es otro documento.
+// HeaderPatch: nil = no cambia. El tipo de documento y la factura referenciada no se cambian (una nota sobre otra
+// factura es otro documento): si vienen, deben ser los mismos. El motivo de la nota sí se corrige en borrador.
 type HeaderPatch struct {
-	CustomerID        *uuid.UUID
-	BranchID          **uuid.UUID // *nil = quitar la sucursal
-	SaleConditionCode *string
-	CreditTermDays    **int // *nil = sin plazo
-	Currency          *money.Currency
-	ExchangeRate      *money.ExchangeRate
-	Notes             *string
+	DocumentType        *DocumentType
+	ReferencedInvoiceID *uuid.UUID
+	ReferenceReason     *string
+	CustomerID          *uuid.UUID
+	BranchID            **uuid.UUID // *nil = quitar la sucursal
+	SaleConditionCode   *string
+	CreditTermDays      **int // *nil = sin plazo
+	Currency            *money.Currency
+	ExchangeRate        *money.ExchangeRate
+	Notes               *string
 }
 
 // ApplyHeader edita el encabezado de un borrador.
@@ -195,7 +215,20 @@ func (inv Invoice) ApplyHeader(p HeaderPatch) (Invoice, error) {
 	if inv.Status != StatusDraft {
 		return Invoice{}, ErrNotDraft
 	}
+	var fixed []error
+	if p.DocumentType != nil && *p.DocumentType != inv.DocumentType {
+		fixed = append(fixed, FieldError{Field: "documentType", Message: "no se puede cambiar"})
+	}
+	if p.ReferencedInvoiceID != nil && (inv.ReferencedInvoiceID == nil || *p.ReferencedInvoiceID != *inv.ReferencedInvoiceID) {
+		fixed = append(fixed, FieldError{Field: "referencedInvoiceId", Message: "no se puede cambiar: cree otra nota"})
+	}
+	if err := errors.Join(fixed...); err != nil {
+		return Invoice{}, err
+	}
 	next := inv
+	if p.ReferenceReason != nil {
+		next.ReferenceReason = *p.ReferenceReason
+	}
 	if p.CustomerID != nil {
 		next.CustomerID = *p.CustomerID
 	}
@@ -325,6 +358,7 @@ func buildLine(number int, d LineDraft) (Line, LineAmounts, error) {
 func (h Header) normalized() Header {
 	h.SaleConditionCode = strings.TrimSpace(h.SaleConditionCode)
 	h.Notes = strings.TrimSpace(h.Notes)
+	h.ReferenceReason = strings.TrimSpace(h.ReferenceReason)
 	return h
 }
 
@@ -335,7 +369,18 @@ func (h Header) validate() error {
 			errs = append(errs, FieldError{Field: field, Message: msg})
 		}
 	}
-	check(supported[h.DocumentType], "documentType", "por ahora solo invoice: las notas de crédito y débito llegan en F5")
+	check(h.DocumentType.valid(), "documentType", "debe ser invoice, credit_note o debit_note")
+	if h.DocumentType.IsNote() {
+		// Requisitos de la transición de las notas (state-machines/invoice.yaml): factura referenciada y motivo.
+		// TODO(fiscal): el código de referencia del comprobante según Hacienda; hoy solo el texto.
+		check(h.ReferencedInvoiceID != nil, "referencedInvoiceId", "es obligatorio en una nota")
+		check(h.ReferenceReason != "", "referenceReason", "es obligatorio en una nota")
+		check(utf8.RuneCountInString(h.ReferenceReason) <= MaxReasonLength, "referenceReason",
+			fmt.Sprintf("admite hasta %d caracteres", MaxReasonLength))
+	} else {
+		check(h.ReferencedInvoiceID == nil, "referencedInvoiceId", "solo aplica a notas de crédito y débito")
+		check(h.ReferenceReason == "", "referenceReason", "solo aplica a notas de crédito y débito")
+	}
 	check(h.CustomerID != uuid.Nil, "customerId", "es obligatorio")
 	// TODO(fiscal): catálogo fiscal.sale_conditions (vacío); solo formato.
 	check(fiscalCodePattern.MatchString(h.SaleConditionCode), "saleConditionCode", "debe ser un código fiscal válido")

@@ -42,6 +42,7 @@ func Deps(log *slog.Logger, checks *health.Handler, verifier tenancy.TokenVerifi
 			History:      app.NewGetInvoiceHistory(txm),
 			Summary:      app.NewGetInvoiceSummary(txm),
 			Issue:        app.NewIssueInvoice(txm),
+			Cancel:       app.NewCancelInvoice(txm),
 		},
 		Sequences: &httpadapter.SequenceHandlers{
 			List:      app.NewListSequences(txm),

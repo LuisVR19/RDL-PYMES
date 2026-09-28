@@ -66,14 +66,22 @@ func TestNewDraftValidation(t *testing.T) {
 		mut   func(*Header)
 		field string
 	}{
-		"nota de crédito (F5)": {func(h *Header) { h.DocumentType = TypeCreditNote }, "documentType"},
-		"tipo desconocido":     {func(h *Header) { h.DocumentType = "receipt" }, "documentType"},
-		"sin cliente":          {func(h *Header) { h.CustomerID = uuid.Nil }, "customerId"},
-		"condición inválida":   {func(h *Header) { h.SaleConditionCode = "contado 30" }, "saleConditionCode"},
-		"plazo negativo":       {func(h *Header) { h.CreditTermDays = &neg }, "creditTermDays"},
-		"plazo absurdo":        {func(h *Header) { h.CreditTermDays = &far }, "creditTermDays"},
-		"sin moneda":           {func(h *Header) { h.Currency = money.Currency{} }, "currency"},
-		"notas largas":         {func(h *Header) { h.Notes = strings.Repeat("n", 2001) }, "notes"},
+		"nota sin referencia": {func(h *Header) { h.DocumentType = TypeCreditNote; h.ReferenceReason = "Devolución" }, "referencedInvoiceId"},
+		"nota sin motivo":     {func(h *Header) { h.DocumentType = TypeDebitNote; h.ReferencedInvoiceID = ptr(uuid.New()) }, "referenceReason"},
+		"motivo largo": {func(h *Header) {
+			h.DocumentType = TypeCreditNote
+			h.ReferencedInvoiceID = ptr(uuid.New())
+			h.ReferenceReason = strings.Repeat("m", 501)
+		}, "referenceReason"},
+		"factura con referencia": {func(h *Header) { h.ReferencedInvoiceID = ptr(uuid.New()) }, "referencedInvoiceId"},
+		"factura con motivo":     {func(h *Header) { h.ReferenceReason = "x" }, "referenceReason"},
+		"tipo desconocido":       {func(h *Header) { h.DocumentType = "receipt" }, "documentType"},
+		"sin cliente":            {func(h *Header) { h.CustomerID = uuid.Nil }, "customerId"},
+		"condición inválida":     {func(h *Header) { h.SaleConditionCode = "contado 30" }, "saleConditionCode"},
+		"plazo negativo":         {func(h *Header) { h.CreditTermDays = &neg }, "creditTermDays"},
+		"plazo absurdo":          {func(h *Header) { h.CreditTermDays = &far }, "creditTermDays"},
+		"sin moneda":             {func(h *Header) { h.Currency = money.Currency{} }, "currency"},
+		"notas largas":           {func(h *Header) { h.Notes = strings.Repeat("n", 2001) }, "notes"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {

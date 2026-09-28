@@ -30,9 +30,13 @@ type fakeTx struct {
 	outboxErr error
 }
 
+// outboxEntry es un evento escrito: Event dice cuál (InvoiceIssued, CreditNoteIssued, DebitNoteIssued,
+// InvoiceCancelled) y ReferencedNumber es el número de la factura que corrige una nota.
 type outboxEntry struct {
-	Invoice   invoice.Invoice
-	IssueDate string
+	Event            string
+	Invoice          invoice.Invoice
+	IssueDate        string
+	ReferencedNumber string
 }
 
 type fakeState struct {
@@ -286,6 +290,18 @@ func (r fakeInvoices) MarkIssued(_ context.Context, inv invoice.Invoice) (invoic
 	return inv, nil
 }
 
+// MarkCancelled imita a CancelInvoice: solo issued → cancelled.
+func (r fakeInvoices) MarkCancelled(_ context.Context, inv invoice.Invoice) (invoice.Invoice, error) {
+	i := r.index(inv.OrganizationID, inv.ID)
+	if i < 0 || r.f.state.invoices[i].Status != invoice.StatusIssued {
+		return invoice.Invoice{}, invoice.ErrNotIssued
+	}
+	r.f.now = r.f.now.Add(time.Second)
+	inv.UpdatedAt = r.f.now
+	r.f.state.invoices[i] = inv
+	return inv, nil
+}
+
 func (r fakeInvoices) AddStatusChange(_ context.Context, _, id uuid.UUID, c StatusChange) error {
 	r.f.state.history[id] = append(r.f.state.history[id], c)
 	return nil
@@ -415,7 +431,29 @@ func (o fakeOutbox) InvoiceIssued(_ context.Context, inv invoice.Invoice, issueD
 	if o.f.outboxErr != nil {
 		return o.f.outboxErr
 	}
-	o.f.state.outbox = append(o.f.state.outbox, outboxEntry{Invoice: inv, IssueDate: issueDate})
+	o.f.state.outbox = append(o.f.state.outbox, outboxEntry{Event: "InvoiceIssued", Invoice: inv, IssueDate: issueDate})
+	return nil
+}
+
+func (o fakeOutbox) NoteIssued(_ context.Context, note invoice.Invoice, referencedNumber, issueDate string) error {
+	if o.f.outboxErr != nil {
+		return o.f.outboxErr
+	}
+	name := "DebitNoteIssued"
+	if note.DocumentType == invoice.TypeCreditNote {
+		name = "CreditNoteIssued"
+	}
+	o.f.state.outbox = append(o.f.state.outbox, outboxEntry{
+		Event: name, Invoice: note, IssueDate: issueDate, ReferencedNumber: referencedNumber,
+	})
+	return nil
+}
+
+func (o fakeOutbox) InvoiceCancelled(_ context.Context, inv invoice.Invoice) error {
+	if o.f.outboxErr != nil {
+		return o.f.outboxErr
+	}
+	o.f.state.outbox = append(o.f.state.outbox, outboxEntry{Event: "InvoiceCancelled", Invoice: inv})
 	return nil
 }
 

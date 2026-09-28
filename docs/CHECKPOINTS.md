@@ -2,7 +2,7 @@
 
 **Tablero de control del proyecto completo.** Una sola pregunta: qué está hecho, qué falta y quién lo destraba.
 
-**Última revisión:** 2026-09-27
+**Última revisión:** 2026-09-27 (Billing F5)
 **Cómo se usa:** este archivo es el índice de estado. El detalle de cada módulo vive en su
 `<módulo>/docs/ESTADO.md`, que manda sobre este resumen. Al cerrar un incremento se actualizan los dos.
 
@@ -17,11 +17,11 @@ Leyenda: ✅ terminado y verificado · 🟡 hecho pero **sin verificar de punta 
 |---|---|---|---|
 | P0 | `RDL.Contracts` v0.2.0 | ✅ | `contractsctl validate` + `lint` + tests |
 | P3 | `RDL.Platform.API` `:8080` | ✅ | Aislamiento 6/6 · E2E 69/69 contra dev |
-| P4 | `RDL.Billing.API` `:8081` | ✅ | `-race` · lint · aislamiento 6/6 · integración 11/11 · E2E 33/33 contra dev (2026-09-27) |
+| P4 | `RDL.Billing.API` `:8081` | ✅ | F2, F3 y **F5** · `-race` · lint · aislamiento 6/6 · integración · E2E 33/33 contra dev (2026-09-27) |
 | P5 | `RDL.EInvoice.API` `:8082` | ⬜ | — |
 | P6 | `RDL.Receivables.API` `:8083` | ⬜ | — |
 | P7 | `RDL.Portal.Gateway` `:8090` | 🟡 | Incrementos 1–5 y 8 · aislamiento 10/10 y E2E 33/33 **contra Platform y Billing reales** (2026-09-27); 6 y 7 bloqueados |
-| P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–3 · 164 unit + 33 e2e · **acceso y facturación probados en vivo** contra Billing (2026-09-27) |
+| P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–3, 6 y 7 · 184 unit + 43 e2e · **acceso, facturación, inicio y administración probados en vivo** (2026-09-27) |
 | P8c | `RDL.Landing` `:4321` | 🟡 | Construida (2026-09-27) · 29 e2e + axe · Lighthouse móvil 99–100 · **datos de prueba y legales en borrador** |
 
 **Dónde está realmente el proyecto:** hay dos APIs de dominio funcionando contra la base de dev y un gateway
@@ -43,7 +43,8 @@ siguen siendo marcadores provisionales.
 - [ ] **Crear los tags `v0.1.0` y `v0.2.0`** ← los publica Luis; hasta entonces las APIs usan `replace`
 - [x] `problems/portal-gateway.yaml` y las rutas por lote del BFF, **propuestos sin publicar** (2026-09-25)
 - [ ] ⏳ **2 aprobaciones** de esa propuesta → v0.3.0
-- [ ] Completar el esqueleto de Billing (`ProductPatch`, campos de `Invoice`, filtros, `used`)
+- [x] Esqueleto de Billing completado en la propuesta, incluido F5 (`cancelInvoice`, referencia y anulación en
+      `Invoice`); sigue sin publicar hasta las 2 aprobaciones
 
 ### P3 · Platform API — ✅ completo
 
@@ -65,6 +66,10 @@ siguen siendo marcadores provisionales.
 - [x] `GET /internal/v1/invoices/{id}/summary` implementada (2026-09-25), sin líneas; el gateway ya la usa por
       defecto. Pruebas unitarias en verde; aislamiento e integración escritos, sin correr (falta el `.env`)
 - [ ] Catálogos `fiscal.*` vacíos: una línea con impuesto responde 422 hasta cargarlos
+- [x] **F5** (2026-09-27): notas de crédito y débito, anulación, `CreditNoteIssued`/`DebitNoteIssued`/`InvoiceCancelled`.
+      Sin migraciones. Probado en vivo desde el portal; eventos verificados en el outbox de dev
+- [ ] Decisiones de F5 para el equipo: misma moneda que la factura, tope de lo acreditado, anular con notas emitidas,
+      anular notas, quién genera la nota ante Hacienda al anular (ver `RDL.Billing.API/docs/ESTADO.md`)
 
 ### P5 · E-Invoice API — ⬜ no empezado
 
@@ -82,7 +87,7 @@ siguen siendo marcadores provisionales.
 
 - [x] Esqueleto, config validada, OTel, `/healthz`, `/readyz` (crítico vs degradable)
 - [x] JWT + propagación de identidad, correlación y trazas
-- [x] Tabla de rutas: **55 rutas**, las cuatro APIs declaradas
+- [x] Tabla de rutas: **56 rutas**, las cuatro APIs declaradas
 - [x] Vista transversal `GET /portal/v1/invoices/{id}/overview` con degradación
 - [x] `go build` · `go vet` · `golangci-lint` 0 issues · 66 pruebas · humo del binario
 - [ ] 🔴 **Confirmar ADR 0004**: usé `availability` aparte del `status`, en vez de la forma del prompt
@@ -95,7 +100,7 @@ siguen siendo marcadores provisionales.
 - [x] Arreglo: el problema reenviado de Billing ya no expone su ruta `/internal` en `instance` (2026-09-27)
 - [ ] ⏳ Imagen Docker (Docker no instalado)
 
-### P8b · Web Portal — 🟡 incrementos 1–3
+### P8b · Web Portal — 🟡 incrementos 1–3, 6 y 7
 
 - [x] Armazón, sistema de diseño, 36 pantallas con ruta y permiso, tokens del prototipo
 - [x] 76 pruebas unitarias/componentes · 11 e2e con axe (WCAG 2.1 AA, 1440 px y 390 px)
@@ -103,10 +108,18 @@ siguen siendo marcadores provisionales.
 - [x] Cableado 1 (2026-09-25): Supabase Auth + adaptador `gateway/`, pantalla 1, cambio de organización seguro,
       ADR 0005 (localStorage + CSP) y 0006. Probado en vivo contra Supabase + gateway + Platform
 - [x] Incremento 2 (2026-09-25): pantallas 1–5, 33 y 35 cableadas; invitación real aceptada entre dos usuarios
-- [x] Incremento 3 (2026-09-27): pantallas 7–17. Borrador con totales de Billing, emitir, notas (422 hasta F5)
-- [ ] ⏳ Incrementos 4–7: Hacienda (⛔ P5), cobranza (⛔ P6), inicio+admin, pulido
-- [ ] Propuesta a contratos: `referencedInvoiceId`/`referenceReason` en `Invoice`; vencimiento propio de la nota de débito
-- [ ] Pasar el chequeo «sin scroll horizontal» de `access.spec.ts`/`shell.spec.ts` al de `billing.spec.ts` (el actual no detecta desbordes en móvil)
+- [x] Incremento 3 (2026-09-27): pantallas 7–17. Borrador con totales de Billing, emitir, notas y anular (con F5)
+- [x] Incremento 6 (2026-09-27): pantallas 6 y 28–32. Inicio suma en el portal (Billing sin resumen ni orden
+      descendente); cobranza y Hacienda de Inicio no disponibles hasta P5/P6; la 32 sin API (formulario deshabilitado)
+- [x] Incremento 7 · pulido (2026-09-27): login y acceso centrados como el prototipo, formularios centrados
+      (decisión de Luis), rejillas de dos columnas, paginación solo si hay otra página, atajos ocultos en móvil,
+      carga diferida por módulo (paquete inicial 483 → 316 kB). Pendiente: pruebas visuales
+- [ ] ⏳ Incrementos 4 y 5: Hacienda (⛔ P5), cobranza (⛔ P6)
+- [ ] Propuestas a contratos: `GET /v1/invoices/summary` + `sort=-issuedAt` (Billing), resumen de saldos (Receivables),
+      API de auditoría
+- [x] ~~`referencedInvoiceId`/`referenceReason` en `Invoice`~~ (F5). Queda: vencimiento propio de la nota de débito
+      (hoy viaja como plazo, `creditTermDays`)
+- [x] ~~Chequeo «sin scroll horizontal» de `access.spec.ts`/`shell.spec.ts`~~: los tres specs usan `e2e/helpers.ts` (2026-09-27)
 - [ ] Propuestas a contratos/Platform: `GET /v1/invitations/{token}`, `PATCH /v1/me`, separar revocada/usada,
       catálogo de tipos de identificación (hoy del borrador de Hacienda en el portal)
 - [ ] Separador de miles: U+202F (README del diseño) vs U+00A0 (prototipo)
@@ -208,4 +221,8 @@ En este orden, porque cada uno destraba al siguiente:
    en `:8081`, `make test-isolation` y `make e2e` del gateway cubren sus casos sin cambios, incluido el `overview`
    contra la ruta interna.
 4. ~~Cablear la sesión del portal~~ ✅, ~~incremento 2 (acceso)~~ ✅ y ~~incremento 3 (facturación)~~ ✅ 2026-09-27.
-   Lo siguiente sin bloqueos: **P6 (Receivables)** o el **incremento 6 del portal** (inicio + administración).
+   ~~Incremento 6 del portal (inicio + administración)~~ ✅ 2026-09-27.
+   ~~Billing F5~~ ✅ 2026-09-27.
+   ~~Incremento 7 del portal (pulido)~~ ✅ 2026-09-27.
+   Lo siguiente sin bloqueos: **P6 (Receivables)**, que destraba el incremento 5 del portal, las cifras de cobranza
+   de Inicio y el ajuste de saldo de las notas y la anulación.

@@ -20,9 +20,22 @@ import type {
   ProductPatch,
   ProductQuery,
   Receivable,
+  ReceivablesSummary,
   StatusChange,
   TaxOption,
 } from './billing-types'
+import type {
+  BranchInput,
+  BranchPatch,
+  Invitation,
+  InvitationQuery,
+  Member,
+  MemberPatch,
+  MemberQuery,
+  NewInvitation,
+  OrganizationDetail,
+  OrganizationPatch,
+} from './admin-types'
 import type {
   AcceptedInvitation,
   CurrentUser,
@@ -96,6 +109,10 @@ export interface ReceivablesPort {
    * factura). Con el gateway rechaza; la columna muestra «No disponible» en vez de hacer una llamada por fila.
    */
   balancesByCustomer(customerIds: string[]): Promise<Record<string, Receivable[]>>
+  /** Pagos registrados, los más recientes primero (Inicio y pantalla 25). */
+  payments(query?: PageQuery): Promise<Page<Payment>>
+  /** Saldo abierto y vencido a la fecha de corte `asOf` (fecha de negocio), para Inicio. */
+  summary(asOf: string): Promise<ReceivablesSummary>
 }
 
 /**
@@ -110,13 +127,13 @@ export interface InvoicesPort {
   overview(id: string): Promise<InvoiceOverview>
   history(id: string): Promise<StatusChange[]>
   /**
-   * Anula una factura emitida con su motivo (`POST /v1/invoices/{id}/cancel` del contrato; Billing lo implementa en
-   * F5). La cuenta por cobrar la ajusta Receivables al recibir `InvoiceCancelled`, no el portal.
+   * Anula una factura emitida con su motivo (`POST /v1/invoices/{id}/cancel`, owner y admin). La cuenta por cobrar
+   * la ajusta Receivables al recibir `InvoiceCancelled`, no el portal.
    */
   cancel(id: string, reason: string, idempotencyKey: string): Promise<Invoice>
   /**
    * Crea un borrador (pantallas 13 y 16). La respuesta trae las líneas y los totales calculados por Billing: es lo
-   * único que el portal muestra como total. Las notas (`credit_note`, `debit_note`) responden 422 hasta F5.
+   * único que el portal muestra como total. Una nota lleva su factura (emitida, del mismo cliente y moneda) y motivo.
    */
   createDraft(input: InvoiceDraftInput, idempotencyKey: string): Promise<Invoice>
   /** Edita un borrador y recalcula (PATCH; `lines` presente las reemplaza). 409 si ya no es borrador. */
@@ -132,7 +149,35 @@ export interface InvoicesPort {
 
 /** Sucursales de la organización activa (Platform). El borrador las ofrece; la pantalla 29 las administra. */
 export interface BranchesPort {
-  list(query?: { active?: boolean }): Promise<Page<Branch>>
+  list(query?: PageQuery & { active?: boolean }): Promise<Page<Branch>>
+  /** 409 si el código ya existe en la organización. */
+  create(input: BranchInput, idempotencyKey: string): Promise<Branch>
+  update(id: string, patch: BranchPatch): Promise<Branch>
+}
+
+/** Organización activa (pantalla 28). Cualquier rol la lee; solo owner y admin la editan. */
+export interface OrganizationPort {
+  current(): Promise<OrganizationDetail>
+  update(patch: OrganizationPatch): Promise<OrganizationDetail>
+}
+
+/**
+ * Miembros de la organización activa (pantalla 30). Platform hace cumplir las reglas: solo un owner gestiona
+ * owners (403 `owner-required`) y nunca queda la organización sin owner activo (409 `last-owner`).
+ */
+export interface MembersPort {
+  list(query?: MemberQuery): Promise<Page<Member>>
+  update(userId: string, patch: MemberPatch): Promise<Member>
+}
+
+/**
+ * Invitaciones (pantalla 31). El token en claro solo viene en la primera respuesta de `create`; un reintento con
+ * la misma `Idempotency-Key` devuelve la misma invitación sin token. `revoke` es idempotente.
+ */
+export interface InvitationsPort {
+  list(query?: InvitationQuery): Promise<Page<Invitation>>
+  create(input: NewInvitation, idempotencyKey: string): Promise<Invitation>
+  revoke(id: string): Promise<void>
 }
 
 export interface NotificationsPort {
@@ -154,6 +199,9 @@ export interface DataSource {
   receivables: ReceivablesPort
   invoices: InvoicesPort
   branches: BranchesPort
+  organization: OrganizationPort
+  members: MembersPort
+  invitations: InvitationsPort
   notifications: NotificationsPort
   shell: ShellPort
 }

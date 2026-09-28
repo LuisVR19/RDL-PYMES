@@ -3,7 +3,7 @@
 openapi: 3.1.0
 info:
   title: Billing API
-  version: 0.9.1
+  version: 0.10.0
   description: Operación comercial de cada organización con sus clientes. La organización sale del token (org_id + membresía activa).
 servers:
   - url: http://localhost:8081
@@ -147,10 +147,12 @@ paths:
     post:
       tags: [invoices]
       operationId: createInvoice
-      summary: Crea un borrador con líneas opcionales. Solo documentType invoice (notas en F5). owner, admin, biller.
+      summary: Crea un borrador (factura o nota) con líneas opcionales. owner, admin, biller.
       description: >
         Cliente, sucursal y productos se validan contra la organización activa (de otra organización: 404; cliente
-        inactivo: 422 customer-inactive). El snapshot de cada línea y la tasa de sus impuestos salen del producto y del
+        inactivo: 422 customer-inactive). Una nota de crédito o débito exige referencedInvoiceId y referenceReason: la
+        factura debe estar emitida y ser del mismo cliente y moneda (inexistente, de otra organización, borrador, otra
+        nota u otro cliente: 422 invalid-reference; anulada: 409 invoice-not-issued; otra moneda: 422 validation). El snapshot de cada línea y la tasa de sus impuestos salen del producto y del
         catálogo fiscal.tax_rates, nunca del cuerpo. exchangeRate es 1 en la moneda local y obligatorio en otra.
       parameters:
         - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 255 } }
@@ -175,7 +177,9 @@ paths:
       tags: [invoices]
       operationId: updateInvoiceDraft
       summary: Edita el encabezado (y reemplaza las líneas si vienen). Solo en draft (409 invoice-not-draft). owner, admin, biller.
-      description: Campo ausente = no cambia; branchId o creditTermDays en null los quitan. Cambiar la moneda exige reenviar las líneas.
+      description: >
+        Campo ausente = no cambia; branchId o creditTermDays en null los quitan. Cambiar la moneda exige reenviar las
+        líneas. documentType y referencedInvoiceId no cambian (si vienen, iguales al documento); el motivo de una nota sí.
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/InvoiceDraftPatch' } } } }
       responses:
         '200': { description: Actualizado, content: { application/json: { schema: { $ref: '#/components/schemas/Invoice' } } } }
@@ -223,7 +227,32 @@ paths:
         '403': { $ref: '#/components/responses/Problem' }
         '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
-        '422': { $ref: '#/components/responses/Problem', description: 'invoice-without-lines, customer-inactive, validation, idempotency-key-reused' }
+        '422': { $ref: '#/components/responses/Problem', description: 'invoice-without-lines, customer-inactive, invalid-reference, validation, idempotency-key-reused' }
+  /v1/invoices/{id}/cancel:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [invoices]
+      operationId: cancelInvoice
+      summary: issued → cancelled con motivo. Historial, audit e InvoiceCancelled v1 en el outbox, en una transacción. owner, admin.
+      description: >
+        Solo una factura emitida (borrador o ya anulada: 409 invoice-not-issued; una nota: 409 conflict). No llama a
+        ningún servicio: Receivables ajusta la cuenta y fiscal decide la corrección ante Hacienda al consumir el
+        evento. La misma Idempotency-Key responde el mismo 200 (header Idempotent-Replayed).
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 255 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: false, required: [reason], properties: { reason: { type: string, minLength: 1, maxLength: 500 } } }
+      responses:
+        '200': { description: Anulada, content: { application/json: { schema: { $ref: '#/components/schemas/Invoice' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
   /v1/invoices/{id}/history:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
@@ -444,9 +473,11 @@ components:
       additionalProperties: false
       required: [documentType, customerId, saleConditionCode, currency]
       properties:
-        documentType: { type: string, enum: [invoice], description: 'credit_note y debit_note llegan en F5.' }
+        documentType: { type: string, enum: [invoice, credit_note, debit_note] }
         customerId: { type: string, format: uuid }
         branchId: { type: string, format: uuid }
+        referencedInvoiceId: { type: string, format: uuid, description: Obligatorio en las notas; prohibido en la factura. }
+        referenceReason: { type: string, minLength: 1, maxLength: 500, description: Obligatorio en las notas. }
         saleConditionCode: { $ref: '#/components/schemas/FiscalCode' }
         creditTermDays: { type: integer, minimum: 0, maximum: 3650 }
         currency: { type: string, pattern: '^[A-Z]{3}$' }
@@ -457,7 +488,9 @@ components:
       type: object
       additionalProperties: false
       properties:
-        documentType: { type: string, enum: [invoice] }
+        documentType: { type: string, enum: [invoice, credit_note, debit_note], description: Igual al del documento. }
+        referencedInvoiceId: { type: string, format: uuid, description: Igual al del documento. }
+        referenceReason: { type: string, maxLength: 500 }
         customerId: { type: string, format: uuid }
         branchId: { type: [string, 'null'], format: uuid }
         saleConditionCode: { $ref: '#/components/schemas/FiscalCode' }
@@ -507,6 +540,11 @@ components:
         status: { type: string, enum: [draft, issued, cancelled] }
         requiresCorrection: { type: boolean }
         fiscalRejectionReason: { type: string }
+        referencedInvoiceId: { type: string, format: uuid, description: Solo notas. }
+        referenceReason: { type: string, description: Solo notas. }
+        cancellationReason: { type: string, description: Solo anuladas. }
+        cancelledAt: { type: string, format: date-time, description: Solo anuladas. }
+        cancelledByUserId: { type: string, format: uuid, description: Solo anuladas. }
         customerId: { type: string, format: uuid }
         customerSnapshot: { type: object, description: 'CustomerSnapshot del contrato; solo desde la emisión.' }
         branchId: { type: string, format: uuid }

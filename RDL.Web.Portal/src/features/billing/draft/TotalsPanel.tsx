@@ -100,7 +100,7 @@ export function TotalsPanel({
       )}
       {primary}
       <Button variant="secondary" onClick={onSave} loading={busy} loadingLabel={t('draft.saving')}>
-        {t('invoice.saveDraft')} {saveShortcut && <Kbd>Ctrl S</Kbd>}
+        {t('invoice.saveDraft')} {saveShortcut && <Kbd hint>Ctrl S</Kbd>}
       </Button>
     </aside>
   )
