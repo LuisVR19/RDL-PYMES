@@ -4,6 +4,31 @@
 **Punto de corte:** los 10 incrementos del plan terminados y probados contra dev. Nada está commiteado todavía. Queda la
 lista de TODOs del final para revisar en equipo.
 
+## Dónde quedamos (sesión del 2026-09-25)
+
+**Hecho en la sesión:** incrementos 3 a 10 completos: dominio con tests de propiedades, migraciones 00003/00004
+aplicadas en dev, consumidor de los 4 eventos de Billing, pagos, aplicaciones, reversos y anulaciones, outbox,
+idempotencia, aging, cobranza, endpoint del BFF, `api/openapi.yaml`, ADR 0004 a 0008, suites de aislamiento y E2E en
+verde contra dev.
+
+**Estado del repo:**
+- Rama `develop`, **todo sin commitear** (muchos archivos nuevos: `cmd/consumer`, `cmd/replay`, `internal/app/*`,
+  `internal/domain/{aging,collection,payment,settlement,amount}`, `tests/`, `api/`, migraciones 00003/00004, ADRs).
+- Varios `.go` ya versionados aparecen como modificados solo por CRLF (sin cambio de contenido: `git diff` sale vacío).
+- El `.env` local tiene `ISOLATION_ORG_A/B` (organizaciones de prueba de Platform) para las suites.
+
+**Para retomar:**
+1. Verificar que todo sigue verde:
+   `go build ./... && go vet ./... && golangci-lint run --build-tags=integration ./... && go test ./... && go test -count=1 -tags=integration ./tests/...`
+   (en esta máquina no hay `make`: se corren los comandos del Makefile a mano).
+2. Commitear en una rama (por ejemplo `feature/receivables-v1`) y abrir el PR hacia `main`.
+3. Construir la imagen con Docker Desktop encendido: `docker build -f Dockerfile -t receivables-api:dev ..` (desde
+   este directorio; el contexto es el monorepo).
+4. Llevar al equipo la lista de TODOs del final (transporte P2, PRs a contratos, database-platform, decisiones).
+
+**Siguiente trabajo posible (fuera del plan V1):** adapter del transporte de eventos (`events.Source`) y publicador del
+outbox cuando P2 defina el broker; `.gitattributes` para el CRLF; probar con un JWT real de Supabase.
+
 ## Decisiones aprobadas (2026-09-24)
 
 Informe de brechas (ADR 0001), propuesta para `database-platform` (ADR 0002) y el plan completo (`docs/PLAN.md`),
