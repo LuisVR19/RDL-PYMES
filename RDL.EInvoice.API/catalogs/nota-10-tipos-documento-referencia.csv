@@ -1,0 +1,27 @@
+# tabla: reference_document_types
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 10, pág. 74. Sin las llamadas a pie de página (36 a 38).
+code,name
+01,Factura electrónica
+02,Nota de débito electrónica
+03,Nota de crédito electrónica
+04,Tiquete electrónico
+05,Nota de despacho
+06,Contrato
+07,Procedimiento
+08,Comprobante emitido en contingencia
+09,Devolución mercadería
+10,Comprobante electrónico rechazado por el Ministerio de Hacienda
+11,Sustituye factura rechazada por el Receptor del comprobante
+12,Sustituye Factura de exportación
+13,Facturación mes vencido
+14,Comprobante aportado por contribuyente de Régimen Especial.
+15,Sustituye una Factura electrónica de Compra
+16,Comprobante de Proveedor No Domiciliado
+17,Nota de Crédito a Factura Electrónica de Compra
+18,Nota de Débito a Factura Electrónica de Compra
+19,Factura Electrónica de Exportación
+20,Recibo Electrónico de Pago
+99,Otros

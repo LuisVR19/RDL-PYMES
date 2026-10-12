@@ -1,0 +1,174 @@
+# tabla: currencies
+# fuente: catalogos/Codigodemoneda_V4.4.pdf
+# fuente_sha256: 55d1e42c2f103fc1471d3f1083b954fe3a05012de7d6e224075f93ef9c6a9072
+# version: Codigodemoneda_V4.4 (hacienda.go.cr/docs, descargado 2026-10-12)
+# cita: Anexo 1, Notas 13 y 13.1 (pág. 76) remiten a este documento. Extraído con pdftotext -raw; un código por fila, con el primer nombre que trae.
+code,name
+AED,Dírham de los Emiratos Árabes Unidos
+AFN,Afghani
+ALL,Lek
+AMD,Dram armenio
+ANG,Florín antillano neerlandés
+AOA,Kwanza
+ARS,Peso Argentino
+AUD,Dólar australiano
+AWG,Florín arubeño
+AZN,Manat azerbaiyano
+BAM,Marco bosnioherzegovino
+BBD,Dólar de Barbados
+BDT,Taka
+BGN,Lev búlgaro
+BHD,Dinar de Bahrein
+BIF,Franco Burundi
+BMD,Dólar de Bermudas
+BND,Dólar de Brunei
+BOB,Boliviano
+BOV,Mvdol
+BRL,Real Brasileño
+BSD,Dólar de las Bahamas
+BTN,Ngultrum
+BWP,Pula
+BYR,Rublo bielorruso
+BZD,Dólar de Belice
+CAD,Dólar canadiense
+CDF,Franco congoleño
+CHE,Euro WIR
+CHF,Franco suizo
+CHW,Franco WIR
+CLF,Unidad de Fomento
+CLP,Peso chileno
+CNY,Yuan
+COP,Peso ColombianO
+COU,Unidad de Valor Real
+CRC,Colón costarricense
+CUC,Peso Convertible
+CUP,Peso Cubano
+CVE,Cabo Verde Escudo
+CZK,Corona checa
+DJF,Franco de Djibouti
+DKK,Corona danesa
+DOP,Peso Dominicano
+DZD,Dinar argelino
+EGP,Libra egipcia
+ERN,Nakfa
+ETB,Birr etíope
+EUR,Euro
+FJD,Dólar de Fiji
+FKP,Libra malvinense
+GBP,Libra esterlina
+GEL,Lari
+GHS,Cedi de Ghana
+GIP,Libra de Gibraltar
+GMD,Dalasi
+GNF,Franco guineano
+GTQ,Quetzal
+GYD,Dólar guyanés
+HKD,Dolar de Hong Kong
+HNL,Lempira
+HRK,CROAcIA Kuna
+HTG,Gourde
+HUF,Florín
+IDR,Rupia
+ILS,Nuevo Shekel Israelí
+INR,Rupia india
+IQD,Dinar iraquí
+IRR,Rial iraní
+ISK,Corona islandesa
+JMD,Dólar jamaiquino
+JOD,Dinar jordano
+JPY,Yen
+KES,Chelín keniano
+KGS,Som
+KHR,Riel
+KMF,Franco Comoro
+KPW,Won norcoreano
+KRW,Won
+KWD,Dinar kuwaití
+KYD,Dólar de las Islas Caimán
+KZT,Tenge
+LAK,Kip
+LBP,Libra libanesa
+LKR,Rupia de Sri Lanka
+LRD,Dólar liberiano
+LSL,Loti
+LYD,Dinar libio
+MAD,Dirham marroquí
+MDL,Leu moldavo
+MGA,Ariary malgache
+MKD,Denar
+MMK,Kyat
+MNT,Tugrik
+MOP,Pataca
+MRO,Ouguiya
+MUR,Rupia de Mauricio
+MVR,Rufiyaa
+MWK,Kwacha
+MXN,Peso MexicanO
+MXV,Unidad de Inversion Mexicana (UDI)
+MYR,Ringgit malayo
+MZN,Metical mozambiqueño
+NAD,Dólar de Namibia
+NGN,Naira
+NIO,Cordoba Oro
+NOK,Corona noruega
+NPR,Rupia nepalí
+NZD,Dólar neozelandés
+OMR,Rial omaní
+PAB,Balboa
+PEN,PERú Nuevo Sol
+PGK,Kina
+PHP,Peso filipino
+PKR,Rupia pakistaní
+PLN,Zloty
+PYG,Guaraní
+QAR,Riyal catarí
+RON,Leu rumano
+RSD,Dinar serbio
+RUB,Rublo ruso
+RWF,Franco ruandés
+SAR,Riyal saudí
+SBD,Dólar de las Islas Salomón
+SCR,Rupia seychelense
+SDG,Libra sudanesa
+SEK,Corona sueca
+SGD,Dolar de Singapur
+SHP,Libra de Santa Helena
+SLL,Leone
+SOS,Chelín somalí
+SRD,Dólar surinamés
+SSP,Libra sursudanesa
+STD,Dobra
+SVC,Colón
+SYP,Libra Siria
+SZL,Lilangeni
+THB,Baht
+TJS,Somoni
+TMT,Manat turcomano
+TND,Dinar tunecino
+TOP,Pa’anga
+TRY,Lira turca
+TTD,Dólar trinitense
+TWD,Nuevo dólar taiwanés
+TZS,Chelín tanzano
+UAH,Hryvnia
+UGX,Chelín ugandés
+USD,Dólar Americano
+USN,Dólar Americano (Next day)
+UYI,Uruguay Peso en Unidades Indexadas (URUIURUI)
+UYU,Peso Uruguayo
+UZS,Som uzbeko
+VEF,Bolívar
+VND,Dong
+VUV,Vatu
+WST,Tala
+XAF,Franco CFA BEAC
+XCD,Dólar del Caribe Oriental
+XDR,SDR (Derechos Especiales de Giro)
+XOF,Franco CFA BCEAO
+XPF,Franco CFP
+XSU,Sucre
+XUA,Unidad de cuenta del BAD
+YER,Rial yemení
+ZAR,Rand
+ZMW,Kwacha zambiano
+ZWL,Dólar zimbabuense

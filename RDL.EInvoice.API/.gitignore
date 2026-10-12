@@ -1,0 +1,11 @@
+/bin/
+/coverage.out
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+.e2e.local
+/.secrets/
+/.blobs/

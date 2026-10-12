@@ -1,0 +1,16 @@
+# tabla: tax_types
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 8, pág. 71. Sin la llamada a pie de página 28.
+code,name
+01,Impuesto al Valor Agregado
+02,Impuesto Selectivo de Consumo
+03,Impuesto Único a los Combustibles
+04,Impuesto específico de Bebidas Alcohólicas
+05,Impuesto Específico sobre las bebidas envasadas sin contenido alcohólico y jabones de tocador
+06,Impuesto a los Productos de Tabaco
+07,IVA (cálculo especial)
+08,IVA Régimen de Bienes Usados (Factor)
+12,Impuesto Específico al Cemento
+99,Otros

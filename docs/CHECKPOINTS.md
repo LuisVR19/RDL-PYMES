@@ -18,7 +18,7 @@ Leyenda: ✅ terminado y verificado · 🟡 hecho pero **sin verificar de punta 
 | P0 | `RDL.Contracts` v0.2.0 | ✅ | `contractsctl validate` + `lint` + tests |
 | P3 | `RDL.Platform.API` `:8080` | ✅ | Aislamiento 6/6 · E2E 69/69 contra dev |
 | P4 | `RDL.Billing.API` `:8081` | ✅ | F2, F3 y **F5** · `-race` · lint · aislamiento 6/6 · integración · E2E 33/33 contra dev (2026-09-27) |
-| P5 | `RDL.EInvoice.API` `:8082` | ⬜ | — |
+| P5 | `RDL.EInvoice.API` `:8082` | 🟡 | Paso 1 aprobado (2026-10-12) · incrementos 1–5 · integración 6/6 y aislamiento 5/5 contra dev; sigue el 6 (establecimientos, consecutivo y clave) |
 | P6 | `RDL.Receivables.API` `:8083` | 🟡 | 10 incrementos · aislamiento y E2E contra dev (2026-09-25) · saldos por lote (2026-09-28) **sin correr contra dev**; eventos sin transporte (P2) |
 | P7 | `RDL.Portal.Gateway` `:8090` | 🟡 | Incrementos 1–5 y 8 · aislamiento 10/10 y E2E 33/33 **contra Platform y Billing reales** (2026-09-27); 6 y 7 bloqueados |
 | P8b | `RDL.Web.Portal` `:5173` | 🟡 | Incr. 1–3 y 5–7 · 193 unit + 53 e2e · acceso, facturación, inicio y administración probados en vivo (2026-09-27); **cobranza sin probar en vivo** (2026-09-28) |
@@ -71,11 +71,32 @@ siguen siendo marcadores provisionales.
 - [ ] Decisiones de F5 para el equipo: misma moneda que la factura, tope de lo acreditado, anular con notas emitidas,
       anular notas, quién genera la nota ante Hacienda al anular (ver `RDL.Billing.API/docs/ESTADO.md`)
 
-### P5 · E-Invoice API — ⬜ no empezado
+### P5 · E-Invoice API — 🟡 Paso 1 aprobado, sin código (2026-10-12)
 
-- [ ] ⛔ Falta la documentación oficial de Hacienda. En `docs/Hacienda/` solo hay la presentación v4.4 y el
-      **borrador** de la resolución. Faltan: MH-DGT-RES-0027-2024 oficial, Anexos v4.4, XSD, catálogos en Excel,
-      doc del API, política de firma y el CABYS del BCCR
+- [x] Repo `RDL.EInvoice.API` creado con `docs/contexto` y `docs/hacienda` (anexos **oficiales** v4.4, borrador y presentación)
+- [x] **XSD 4.4 oficiales** descargados de `hacienda.go.cr/docs/` + `xmldsig-core-schema.xsd` (`docs/hacienda/xsd/README.md`)
+- [x] Informes 0001 (fuentes) y 0003 (mapeo) y **las 7 decisiones aprobadas** (`RDL.EInvoice.API/docs/PLAN.md`).
+      Anulación: Billing emite la NC código 01 (opción a). Rechazados: Billing crea la factura sustituta (TipoDocIR 10, código 16)
+- [x] Informe 0002 (base `fiscal`, vía MCP) redactado; **espera aprobación**: B1–B13, W1–W3, logins y lectura de `core`
+- [ ] ⚠️ Tras restaurar el proyecto dev, `platform_api`/`platform_migrate` dan «password authentication failed» en el pooler
+- [ ] ⛔ Falta de Hacienda: política de firma (PDF), padrón de actividades económicas, doc del API del sandbox, resolución
+      0027-2024 oficial; credenciales y `.p12` de pruebas (moneda, ubicación y CABYS ✅ 2026-10-12)
+- [x] **Incremento 1** ✅ verificado en dev (2026-10-12): esqueleto, config (solo sandbox), health, `cmd/migrate`, baseline 00001,
+      00002 (B1–B13, W1–W3), `scripts/dev/fiscal_login_roles.sql`, manifiesto sha256 de `docs/hacienda/`. Build, vet,
+      tests y lint en verde; **sin `-race`** (no hay `gcc` en el `PATH`)
+- [x] Logins `fiscal_api`/`fiscal_migrate` y lectura de `core` aplicados; baseline marcada y 00002 aplicada; `/readyz` 200
+- [x] **Incremento 2** (2026-10-12): JWT + TenantContext + `GET /v1/fiscal-profile`; aislamiento **4/4** contra dev;
+      sin probar con un JWT real de Supabase
+- [x] **Incremento 3** (2026-10-12): catálogos Notas 3, 4 y 6 cargados en dev; consumidor de `InvoiceIssued` →
+      documento en `processing`; rutas internas `by-source` (una y por lote); stub de Hacienda. Integración 2/2 contra
+      dev (criterio 3). Destraba la parte fiscal de la vista transversal del gateway (estado `processing`)
+- [x] **Incremento 4** (2026-10-12): `PUT /v1/fiscal-profile` (solo sandbox), credenciales de Hacienda y certificado
+      (.p12 RSA 2048/4096, vigencia) en un SecretStore cifrado ligado a la organización. Integración 4/4, aislamiento 5/5
+- [x] **Incremento 5** (2026-10-12): 13 catálogos del anexo (iguales a las enumeraciones del XSD), ubicación (492
+      distritos) y **CABYS 2025** del BCCR (20 506 códigos) cargados en dev; búsqueda y catálogos para formularios
+- [ ] Propuestas a contratos C1–C11 del informe 0003 (clave alfanumérica, `discountCode`, `referenceCode`, institución de la
+      exoneración codificada, ubicación del receptor, `replacesInvoiceId`…) — sin redactar todavía
+- [ ] Cambios en Billing y Receivables por las decisiones 2 y 3
 - [ ] Bloquea el módulo D del portal (4 pantallas) y la parte fiscal de la vista transversal
 
 ### P6 · Receivables API — 🟡 V1 completa, sin conectar al resto
@@ -157,7 +178,7 @@ siguen siendo marcadores provisionales.
 | 2 | ~~`GET /internal/v1/invoices/{id}/summary` en Billing~~ ✅ 2026-09-25 | — | — |
 | 3 | Aprobar las rutas por lote (propuestas sin publicar en contratos) | Listados sin N+1 → datos reales en la pantalla 12 | **Equipo (2 aprobaciones)** |
 | 4 | Adaptador `gateway/` en el portal | Quita los datos simulados de 24 pantallas | **Web Portal** |
-| 5 | Documentación oficial de Hacienda | Todo P5, y con él el módulo D | **Externo** |
+| 5 | Documentación de Hacienda que falta (anexos oficiales y XSD ✅; faltan política de firma, catálogos Excel, CABYS, API del sandbox) | Incrementos 4, 5, 8 y 9 de P5, y con ellos el módulo D | **Externo** |
 | 6 | Transporte de eventos — planning en [`planning-transporte-eventos.md`](planning-transporte-eventos.md) | Billing → Receivables sin `cmd/replay`, notificaciones, workers, E-Invoice | **P2 · decidir D1–D5** |
 | 7 | Almacenamiento del read model | Incremento 7 del gateway | **Luis** |
 | 8 | Tags de contratos | Quitar los `replace` de los `go.mod` y el Dockerfile especial de Billing | **Luis** |

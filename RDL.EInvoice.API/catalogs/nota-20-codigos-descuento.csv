@@ -1,0 +1,16 @@
+# tabla: discount_codes
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 20, pág. 81 (en el borrador era la Nota 19 y desde el 04 tenía otros significados: informe 0001 §2).
+code,name
+01,Descuento por Regalía
+02,Descuento por Regalía o Bonificación. IVA Cobrado al Cliente
+03,Descuento por Bonificación
+04,Descuento por volumen
+05,Descuento por Temporada (estacional)
+06,Descuento promocional
+07,Descuento Comercial
+08,Descuento por frecuencia
+09,Descuento sostenido
+99,Otros descuentos

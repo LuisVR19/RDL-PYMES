@@ -1,0 +1,16 @@
+# tabla: document_types
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 3 inciso c), pág. 66. Transcripción literal de la tabla; V1 emite 01, 02 y 03 (decisión 1).
+code,name
+01,Factura electrónica
+02,Nota de débito electrónica
+03,Nota de crédito electrónica
+04,Tiquete electrónico
+05,Confirmación de aceptación del comprobante electrónico
+06,Confirmación de aceptación parcial del comprobante electrónico
+07,Confirmación de rechazo del comprobante electrónico
+08,Factura electrónica de compras
+09,Factura electrónica de exportación
+10,Recibo Electrónico de Pago

@@ -1,0 +1,18 @@
+# tabla: exoneration_document_types
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 10.1, pág. 75. 01, 05, 06 y 07 solo en NC/ND. Sin las llamadas a pie de página (39 a 44).
+code,name
+01,Compras autorizadas por la Dirección General de Tributación
+02,Ventas exentas a diplomáticos
+03,Autorizado por Ley especial
+04,Exenciones Dirección General de Hacienda Autorización Local Genérica
+05,"Exenciones Dirección General de Hacienda Transitorio V (servicios de ingeniería, arquitectura, topografía obra civil)"
+06,Servicios turísticos inscritos ante el Instituto Costarricense de Turismo (ICT)
+07,"Transitorio XVII (Recolección, Clasificación, almacenamiento de Reciclaje y reutilizable)"
+08,Exoneración a Zona Franca
+09,Exoneración de servicios complementarios para la exportación articulo 11 RLIVA
+10,Órgano de las corporaciones municipales
+11,Exenciones Dirección General de Hacienda Autorización de Impuesto Local Concreta
+99,Otros

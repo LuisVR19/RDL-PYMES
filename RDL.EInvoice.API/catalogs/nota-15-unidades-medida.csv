@@ -1,0 +1,107 @@
+# tabla: units_of_measure
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 15, págs. 77–80. Símbolos SENSIBLES A MAYÚSCULAS (cm/Cm, h/H, s/S, t/T). Extraído con pdftotext -raw.
+code,name
+1,uno (índice de refracción)
+´,minuto
+´´,segundo
+°C,grado Celsius
+1/m,1 por metro
+A,Ampere
+A/m,ampere por metro
+A/m²,ampere por metro cuadrado
+Acv,Activo Virtual
+Al,Alquiler de uso habitacional
+Alc,Alquiler de uso comercial
+B,bel
+Bq,Becquerel
+C,coulomb
+C/kg,coulomb por kilogramo
+C/m²,coulomb por metro cuadrado
+C/m³,coulomb por metro cúbico
+Cc,Cajuela de café
+Cd,Candela
+cd/m²,candela por metro cuadrado
+Cm,Comisiones
+cm,centímetro
+Cu,cuartillos de café
+D,día
+eV,electronvolt
+F,farad
+F/m,farad por metro
+Fa,fanega de café
+G,Gramo
+Gal,Galón
+Gy,gray
+Gy/s,gray por segundo
+h,hora
+H,henry
+H/m,henry por metro
+Hz,hertz
+I,Intereses
+J,Joule
+J/(kg·K),joule por kilogramo kelvin
+J/(mol·K),joule por mol kelvin
+J/K,joule por kelvin
+J/kg,joule por kilogramo
+J/m³,joule por metro cúbico
+J/mol,joule por mol
+K,Kelvin
+Kat,katal
+kat/m³,katal por metro cúbico
+Kg,Kilogramo
+kg/m³,kilogramo por metro cúbico
+Km,Kilometro
+Kw,kilovatios
+kWh,Kilovatios por hora
+L,litro
+Lm,lumen
+Ln,pulgada
+Lx,lux
+M,Metro
+m/s,metro por segundo
+m/s²,metro por segundo cuadrado
+m²,metro cuadrado
+m³,metro cúbico
+Min,minuto
+mL,mililitro
+Mm,Milímetro
+Mol,Mol
+mol/m³,mol por metro cúbico
+N,newton
+N/m,newton por metro
+N·m,newton metro
+Np,neper
+º,grado
+Os,Otro tipo de servicio
+Otros,Se debe indicar la descripción de la medida a utilizar
+Oz,Onzas
+Pa,pascal
+Pa·s,pascal segundo
+Qq,Quintal
+Rad,radián
+rad/s,radián por segundo
+rad/s²,radián por segundo cuadrado
+S,Segundo
+s,siemens
+Sp,Servicios Profesionales
+Spe,Servicios personales
+Sr,estereorradián
+St,Servicios técnicos
+Sv,sievert
+t,tesla
+T,tonelada
+U,unidad de masa atómica unificada
+Ua,unidad astronómica
+Unid,Unidad
+V,volt
+V/m,volt por metro
+W,Watt
+W/(m·K),watt por metro kevin
+W/(m²·sr),watt por metro cuadrado estereorradián
+W/m²,watt por metro cuadrado
+W/sr,watt por estereorradián
+Wb,weber
+Ω,ohm

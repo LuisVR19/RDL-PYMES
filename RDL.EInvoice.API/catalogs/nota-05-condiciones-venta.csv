@@ -1,0 +1,22 @@
+# tabla: sale_conditions
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 5, pág. 70. requires_credit_term: PlazoCredito obligatorio con 02 y 10 (pág. 25). Sin las llamadas a pie de página (19 a 26).
+code,name,requires_credit_term
+01,Contado,false
+02,Crédito,true
+03,Consignación,false
+04,Apartado,false
+05,Arrendamiento con opción de compra,false
+06,Arrendamiento en función financiera,false
+07,Cobro a favor de un tercero,false
+08,Servicios prestados al Estado,false
+09,Pago de servicios prestado al Estado,false
+10,"Venta a crédito en IVA hasta 90 días (Artículo 27, LIVA)",true
+11,"Pago de venta a crédito en IVA hasta 90 días (Artículo 27, LIVA)",false
+12,Venta Mercancía No Nacionalizada,false
+13,Venta Bienes Usados No Contribuyente,false
+14,Arrendamiento Operativo,false
+15,Arrendamiento Financiero,false
+99,Otros (se debe indicar la condición de la venta en la representación gráfica),false

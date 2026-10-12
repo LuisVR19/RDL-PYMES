@@ -1,0 +1,23 @@
+# tabla: reference_codes
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 9, pág. 73. No existe el código 03 (igual en el borrador). 17 solo en REP (pie 35).
+code,name
+01,Anula Documento de Referencia
+02,Corrige monto
+04,Referencia a otro documento
+05,Sustituye comprobante provisional por contingencia.
+06,Devolución de mercancía
+07,Sustituye comprobante electrónico.
+08,Factura Endosada
+09,Nota de crédito financiera
+10,Nota de débito financiera
+11,Proveedor No Domiciliado
+12,Nota de crédito financiera por exoneración posterior a la facturación
+13,Anula documento de referencia por error material
+14,Corrige monto por error material
+15,Sustituye comprobante electrónico por error material
+16,Sustituye comprobante electrónico rechazado
+17,Pago a comprobante electrónico
+99,Otros

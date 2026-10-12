@@ -1,0 +1,288 @@
+# E-Invoice API (servicio fiscal): el contrato que implementa este repo. Parte del esqueleto de
+# RDL.Contracts/openapi/fiscal.yaml (mismas rutas, operationId y schemas) y crece con cada incremento (docs/PLAN.md §4).
+# Solo lista las operaciones que ya existen: un test compara este archivo con el router.
+#
+# Diferencias con el esqueleto de contratos, a subir por PR (TODO(contratos), docs/ESTADO.md):
+#   - FiscalProfile con los datos del contribuyente (identificación, nombre, correo, teléfono, ubicación con los
+#     códigos de la Nota 14) y haciendaCredentialsSet. El esqueleto solo tiene environment, economicActivityCode y
+#     certificateValidTo (TODO(fiscal) en contratos).
+#   - getFiscalCatalog con más catálogos (currencies, reference-codes, reference-document-types, discount-codes,
+#     exoneration-institutions, provinces, cantons, districts) y rate / requiresCreditTerm; searchCabys con taxLabel.
+#   - PUT /v1/fiscal-profile/hacienda-credentials (owner): usuario y contraseña del API de Hacienda (Anexo 3), que el
+#     esqueleto no tiene. Se guardan en el SecretStore.
+openapi: 3.1.0
+info:
+  title: E-Invoice API (fiscal)
+  version: 0.5.0
+  description: >
+    Cumplimiento fiscal y comunicación con Hacienda. Todo /v1 exige un JWT de Supabase con org_id y una membresía
+    activa (el tenant sale solo del token). Errores en Problem Details con type urn:rdl:fiscal:problem:<código>
+    (RDL.Contracts/problems/fiscal.yaml).
+servers:
+  - url: http://localhost:8082
+security:
+  - bearerAuth: []
+tags:
+  - { name: configuration, description: Configuración fiscal de la organización }
+  - { name: catalogs, description: Catálogos fiscales (CABYS y los de Hacienda) }
+  - { name: internal, description: Para el BFF (mismo JWT del usuario; RDL.Contracts/openapi/bff-internal.yaml) }
+
+paths:
+  /v1/fiscal-profile:
+    get:
+      tags: [configuration]
+      operationId: getFiscalProfile
+      summary: Perfil de contribuyente y ambiente (sandbox o producción). owner, admin, accountant.
+      description: >
+        404 si la organización todavía no configuró su perfil. Nunca devuelve secretos: de las credenciales de
+        Hacienda solo dice si están configuradas, y del certificado solo su vencimiento.
+      responses:
+        '200': { description: Perfil, content: { application/json: { schema: { $ref: '#/components/schemas/FiscalProfile' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    put:
+      tags: [configuration]
+      operationId: putFiscalProfile
+      summary: Configura el perfil del contribuyente. owner, admin.
+      description: >
+        Valida el formato del nodo Emisor del Anexo 1 (identificación por tipo, pág. 20; nombre, correo y ubicación,
+        págs. 19–22) y que los códigos existan en sus catálogos. environment solo admite sandbox en V1 (production
+        → 422). La actividad económica indicada queda como la principal.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/FiscalProfileInput' } } }
+      responses:
+        '200': { description: Perfil guardado, content: { application/json: { schema: { $ref: '#/components/schemas/FiscalProfile' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /v1/fiscal-profile/hacienda-credentials:
+    put:
+      tags: [configuration]
+      operationId: putHaciendaCredentials
+      summary: Usuario y contraseña del API de Hacienda (generados en ATV). owner.
+      description: Se guardan cifrados en el SecretStore; nunca se devuelven. Exige el perfil configurado (409).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [username, password]
+              properties:
+                username: { type: string, maxLength: 160, writeOnly: true }
+                password: { type: string, maxLength: 512, writeOnly: true }
+      responses:
+        '204': { description: Credenciales guardadas }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /v1/fiscal-profile/certificate:
+    put:
+      tags: [configuration]
+      operationId: uploadCertificate
+      summary: Sube el certificado de firma (.p12 y su PIN). owner.
+      description: >
+        Abre el .p12 con el PIN, exige RSA 2048 o 4096 (Anexo 2) y vigencia, y lo deja como el único certificado
+        activo. Archivo y PIN van cifrados al SecretStore, nunca a la base, logs ni respuestas. PIN incorrecto o
+        archivo inválido → 422 certificate-invalid (no se distinguen); vencido → 422 certificate-expired.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [certificate, pin]
+              properties:
+                certificate: { type: string, contentMediaType: application/x-pkcs12, description: Máximo 64 KiB }
+                pin: { type: string, writeOnly: true }
+      responses:
+        '204': { description: Certificado guardado }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+
+  /v1/catalogs/cabys:
+    get:
+      tags: [catalogs]
+      operationId: searchCabys
+      summary: Búsqueda en la versión vigente del CABYS (BCCR 2025). Todos los roles.
+      description: >
+        q solo con dígitos busca por prefijo del código; con texto, en la descripción. taxRate en puntos porcentuales;
+        cuando el BCCR no trae tarifa, taxLabel trae su texto («Exento», «na»).
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: Coincidencias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [code, description]
+                  properties:
+                    code: { type: string, pattern: '^[0-9]{13}$' }
+                    description: { type: string }
+                    taxRate: { type: string, description: Puntos porcentuales (13 = 13 %) }
+                    taxLabel: { type: string, enum: [Exento, na] }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /v1/catalogs/{catalog}:
+    parameters:
+      - name: catalog
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [identification-types, tax-types, tax-rates, units-of-measure, sale-conditions, payment-methods,
+                 exoneration-document-types, document-types, currencies, reference-codes, reference-document-types,
+                 discount-codes, exoneration-institutions, provinces, cantons, districts]
+      - { name: provinceCode, in: query, schema: { type: string, pattern: '^[0-9]$' }, description: 'Obligatorio en cantons y districts.' }
+      - { name: cantonCode, in: query, schema: { type: string, pattern: '^[0-9]{2}$' }, description: 'Obligatorio en districts.' }
+    get:
+      tags: [catalogs]
+      operationId: getFiscalCatalog
+      summary: Catálogo fiscal para formularios (Notas del Anexo 1, moneda y ubicación de Hacienda). Todos los roles.
+      responses:
+        '200':
+          description: Códigos activos, ordenados por código
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [code, name]
+                  properties:
+                    code: { type: string }
+                    name: { type: string }
+                    rate: { type: string, description: 'Solo tax-rates: puntos porcentuales.' }
+                    requiresCreditTerm: { type: boolean, description: 'Solo sale-conditions: PlazoCredito obligatorio.' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+
+  /internal/v1/electronic-documents/by-source/{sourceDocumentId}:
+    parameters:
+      - { name: sourceDocumentId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [internal]
+      operationId: getFiscalStatusBySource
+      summary: Estado fiscal del documento electrónico de una factura o nota. Todos los roles.
+      responses:
+        '200': { description: Estado fiscal, content: { application/json: { schema: { $ref: '#/components/schemas/FiscalStatus' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /internal/v1/electronic-documents/by-source:
+    post:
+      tags: [internal]
+      operationId: getFiscalStatusesBySource
+      summary: >
+        Estado fiscal de varias facturas o notas a la vez (listados del BFF, sin N+1). Omite las que no tienen
+        documento o son de otra organización. Ruta por lote de la propuesta sin publicar de contratos (v0.3.0).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [ids]
+              properties:
+                ids: { type: array, minItems: 1, maxItems: 100, uniqueItems: true, items: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: Estados de los documentos que existen en la organización activa, en cualquier orden.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    maxItems: 100
+                    items:
+                      allOf: [{ $ref: '#/components/schemas/FiscalStatus' }]
+                      required: [sourceDocumentId]
+                      properties: { sourceDocumentId: { type: string, format: uuid } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    Problem:
+      description: Problem Details (RFC 9457)
+      content:
+        application/problem+json:
+          schema: { $ref: '../../RDL.Contracts/openapi/components/common.yaml#/components/schemas/Problem' }
+  schemas:
+    FiscalStatus:
+      type: object
+      required: [electronicDocumentId, status]
+      properties:
+        electronicDocumentId: { type: string, format: uuid }
+        status: { type: string, enum: [processing, signed, sent, accepted, rejected, contingency, error] }
+        haciendaStatusMessage: { type: string }
+    FiscalProfileInput:
+      type: object
+      additionalProperties: false
+      required: [environment, identification, legalName, email]
+      properties:
+        environment: { type: string, enum: [sandbox, production], description: 'production → 422 en V1.' }
+        identification: { $ref: '#/components/schemas/FiscalProfile/properties/identification' }
+        legalName: { type: string, minLength: 5, maxLength: 100 }
+        tradeName: { type: string, minLength: 3, maxLength: 80 }
+        email: { type: string, maxLength: 160 }
+        phone: { type: string, pattern: '^[0-9]{8,20}$' }
+        location: { $ref: '#/components/schemas/FiscalProfile/properties/location' }
+        economicActivityCode: { type: string, pattern: '^[0-9A-Za-z]{6}$' }
+    FiscalProfile:
+      type: object
+      additionalProperties: false
+      required: [environment, identification, legalName, email, haciendaCredentialsSet, updatedAt]
+      properties:
+        environment: { type: string, enum: [sandbox, production] }
+        identification:
+          type: object
+          required: [typeCode, number]
+          properties:
+            typeCode: { type: string, description: 'Nota 4 del Anexo 1 (fiscal.identification_types).' }
+            number: { type: string, maxLength: 20 }
+        legalName: { type: string, maxLength: 100 }
+        tradeName: { type: string, maxLength: 80 }
+        email: { type: string, format: email, maxLength: 160 }
+        phone: { type: string }
+        location:
+          type: object
+          description: Ubicación del emisor (Nota 14). Los tres códigos van juntos.
+          required: [provinceCode, cantonCode, districtCode]
+          properties:
+            provinceCode: { type: string, pattern: '^[0-9]$' }
+            cantonCode: { type: string, pattern: '^[0-9]{2}$' }
+            districtCode: { type: string, pattern: '^[0-9]{2}$' }
+            addressDetails: { type: string, maxLength: 250 }
+        economicActivityCode: { type: string, pattern: '^[0-9A-Za-z]{6}$', description: Actividad principal (padrón del RUT). }
+        haciendaCredentialsSet: { type: boolean }
+        certificateValidTo: { type: string, format: date-time, description: Vencimiento del certificado activo (UTC). }
+        updatedAt: { type: string, format: date-time }

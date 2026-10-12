@@ -1,0 +1,17 @@
+# tabla: tax_rates
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 8.1, pág. 72. rate en puntos porcentuales; 10 (exenta) e impuesto con monto 0 (pág. 42). 05, 06 y 07 solo en NC/ND (pies 30 a 32).
+code,name,rate
+01,"Tarifa 0% (Artículo 32, num 1, RLIVA)",0
+02,Tarifa reducida 1%,1
+03,Tarifa reducida 2%,2
+04,Tarifa reducida 4%,4
+05,Transitorio 0%,0
+06,Transitorio 4%,4
+07,Tarifa transitoria 8%,8
+08,Tarifa general 13%,13
+09,Tarifa reducida 0.5%,0.5
+10,Tarifa Exenta,0
+11,Tarifa 0% sin derecho a crédito,0

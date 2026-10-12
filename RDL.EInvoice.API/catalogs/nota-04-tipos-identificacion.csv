@@ -1,0 +1,12 @@
+# tabla: identification_types
+# fuente: ANEXOS_Y_ESTRUCTURAS_V4.4.pdf
+# fuente_sha256: 6e093226b29b38c5c8de825f70c1b1cb8ed81e2f4a6eb0b3ff52708fc1eb2769
+# version: 4.4 (bitácora al 22/04/2026)
+# cita: Anexo 1, Nota 4, pág. 69. 05 y 06 solo en los casos de sus pies 17 y 18 (FEC, receptor con condición 12).
+code,name
+01,Cédula Física
+02,Cédula Jurídica
+03,DIMEX
+04,NITE
+05,Extranjero No Domiciliado
+06,No Contribuyente

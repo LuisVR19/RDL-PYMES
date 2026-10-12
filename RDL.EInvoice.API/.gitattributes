@@ -1,0 +1,2 @@
+# Las fuentes de Hacienda se guardan byte a byte: un cambio de fin de línea rompería su sha256 (docs/hacienda/manifest.sha256).
+docs/hacienda/** -text
